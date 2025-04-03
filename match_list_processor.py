@@ -97,19 +97,292 @@ def save_current_matches_raw_json(raw_json_string):
         logging.error(f"Error saving current matches as raw JSON to {PREVIOUS_MATCHES_JSON_FILE}: {e}")
 
 
-def extract_referee_names(match_details):
-    """
-    Extracts a list of referee names from match details.
-    """
+def extract_referee_names(match):
+    """Extract referee names from a match object."""
     referee_names = []
-    domaruppdraglista = match_details.get('domaruppdraglista', [])
-    for uppdrag in domaruppdraglista:
-        referee_name = uppdrag.get('personnamn')
+    for referee in match.get('domaruppdraglista', []):
+        referee_name = referee.get('personnamn', '') or referee.get('namn', '')
         if referee_name:
             referee_names.append(referee_name)
     return referee_names
 
 
+# Example match JSON structure for reference:
+"""
+{
+    "__type": "Svenskfotboll.Fogis.Web.FogisMobilDomarKlient.MatchJSON",
+    "value": "000024032",
+    "label": "000024032: IK Kongahälla - Motala AIF FK (Div 2 Norra Götaland, herr 2025), 2025-04-26 14:00",
+    "matchid": 6169105,
+    "matchnr": "000024032",
+    "lag1namn": "IK Kongahälla",
+    "lag2namn": "Motala AIF FK",
+    "speldatum": "2025-04-26",
+    "avsparkstid": "14:00",
+    "domaruppdraglista": [
+        {
+            "domaruppdragid": 6847166,
+            "domarrollnamn": "Huvuddomare",
+            "personnamn": "Bartek Svaberg",
+            "namn": "Bartek Svaberg"
+        },
+        {
+            "domaruppdragid": 6847167,
+            "domarrollnamn": "Assisterande 1",
+            "personnamn": "Aleksander Gavrilovic",
+            "namn": "Aleksander Gavrilovic"
+        },
+        {
+            "domaruppdragid": 6847168,
+            "domarrollnamn": "Assisterande 2",
+            "personnamn": "Zakaria Hersi",
+            "namn": "Zakaria Hersi"
+        }
+    ]
+}
+"""
+
+
+def save_description_to_file(description_text, match_id):
+    """Save description text to a temporary file."""
+    description_filename = f"whatsapp_group_description_match_{match_id}.txt"
+    temp_description_filepath = f"/tmp/{description_filename}"
+    try:
+        with open(temp_description_filepath, 'w', encoding='utf-8') as description_file:
+            description_file.write(description_text)
+        logging.info(f"  Description text saved to temporary file: {temp_description_filepath}")
+        return temp_description_filepath
+    except Exception as save_error:
+        logging.error(f"  Error saving description text to {temp_description_filepath}: {save_error}")
+        logging.debug(f"  File saving FAILED with error for: {temp_description_filepath}")
+        return None
+
+
+def create_and_save_avatar(match_id, team1_id, team2_id):
+    """Create and save avatar image for a match."""
+    avatar_service_url = "http://whatsapp-avatar-service:5002/create_avatar"
+    team_ids_payload = {
+        "team1_id": str(team1_id),
+        "team2_id": str(team2_id)
+    }
+    logging.info(f"Calling whatsapp-avatar-service to create avatar for match {match_id}...")
+    try:
+        avatar_response = requests.post(avatar_service_url, json=team_ids_payload, stream=True)
+        avatar_response.raise_for_status()
+
+        if avatar_response.headers['Content-Type'] == 'image/png':
+            avatar_image_data = avatar_response.content
+            logging.debug(f"  Avatar image data length: {len(avatar_image_data)} bytes")
+            avatar_filename = f"whatsapp_group_avatar_match_{match_id}.png"
+            temp_avatar_filepath = f"/tmp/{avatar_filename}"
+
+            try:
+                with open(temp_avatar_filepath, 'wb') as avatar_file:
+                    avatar_file.write(avatar_image_data)
+                logging.info(f"  Avatar image downloaded and saved to: {temp_avatar_filepath}")
+                logging.debug(f"  File saving completed WITHOUT errors for: {temp_avatar_filepath}")
+                return temp_avatar_filepath, avatar_filename
+            except Exception as save_error:
+                logging.error(f"  Error saving avatar image to {temp_avatar_filepath}: {save_error}")
+                logging.debug(f"  File saving FAILED with error for: {temp_avatar_filepath}")
+                return None, None
+        else:
+            logging.error(
+                f"  Unexpected Content-Type from whatsapp-avatar-service: {avatar_response.headers['Content-Type']}")
+            logging.error(f"  Response content: {avatar_response.text[:100]}...")
+            return None, None
+    except requests.exceptions.RequestException as e:
+        logging.error(f"  Error calling whatsapp-avatar-service: {e}")
+        return None, None
+
+
+def upload_to_gdrive(file_path, file_name, folder_path, mime_type):
+    """Upload a file to Google Drive."""
+    gdrive_service_base_url = "http://google-drive-service:5000"
+    gdrive_upload_url = f"{gdrive_service_base_url}/upload_file"
+
+    try:
+        with open(file_path, 'rb') as file_obj:
+            files = {'file': (file_name, file_obj, mime_type)}
+            data = {'folder_path': folder_path}
+            response = requests.post(gdrive_upload_url, files=files, data=data)
+            response.raise_for_status()
+            result = response.json()
+            if result.get('status') == 'success':
+                file_url = result.get('file_url')
+                logging.info(f"  File uploaded to Google Drive. URL: {file_url}")
+                return file_url
+            else:
+                logging.error(
+                    f"  Google Drive upload FAILED. Status: {result.get('status')}, Message: {result.get('message')}")
+                return None
+    except requests.exceptions.RequestException as e:
+        logging.error(f"  Request error uploading to Google Drive: {e}")
+        return None
+    except Exception as e:
+        logging.error(f"  Error uploading to Google Drive: {e}")
+        return None
+
+
+def save_group_info_to_file(match_data, match_id):
+    """Save group name and referee names to a file."""
+    team1_name = match_data.get('lag1namn', 'Team 1')
+    team2_name = match_data.get('lag2namn', 'Team 2')
+    group_name = f"{team1_name} - {team2_name}"
+
+    # Get match details
+    match_date = match_data.get('speldatum', '')
+    match_time = match_data.get('avsparkstid', '')
+    match_number = match_data.get('matchnr', '')
+    competition = match_data.get('tavlingnamn', '')
+    venue = match_data.get('anlaggningnamn', '')
+
+    # Create content
+    group_info_content = f"Group Name: {group_name}\n"
+    group_info_content += f"Match: {match_number}\n"
+    group_info_content += f"Competition: {competition}\n"
+    group_info_content += f"Date & Time: {match_date} {match_time}\n"
+    group_info_content += f"Venue: {venue}\n\n"
+
+    # Add referee information with roles
+    group_info_content += "Referees:\n"
+    for referee in match_data.get('domaruppdraglista', []):
+        name = referee.get('personnamn', '') or referee.get('namn', '')
+        role = referee.get('domarrollnamn', '')
+        if name:
+            group_info_content += f"- {name} ({role})\n"
+
+    group_info_filename = f"whatsapp_group_info_match_{match_id}.txt"
+    temp_group_info_filepath = f"/tmp/{group_info_filename}"
+
+    try:
+        with open(temp_group_info_filepath, 'w', encoding='utf-8') as group_info_file:
+            group_info_file.write(group_info_content)
+        logging.info(f"  Group info saved to temporary file: {temp_group_info_filepath}")
+        return temp_group_info_filepath, group_info_filename
+    except Exception as save_error:
+        logging.error(f"  Error saving group info to {temp_group_info_filepath}: {save_error}")
+        logging.debug(f"  File saving FAILED with error for: {temp_group_info_filepath}")
+        return None, None
+
+
+def process_match(match_data, match_id_param, is_new=True):
+    """Process a match (new or modified)."""
+    # Log match details
+    action_type = "New" if is_new else "Modified"
+    logging.info(
+        f"  - {action_type} Match ID: {match_id_param}, Teams: {match_data['lag1namn']} vs {match_data['lag2namn']}, Date: {match_data['speldatum']}, Time: {match_data['avsparkstid']}")
+
+    # If modified, we can get the previous match data from the global previous_matches dictionary
+    if not is_new:
+        prev_match_data = previous_matches.get(match_id_param)
+        if prev_match_data:
+            modified_fields = []
+            if prev_match_data['tid'] != match_data['tid']:
+                modified_fields.append(
+                    f"Date/Time changed from {prev_match_data['tidsangivelse']} to {match_data['tidsangivelse']}")
+            if prev_match_data['lag1lagid'] != match_data['lag1lagid']:
+                modified_fields.append(
+                    f"Home Team changed from ID {prev_match_data['lag1lagid']} to {match_data['lag1lagid']}")
+            if prev_match_data['lag2lagid'] != match_data['lag2lagid']:
+                modified_fields.append(
+                    f"Away Team changed from ID {prev_match_data['lag2lagid']} to {match_data['lag2lagid']}")
+            if prev_match_data['anlaggningid'] != match_data['anlaggningid']:
+                modified_fields.append(
+                    f"Venue changed from ID {prev_match_data['anlaggningid']} to {match_data['anlaggningid']}")
+
+            # Check referee changes
+            prev_match_referees = prev_match_data.get('domaruppdraglista', [])
+            curr_match_referees = match_data.get('domaruppdraglista', [])
+            if len(prev_match_referees) != len(curr_match_referees):
+                modified_fields.append(f"Referee team assignments changed (number of referees changed)")
+            else:
+                # Check if any referee has changed
+                prev_match_ref_ids = {ref.get('domarid') for ref in prev_match_referees}
+                curr_match_ref_ids = {ref.get('domarid') for ref in curr_match_referees}
+                if prev_match_ref_ids != curr_match_ref_ids:
+                    modified_fields.append(f"Referee team assignments changed (different referees)")
+
+            for field_change in modified_fields:
+                logging.info(f"    - {field_change}")
+
+    # Check number of referees. Skip WhatsApp actions if only one or zero referees
+    domaruppdraglista = match_data.get('domaruppdraglista', [])
+    if len(domaruppdraglista) < 2:
+        logging.info(f"  Match ID {match_id_param} has less than 2 referees. Skipping WhatsApp group creation/update.")
+        return
+
+    # Generate WhatsApp group description
+    description_text = create_group_description.generate_whatsapp_description(match_data)
+    logging.info(f"  Generated WhatsApp group description:\n{description_text}")
+
+    # Save description to temporary file
+    temp_description_filepath = save_description_to_file(description_text, match_id_param)
+    if not temp_description_filepath:
+        return  # Skip if saving failed
+
+    # Save group info (group name and referee names) to temporary file
+    temp_group_info_filepath, group_info_filename = save_group_info_to_file(match_data, match_id_param)
+    if not temp_group_info_filepath:
+        return  # Skip if saving failed
+
+    # Extract referee names
+    referee_names_list = extract_referee_names(match_data)
+    logging.info(f"  Extracted referee names: {referee_names_list}")
+
+    # Format match date for folder structure
+    match_date_formatted = match_data.get('speldatum', '')  # Keep original format with hyphens (YYYY-MM-DD)
+    safe_label = f"{match_id_param}_{match_data['lag1namn'].replace(' ', '_')}_{match_data['lag2namn'].replace(' ', '_')}"
+    logging.info(f"  Formatted match date: {match_date_formatted}, Safe label: {safe_label}")
+
+    # Create and save avatar
+    temp_avatar_filepath, avatar_filename = create_and_save_avatar(
+        match_id_param,
+        match_data.get('lag1foreningid'),
+        match_data.get('lag2foreningid')
+    )
+    if not temp_avatar_filepath:
+        return  # Skip if avatar creation failed
+
+    # Test connection to Google Drive service
+    if not test_gdrive_connection():
+        return  # Skip if connection test failed
+
+    # Google Drive folder path
+    gdrive_folder_path = f"WhatsApp_Group_Assets/{match_date_formatted}/Match_{safe_label}"
+
+    # Upload description file to Google Drive
+    description_filename_gd = f"whatsapp_group_description_match_{match_id_param}.txt"
+    description_url = upload_to_gdrive(
+        temp_description_filepath,
+        description_filename_gd,
+        gdrive_folder_path,
+        'text/plain'
+    )
+
+    # Upload group info file to Google Drive
+    group_info_url = upload_to_gdrive(
+        temp_group_info_filepath,
+        group_info_filename,
+        gdrive_folder_path,
+        'text/plain'
+    )
+
+    # Upload avatar file to Google Drive
+    avatar_url = upload_to_gdrive(
+        temp_avatar_filepath,
+        avatar_filename,
+        gdrive_folder_path,
+        'image/png'
+    )
+
+    # Here you could add code to create or update WhatsApp groups
+    # For example, call a WhatsApp service to create/update groups
+
+    return description_url, group_info_url, avatar_url
+
+
+# Main execution block
 if __name__ == "__main__":
     logging.basicConfig(level=logging.DEBUG, format='%(asctime)s - %(levelname)s - %(message)s')
     logging.info("Starting process_matches.py...")
@@ -124,12 +397,10 @@ if __name__ == "__main__":
     # Instantiate API client and fetch current matches list
     api_client = DockerNetworkApiClient()
     logging.info("\n--- Fetching Current Matches List ---")
-    current_matches_list_response = api_client.fetch_matches_list()  # Get response (parsed JSON - list or dict)
-    logging.debug(
-        f"Type of current_matches_list_response from API Client: {type(current_matches_list_response)}")  # Log the type of the response
-    current_matches_list_raw_json_string = json.dumps(current_matches_list_response,
-                                                      ensure_ascii=False)  # Convert to JSON string for saving
-    current_matches_list = current_matches_list_response  # Use the parsed JSON directly as list
+    current_matches_list_response = api_client.fetch_matches_list()
+    logging.debug(f"Type of current_matches_list_response from API Client: {type(current_matches_list_response)}")
+    current_matches_list_raw_json_string = json.dumps(current_matches_list_response, ensure_ascii=False)
+    current_matches_list = current_matches_list_response
 
     logging.info(f"Fetched current matches list: {len(current_matches_list)} matches.")
 
@@ -142,7 +413,7 @@ if __name__ == "__main__":
             time.sleep(60)
         exit()
 
-    # --- Convert BOTH previous and current match lists to dictionaries for comparison ---
+    # Convert BOTH previous and current match lists to dictionaries for comparison
     previous_matches = {int(match['matchid']): match for match in previous_matches_list}
     current_matches = {int(match['matchid']): match for match in current_matches_list}
     logging.debug(f"Keys of current_matches dictionary: {list(current_matches.keys())}")
@@ -157,215 +428,65 @@ if __name__ == "__main__":
     removed_match_ids = previous_match_ids - current_match_ids
     common_match_ids = current_match_ids.intersection(previous_match_ids)
 
+    # Process new matches
     if new_match_ids:
         logging.info(f"Detected NEW matches: {len(new_match_ids)}")
-        for match_id in new_match_ids:
-            new_match = current_matches[match_id]
-            logging.info(
-                f"  - New Match ID: {match_id}, Teams: {new_match['lag1namn']} vs {new_match['lag2namn']}, Date: {new_match['speldatum']}, Time: {new_match['avsparkstid']}")
+        for current_match_id in new_match_ids:
+            new_match_data = current_matches[current_match_id]
+            process_match(new_match_data, current_match_id, is_new=True)
+    else:
+        logging.info("No new matches detected.")
 
-            # --- Check number of referees. Skip WhatsApp actions if only one or zero referees ---
-            domaruppdraglista = new_match.get('domaruppdraglista', [])
-            if len(domaruppdraglista) < 2:
-                logging.info(f"  Match ID {match_id} has less than 2 referees. Skipping WhatsApp group creation.")
-                continue  # Skip to the next match
-
-            # --- Generate WhatsApp group description ---
-            description_text = create_group_description.generate_whatsapp_description(new_match)
-            logging.info(f"  Generated WhatsApp group description:\n{description_text}")
-
-            # --- Save description to temporary file ---
-            description_filename = f"whatsapp_group_description_match_{match_id}.txt"
-            temp_description_filepath = f"/tmp/{description_filename}"
-            try:
-                with open(temp_description_filepath, 'w', encoding='utf-8') as description_file:
-                    description_file.write(description_text)
-                logging.info(f"  Description text saved to temporary file: {temp_description_filepath}")
-            except Exception as save_error:
-                logging.error(f"  Error saving description text to {temp_description_filepath}: {save_error}")
-                logging.debug(f"  File saving FAILED with error for: {temp_description_filepath}")
-                continue  # Skip to next match if we can't save the description file
-
-            # --- Extract Referee Names ---
-            referee_names_list = extract_referee_names(new_match)
-            logging.info(f"  Extracted referee names: {referee_names_list}")
-
-            # --- Format match date for folder structure ---
-            match_date_formatted = new_match.get('speldatum', '')  # Keep original format with hyphens (YYYY-MM-DD)
-            safe_label = f"{match_id}_{new_match['lag1namn'].replace(' ', '_')}_{new_match['lag2namn'].replace(' ', '_')}"
-            logging.info(f"  Formatted match date: {match_date_formatted}, Safe label: {safe_label}")
-
-            avatar_service_url = "http://whatsapp-avatar-service:5002/create_avatar"  # <--- Use your service URL
-            team_ids_payload = {
-                "team1_id": str(new_match.get('lag1foreningid')),  # Extract team 1 ID, convert to string
-                "team2_id": str(new_match.get('lag2foreningid'))  # Extract team 2 ID, convert to string
-            }
-            logging.info(f"Calling whatsapp-avatar-service to create avatar for match {match_id}...")
-            try:
-                avatar_response = requests.post(avatar_service_url, json=team_ids_payload,
-                                                stream=True)  # stream=True for image data
-                avatar_response.raise_for_status()  # Raise HTTPError for bad responses
-
-                if avatar_response.headers['Content-Type'] == 'image/png':  # Check content type is image/png
-                    avatar_image_data = avatar_response.content  # Get image binary data
-                    logging.debug(f"  Avatar image data length: {len(avatar_image_data)} bytes")
-                    avatar_filename = f"whatsapp_group_avatar_match_{match_id}.png"  # Consistent filename
-                    temp_avatar_filepath = f"/tmp/{avatar_filename}"  # Temporary file path in /tmp
-
-                    try:
-                        with open(temp_avatar_filepath, 'wb') as avatar_file:
-                            avatar_file.write(avatar_image_data)
-                        logging.info(f"  Avatar image downloaded and saved to: {temp_avatar_filepath}")
-                        logging.debug(f"  File saving completed WITHOUT errors for: {temp_avatar_filepath}")
-                    except Exception as save_error:
-                        logging.error(f"  Error saving avatar image to {temp_avatar_filepath}: {save_error}")
-                        logging.debug(f"  File saving FAILED with error for: {temp_avatar_filepath}")
-
-                    logging.debug(f"  Contents of /tmp folder AFTER avatar save attempt: {os.listdir('/tmp')}")
-
-                    # --- Google Drive Folder Path ---
-                    gdrive_folder_path = f"WhatsApp_Group_Assets/{match_date_formatted}/Match_{safe_label}"  # Google Drive folder path
-
-                    # --- Test connection to Google Drive service before attempting operations ---
-                    gdrive_service_base_url = "http://google-drive-service:5000"  # Use internal port 5000 for container-to-container communication
-                    logging.info(f"Testing connection to Google Drive service at {gdrive_service_base_url}...")
-                    try:
-                        # Try a simple GET request to check if service is reachable
-                        test_response = requests.get(f"{gdrive_service_base_url}/health", timeout=5)
-                        logging.info(f"Google Drive service connection test result: Status {test_response.status_code}")
-                    except requests.exceptions.RequestException as e:
-                        logging.error(f"Google Drive service connection test failed: {e}")
-                        logging.warning("Will skip Google Drive operations due to connection issues")
-                        # Continue with other processing without Google Drive operations
-                        continue  # Skip to next match
-
-                    # --- Google Drive Upload - Description Text File ---
-                    gdrive_upload_url = f"{gdrive_service_base_url}/upload_file"  # Google Drive Service URL - upload file endpoint
-                    description_filename_gd = f"whatsapp_group_description_match_{match_id}.txt"  # Filename in Google Drive
-                    temp_description_filepath = f"/tmp/{description_filename_gd}"  # Temp file path (already created)
-
-                    # Note: Removed the folder creation code block as folders are created automatically when needed
-
-                    logging.info(
-                        f"Uploading WhatsApp group description to Google Drive folder: '{gdrive_folder_path}'...")
-                    try:
-                        with open(temp_description_filepath,
-                                  'rb') as description_file_gd:  # Open temp description file
-                            files_gd = {'file': (
-                            description_filename_gd, description_file_gd, 'text/plain')}  # File info for upload
-                            data_gd = {'folder_path': gdrive_folder_path}  # Folder path data
-                            gd_description_response = requests.post(gdrive_upload_url, files=files_gd,
-                                                                    data=data_gd)  # HTTP POST to google-drive-service
-                            gd_description_response.raise_for_status()  # Raise HTTPError for bad responses
-                            gd_description_upload_result = gd_description_response.json()  # Parse JSON response
-                            if gd_description_upload_result.get('status') == 'success':
-                                description_file_url = gd_description_upload_result.get('file_url')
-                                logging.info(f"  Description uploaded to Google Drive. URL: {description_file_url}")
-                            else:
-                                logging.error(
-                                    f"  Google Drive upload FAILED for description. Status: {gd_description_upload_result.get('status')}, Message: {gd_description_upload_result.get('message')}")
-                    except requests.exceptions.RequestException as e_gd_upload_desc:
-                        logging.error(f"  Request error uploading description to Google Drive: {e_gd_upload_desc}")
-
-                    # --- Google Drive Upload - Avatar Image File ---
-                    avatar_filename_gd = avatar_filename  # Use the same filename as before
-                    temp_avatar_filepath = f"/tmp/{avatar_filename_gd}"  # Same path as before
-
-                    logging.info(
-                        f"Uploading WhatsApp group avatar to Google Drive folder: '{gdrive_folder_path}'...")
-                    try:
-                        with open(temp_avatar_filepath, 'rb') as avatar_file_gd:  # Open temp avatar image file
-                            files_gd_avatar = {
-                                'file': (avatar_filename_gd, avatar_file_gd, 'image/png')}  # File info for upload
-                            data_gd_avatar = {'folder_path': gdrive_folder_path}  # Folder path data
-                            gd_avatar_response = requests.post(gdrive_upload_url, files=files_gd_avatar,
-                                                               data=data_gd_avatar)  # HTTP POST to google-drive-service
-                            gd_avatar_response.raise_for_status()  # Raise HTTPError for bad responses
-                            gd_avatar_upload_result = gd_avatar_response.json()  # Parse JSON response
-                            if gd_avatar_upload_result.get('status') == 'success':
-                                avatar_file_url = gd_avatar_upload_result.get('file_url')
-                                logging.info(f"  Avatar uploaded to Google Drive. URL: {avatar_file_url}")
-                            else:
-                                logging.error(
-                                    f"  Google Drive upload FAILED for avatar. Status: {gd_avatar_upload_result.get('status')}, Message: {gd_avatar_upload_result.get('message')}")
-                    except requests.exceptions.RequestException as e_gd_upload_avatar:
-                        logging.error(f"  Request error uploading avatar to Google Drive: {e_gd_upload_avatar}")
-
-
-                else:
-                    logging.error(
-                        f"  Unexpected Content-Type from whatsapp-avatar-service: {avatar_response.headers['Content-Type']}")
-                    logging.error(
-                        f"  Response content: {avatar_response.text[:100]}...")  # Log first part of response text
-
-            except requests.exceptions.RequestException as e:
-                logging.error(f"  Error calling whatsapp-avatar-service: {e}")
-
+    # Process removed matches
     if removed_match_ids:
         logging.info(f"Detected REMOVED matches: {len(removed_match_ids)}")
-        for match_id in removed_match_ids:
-            removed_match = previous_matches[match_id]
+        for removed_match_id in removed_match_ids:
+            removed_match_data = previous_matches[removed_match_id]
             logging.info(
-                f"  - Removed Match ID: {match_id}, Teams: {removed_match['lag1namn']} vs {removed_match['lag2namn']}, Date: {removed_match['speldatum']}, Time: {removed_match['avsparkstid']}")
+                f"  - Removed Match ID: {removed_match_id}, Teams: {removed_match_data['lag1namn']} vs {removed_match_data['lag2namn']}, Date: {removed_match_data['speldatum']}, Time: {removed_match_data['avsparkstid']}")
+            # Here you could add code to handle removed matches
+    else:
+        logging.info("No removed matches detected.")
 
+    # Process modified matches
     if common_match_ids:
         logging.info(f"Detected {len(common_match_ids)} COMMON matches. Checking for modifications...")
-        for match_id in common_match_ids:
-            previous_match = previous_matches[match_id]
-            current_match = current_matches[match_id]
-            modified_fields = []
+        modified_count = 0
+        for common_match_id in common_match_ids:
+            prev_match_data = previous_matches[common_match_id]
+            curr_match_data = current_matches[common_match_id]
 
-            if previous_match['tid'] != current_match['tid']:
-                modified_fields.append(
-                    f"Date/Time changed from {previous_match['tidsangivelse']} to {current_match['tidsangivelse']}")  # Using tidsangivelse for combined date and time string
-            if previous_match['lag1lagid'] != current_match['lag1lagid']:
-                modified_fields.append(
-                    f"Home Team changed from ID {previous_match['lag1lagid']} to {current_match['lag1lagid']}")
-            if previous_match['lag2lagid'] != current_match['lag2lagid']:
-                modified_fields.append(
-                    f"Away Team changed from ID {previous_match['lag2lagid']} to {current_match['lag2lagid']}")
-            if previous_match['anlaggningid'] != current_match['anlaggningid']:
-                modified_fields.append(
-                    f"Venue changed from ID {previous_match['anlaggningid']} to {current_match['anlaggningid']}")
+            # Check if match has been modified
+            is_modified = (
+                    prev_match_data['tid'] != curr_match_data['tid'] or
+                    prev_match_data['lag1lagid'] != curr_match_data['lag1lagid'] or
+                    prev_match_data['lag2lagid'] != curr_match_data['lag2lagid'] or
+                    prev_match_data['anlaggningid'] != curr_match_data['anlaggningid']
+            )
 
-                # --- Check Referee Team Changes - Modified Matches ---
-                previous_referees = previous_match['domaruppdraglista']
-                current_referees = current_match['domaruppdraglista']
-                if len(previous_referees) != len(current_referees):
-                    modified_fields.append(f"Referee team assignments changed (number of referees changed)")
+            # Check if referee team has changed
+            prev_match_referees = prev_match_data.get('domaruppdraglista', [])
+            curr_match_referees = curr_match_data.get('domaruppdraglista', [])
+            if len(prev_match_referees) != len(curr_match_referees):
+                is_modified = True
+            else:
+                prev_match_ref_ids = {ref.get('domarid') for ref in prev_match_referees}
+                curr_match_ref_ids = {ref.get('domarid') for ref in curr_match_referees}
+                if prev_match_ref_ids != curr_match_ref_ids:
+                    is_modified = True
 
-                if modified_fields:  # If any modifications are detected for a COMMON match
-                    logging.info(
-                        f"  - Modified Match ID: {match_id}, Teams: {current_match['lag1namn']} vs {current_match['lag2namn']}")
-                    for field_change in modified_fields:
-                        logging.info(f"    - {field_change}")
+            if is_modified:
+                modified_count += 1
+                process_match(curr_match_data, common_match_id, is_new=False)
 
-                    # --- Check number of referees for MODIFIED match. Skip WhatsApp actions if only one or zero referees ---
-                    domaruppdraglista_current = current_match.get('domaruppdraglista',
-                                                                  [])  # Use current match's referee list
-                    if len(domaruppdraglista_current) < 2:
-                        logging.info(
-                            f"  Modified Match ID {match_id} now has less than 2 referees. Skipping WhatsApp group actions (or potential group update).")
-                        continue  # Skip WhatsApp actions for this MODIFIED match
-
-                    # --- Generate WhatsApp group description for MODIFIED match ---
-                    description_text = create_group_description.generate_whatsapp_description(
-                        current_match)  # Use current_match details
-                    logging.info(f"  Generated WhatsApp group description (for modified match):\n{description_text}")
-
-                    # --- Extract Referee Names for MODIFIED match ---
-                    referee_names_list = extract_referee_names(current_match)  # Use current_match details
-                    logging.info(f"  Extracted referee names (for modified match): {referee_names_list}")
-
-                    # --- (Future: Call whatsapp-avatar-service, google-drive-service, etc. for MODIFIED match will go here) ---
-
+        logging.info(f"Found {modified_count} modified matches out of {len(common_match_ids)} common matches.")
     else:
         logging.info("No common matches found between previous and current lists.")
 
     logging.info("\n--- Match Comparison and Change Detection Finished ---")
 
     # Save current matches as RAW JSON STRING to volume
-    save_current_matches_raw_json(current_matches_list_raw_json_string)  # Save RAW JSON string
+    save_current_matches_raw_json(current_matches_list_raw_json_string)
     logging.info("Current matches saved as raw JSON for future comparison.")
 
     logging.info("\nprocess_matches.py execution finished.")
