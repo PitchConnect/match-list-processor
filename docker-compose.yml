@@ -1,0 +1,27 @@
+version: '3.8'
+
+services:
+  process-matches-service:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: process-matches-service
+    networks:
+      - fogis-network
+    volumes:
+      - process-matches-data:/data
+      - .:/app
+    restart: unless-stopped
+    develop:
+      watch:
+        - action: rebuild
+          path: .
+          target: /app
+
+networks:
+  fogis-network:
+    external: true
+
+volumes:
+  process-matches-data:
+    name: process-matches-data
