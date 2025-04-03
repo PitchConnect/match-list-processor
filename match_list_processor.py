@@ -270,8 +270,9 @@ def process_match(match_data, match_id_param, is_new=True):
     """Process a match (new or modified)."""
     # Log match details
     action_type = "New" if is_new else "Modified"
-    logging.info(f"  - {action_type} Match ID: {match_id_param}, Teams: {match_data['lag1namn']} vs {match_data['lag2namn']}, Date: {match_data['speldatum']}, Time: {match_data['avsparkstid']}")
-    
+    logging.info(
+        f"  - {action_type} Match ID: {match_id_param}, Teams: {match_data['lag1namn']} vs {match_data['lag2namn']}, Date: {match_data['speldatum']}, Time: {match_data['avsparkstid']}")
+
     # If modified, we can get the previous match data from the global previous_matches dictionary
     if not is_new:
         prev_match_data = previous_matches.get(match_id_param)
@@ -342,10 +343,6 @@ def process_match(match_data, match_id_param, is_new=True):
     )
     if not temp_avatar_filepath:
         return  # Skip if avatar creation failed
-
-    # Test connection to Google Drive service
-    if not test_gdrive_connection():
-        return  # Skip if connection test failed
 
     # Google Drive folder path
     gdrive_folder_path = f"WhatsApp_Group_Assets/{match_date_formatted}/Match_{safe_label}"
