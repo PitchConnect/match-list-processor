@@ -14,7 +14,7 @@ def generate_whatsapp_description(match_details):
                   f"_{competition_name}_\n" \
                   f"{venue}\n" \
                   f"\n" \
-                  f"Match Facts: https://www.svenskfotboll.se/matchfakta/{match_id}/\n" \
+                  f"Match Facts: https://www.svenskfotboll.se/matchfakta/match?matchId={match_id}\n" \
                   f"\n" \
                   f"---\n" \
                   f"This group is for communication among the referee team. " \
@@ -32,6 +32,7 @@ if __name__ == '__main__':
         "tavlingnamn": "Div 2 Norra Götaland, herr 2025",
         "anlaggningnamn": "Kongevi 1 Konstgräs"
     }
+    # Note: The URL format for matchfakta is now: https://www.svenskfotboll.se/matchfakta/match?matchId=MATCH_ID
     description = generate_whatsapp_description(example_match_details)
     print(description)
     logging.basicConfig(level=logging.DEBUG, format='%(asctime)s - %(levelname)s - %(message)s')
