@@ -1,9 +1,11 @@
-import json
-import os
-import requests
 import abc
-import time
+import json
 import logging
+import os
+import sys
+
+import requests
+
 import create_group_description
 
 DATA_FOLDER = "/data"
@@ -107,42 +109,6 @@ def extract_referee_names(match):
     return referee_names
 
 
-# Example match JSON structure for reference:
-"""
-{
-    "__type": "Svenskfotboll.Fogis.Web.FogisMobilDomarKlient.MatchJSON",
-    "value": "000024032",
-    "label": "000024032: IK Kongahälla - Motala AIF FK (Div 2 Norra Götaland, herr 2025), 2025-04-26 14:00",
-    "matchid": 6169105,
-    "matchnr": "000024032",
-    "lag1namn": "IK Kongahälla",
-    "lag2namn": "Motala AIF FK",
-    "speldatum": "2025-04-26",
-    "avsparkstid": "14:00",
-    "domaruppdraglista": [
-        {
-            "domaruppdragid": 6847166,
-            "domarrollnamn": "Huvuddomare",
-            "personnamn": "Bartek Svaberg",
-            "namn": "Bartek Svaberg"
-        },
-        {
-            "domaruppdragid": 6847167,
-            "domarrollnamn": "Assisterande 1",
-            "personnamn": "Aleksander Gavrilovic",
-            "namn": "Aleksander Gavrilovic"
-        },
-        {
-            "domaruppdragid": 6847168,
-            "domarrollnamn": "Assisterande 2",
-            "personnamn": "Zakaria Hersi",
-            "namn": "Zakaria Hersi"
-        }
-    ]
-}
-"""
-
-
 def save_description_to_file(description_text, match_id):
     """Save description text to a temporary file."""
     description_filename = f"whatsapp_group_description_match_{match_id}.txt"
@@ -198,10 +164,10 @@ def create_and_save_avatar(match_id, team1_id, team2_id):
 
 def upload_to_gdrive(file_path, file_name, folder_path, mime_type):
     """Upload a file to Google Drive."""
-    gdrive_service_base_url = "http://google-drive-service:5000"
-    gdrive_upload_url = f"{gdrive_service_base_url}/upload_file"
-
     try:
+        gdrive_service_base_url = "http://google-drive-service:5000"  # Keep this as 5000 for internal Docker network
+        gdrive_upload_url = f"{gdrive_service_base_url}/upload_file"
+
         with open(file_path, 'rb') as file_obj:
             files = {'file': (file_name, file_obj, mime_type)}
             data = {'folder_path': folder_path}
@@ -378,115 +344,147 @@ def process_match(match_data, match_id_param, is_new=True):
     return description_url, group_info_url, avatar_url
 
 
+def sync_contacts_with_phonebook():
+    """Trigger the contact sync process with the phonebook."""
+    logging.info("Triggering contact sync with phonebook...")
+    
+    try:
+        # Trigger the sync process
+        sync_response = requests.post("http://fogis-sync:5003/sync")
+        
+        if sync_response.status_code == 200:
+            logging.info("Contact sync process completed successfully.")
+            return True
+        else:
+            logging.error(f"Contact sync process failed. Status: {sync_response.status_code}, Response: {sync_response.text}")
+            return False
+    except requests.exceptions.RequestException as e:
+        logging.error(f"Error triggering contact sync: {e}")
+        return False
+
+
 # Main execution block
 if __name__ == "__main__":
     logging.basicConfig(level=logging.DEBUG, format='%(asctime)s - %(levelname)s - %(message)s')
     logging.info("Starting process_matches.py...")
 
-    # Load previous matches RAW JSON from volume
-    raw_previous_matches_json = load_previous_matches_raw_json()
+    try:
+        # Sync contacts with phonebook
+        sync_result = sync_contacts_with_phonebook()
+        if not sync_result:
+            logging.warning("Contact sync failed, but continuing with match processing.")
+        
+        # Load previous matches RAW JSON from volume
+        raw_previous_matches_json = load_previous_matches_raw_json()
 
-    # Parse raw JSON to list (or get empty list if no previous data or parsing error)
-    previous_matches_list = parse_raw_json_to_list(raw_previous_matches_json)
-    logging.info(f"Loaded and parsed previous matches data: {len(previous_matches_list)} matches (from raw JSON).")
+        # Parse raw JSON to list (or get empty list if no previous data or parsing error)
+        previous_matches_list = parse_raw_json_to_list(raw_previous_matches_json)
+        logging.info(f"Loaded and parsed previous matches data: {len(previous_matches_list)} matches (from raw JSON).")
 
-    # Instantiate API client and fetch current matches list
-    api_client = DockerNetworkApiClient()
-    logging.info("\n--- Fetching Current Matches List ---")
-    current_matches_list_response = api_client.fetch_matches_list()
-    logging.debug(f"Type of current_matches_list_response from API Client: {type(current_matches_list_response)}")
-    current_matches_list_raw_json_string = json.dumps(current_matches_list_response, ensure_ascii=False)
-    current_matches_list = current_matches_list_response
+        # Instantiate API client and fetch current matches list
+        api_client = DockerNetworkApiClient()
+        logging.info("\n--- Fetching Current Matches List ---")
+        current_matches_list_response = api_client.fetch_matches_list()
+        logging.debug(f"Type of current_matches_list_response from API Client: {type(current_matches_list_response)}")
+        current_matches_list_raw_json_string = json.dumps(current_matches_list_response, ensure_ascii=False)
+        current_matches_list = current_matches_list_response
 
-    logging.info(f"Fetched current matches list: {len(current_matches_list)} matches.")
+        logging.info(f"Fetched current matches list: {len(current_matches_list)} matches.")
 
-    if not current_matches_list:
-        logging.warning(
-            "Could not fetch current matches list from API or unexpected response. Exiting change detection.")
-        logging.info("process_matches.py execution finished prematurely due to API fetch failure.")
-        logging.info("\n--- Container will now stay running indefinitely (for testing) ---")
-        while True:
-            time.sleep(60)
-        exit()
+        if not current_matches_list:
+            logging.warning(
+                "Could not fetch current matches list from API or unexpected response. Exiting change detection.")
+            logging.info("process_matches.py execution finished prematurely due to API fetch failure.")
+            # Exit the script
+            sys.exit(1)
 
-    # Convert BOTH previous and current match lists to dictionaries for comparison
-    previous_matches = {int(match['matchid']): match for match in previous_matches_list}
-    current_matches = {int(match['matchid']): match for match in current_matches_list}
-    logging.debug(f"Keys of current_matches dictionary: {list(current_matches.keys())}")
-    logging.debug(f"Keys of previous_matches dictionary: {list(previous_matches.keys())}")
+        # Convert BOTH previous and current match lists to dictionaries for comparison
+        previous_matches = {int(match['matchid']): match for match in previous_matches_list}
+        current_matches = {int(match['matchid']): match for match in current_matches_list}
+        logging.debug(f"Keys of current_matches dictionary: {list(current_matches.keys())}")
+        logging.debug(f"Keys of previous_matches dictionary: {list(previous_matches.keys())}")
 
-    logging.info("\n--- Starting Match Comparison and Change Detection ---")
+        logging.info("\n--- Starting Match Comparison and Change Detection ---")
 
-    previous_match_ids = set(previous_matches.keys())
-    current_match_ids = set(current_matches.keys())
+        previous_match_ids = set(previous_matches.keys())
+        current_match_ids = set(current_matches.keys())
 
-    new_match_ids = current_match_ids - previous_match_ids
-    removed_match_ids = previous_match_ids - current_match_ids
-    common_match_ids = current_match_ids.intersection(previous_match_ids)
+        new_match_ids = current_match_ids - previous_match_ids
+        removed_match_ids = previous_match_ids - current_match_ids
+        common_match_ids = current_match_ids.intersection(previous_match_ids)
 
-    # Process new matches
-    if new_match_ids:
-        logging.info(f"Detected NEW matches: {len(new_match_ids)}")
-        for current_match_id in new_match_ids:
-            new_match_data = current_matches[current_match_id]
-            process_match(new_match_data, current_match_id, is_new=True)
-    else:
-        logging.info("No new matches detected.")
+        # Process new matches
+        if new_match_ids:
+            logging.info(f"Detected NEW matches: {len(new_match_ids)}")
+            for current_match_id in new_match_ids:
+                new_match_data = current_matches[current_match_id]
+                process_match(new_match_data, current_match_id, is_new=True)
+                # No need to capture return value since process_match doesn't return anything meaningful
+        else:
+            logging.info("No new matches detected.")
 
-    # Process removed matches
-    if removed_match_ids:
-        logging.info(f"Detected REMOVED matches: {len(removed_match_ids)}")
-        for removed_match_id in removed_match_ids:
-            removed_match_data = previous_matches[removed_match_id]
-            logging.info(
-                f"  - Removed Match ID: {removed_match_id}, Teams: {removed_match_data['lag1namn']} vs {removed_match_data['lag2namn']}, Date: {removed_match_data['speldatum']}, Time: {removed_match_data['avsparkstid']}")
-            # Here you could add code to handle removed matches
-    else:
-        logging.info("No removed matches detected.")
+        # Process removed matches
+        if removed_match_ids:
+            logging.info(f"Detected REMOVED matches: {len(removed_match_ids)}")
+            for removed_match_id in removed_match_ids:
+                removed_match_data = previous_matches[removed_match_id]
+                logging.info(
+                    f"  - Removed Match ID: {removed_match_id}, Teams: {removed_match_data['lag1namn']} vs {removed_match_data['lag2namn']}")
+                # Here you could add code to handle removed matches
+        else:
+            logging.info("No removed matches detected.")
 
-    # Process modified matches
-    if common_match_ids:
-        logging.info(f"Detected {len(common_match_ids)} COMMON matches. Checking for modifications...")
-        modified_count = 0
-        for common_match_id in common_match_ids:
-            prev_match_data = previous_matches[common_match_id]
-            curr_match_data = current_matches[common_match_id]
+        # Process modified matches
+        if common_match_ids:
+            logging.info(f"Checking for MODIFIED matches among {len(common_match_ids)} common matches...")
+            modified_count = 0
+            for common_match_id in common_match_ids:
+                prev_match_data = previous_matches[common_match_id]
+                curr_match_data = current_matches[common_match_id]
 
-            # Check if match has been modified
-            is_modified = (
-                    prev_match_data['tid'] != curr_match_data['tid'] or
-                    prev_match_data['lag1lagid'] != curr_match_data['lag1lagid'] or
-                    prev_match_data['lag2lagid'] != curr_match_data['lag2lagid'] or
-                    prev_match_data['anlaggningid'] != curr_match_data['anlaggningid']
-            )
+                # Check if any relevant fields have changed
+                is_modified = False
 
-            # Check if referee team has changed
-            prev_match_referees = prev_match_data.get('domaruppdraglista', [])
-            curr_match_referees = curr_match_data.get('domaruppdraglista', [])
-            if len(prev_match_referees) != len(curr_match_referees):
-                is_modified = True
-            else:
-                prev_match_ref_ids = {ref.get('domarid') for ref in prev_match_referees}
-                curr_match_ref_ids = {ref.get('domarid') for ref in curr_match_referees}
-                if prev_match_ref_ids != curr_match_ref_ids:
+                # Check if match time has changed
+                if prev_match_data.get('tid') != curr_match_data.get('tid'):
                     is_modified = True
 
-            if is_modified:
-                modified_count += 1
-                process_match(curr_match_data, common_match_id, is_new=False)
+                # Check if teams have changed
+                if prev_match_data.get('lag1lagid') != curr_match_data.get('lag1lagid') or \
+                   prev_match_data.get('lag2lagid') != curr_match_data.get('lag2lagid'):
+                    is_modified = True
 
-        logging.info(f"Found {modified_count} modified matches out of {len(common_match_ids)} common matches.")
-    else:
-        logging.info("No common matches found between previous and current lists.")
+                # Check if venue has changed
+                if prev_match_data.get('anlaggningid') != curr_match_data.get('anlaggningid'):
+                    is_modified = True
 
-    logging.info("\n--- Match Comparison and Change Detection Finished ---")
+                # Check if referee team has changed
+                prev_match_referees = prev_match_data.get('domaruppdraglista', [])
+                curr_match_referees = curr_match_data.get('domaruppdraglista', [])
+                if len(prev_match_referees) != len(curr_match_referees):
+                    is_modified = True
+                else:
+                    prev_match_ref_ids = {ref.get('domarid') for ref in prev_match_referees}
+                    curr_match_ref_ids = {ref.get('domarid') for ref in curr_match_referees}
+                    if prev_match_ref_ids != curr_match_ref_ids:
+                        is_modified = True
 
-    # Save current matches as RAW JSON STRING to volume
-    save_current_matches_raw_json(current_matches_list_raw_json_string)
-    logging.info("Current matches saved as raw JSON for future comparison.")
+                if is_modified:
+                    modified_count += 1
+                    process_match(curr_match_data, common_match_id, is_new=False)
+                    # No need to capture return value
+            logging.info(f"Found {modified_count} modified matches out of {len(common_match_ids)} common matches.")
+        else:
+            logging.info("No common matches found between previous and current lists.")
 
-    logging.info("\nprocess_matches.py execution finished.")
+        logging.info("\n--- Match Comparison and Change Detection Finished ---")
 
-    logging.info("\n--- Container will now stay running indefinitely (for testing) ---")
-    while True:
-        time.sleep(60)
+        # Save current matches as RAW JSON STRING to volume
+        save_current_matches_raw_json(current_matches_list_raw_json_string)
+        logging.info("Current matches saved as raw JSON for future comparison.")
+
+        logging.info("\nprocess_matches.py execution finished.")
+    except Exception as e:
+        logging.error(f"Unexpected error: {e}")
+        logging.exception("Stack trace:")
+        sys.exit(1)
