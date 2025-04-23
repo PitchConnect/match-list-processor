@@ -10,6 +10,8 @@ Thank you for considering contributing to Match List Processor! This document pr
 - [Pull Request Process](#pull-request-process)
 - [Coding Standards](#coding-standards)
 - [Project-Specific Guidelines](#project-specific-guidelines)
+- [Working with AI Assistants](#working-with-ai-assistants)
+- [Issue Management](#issue-management)
 - [Additional Resources](#additional-resources)
 
 ## Quick Start
@@ -22,9 +24,9 @@ cd match-list-processor
 # Set up development environment
 python -m venv .venv
 source .venv/bin/activate  # On Windows: .venv\Scripts\activate
-pip install -r requirements.txt
+pip install -e ".[dev]"
 
-# Install pre-commit hooks (if available)
+# Install pre-commit hooks
 pre-commit install
 
 # Create a feature branch
@@ -118,16 +120,27 @@ For detailed coding standards, see our [Coding Standards Guide](https://github.c
 - Changes to API endpoints or data structures may affect other services
 - When modifying URL formats or API calls, ensure backward compatibility or coordinate changes with dependent services
 
-## Additional Resources
-
-- [Detailed GitFlow Workflow](https://github.com/PitchConnect/contribution-guidelines/blob/main/workflow.md)
-- [Coding Standards](https://github.com/PitchConnect/contribution-guidelines/blob/main/coding-standards.md)
-- [Pull Request Guidelines](https://github.com/PitchConnect/contribution-guidelines/blob/main/pull-requests.md)
-- [AI Contribution Guidelines](https://github.com/PitchConnect/contribution-guidelines/blob/main/ai-guidelines.md)
-
 ## Working with AI Assistants
 
-If you're using AI tools like GitHub Copilot or ChatGPT, or if you are an AI assistant helping with this project, please refer to our [AI Contribution Guidelines](https://github.com/PitchConnect/contribution-guidelines/blob/main/ai-guidelines.md).
+If you're using AI tools like GitHub Copilot or ChatGPT, or if you are an AI assistant helping with this project, please follow these guidelines:
+
+### For Human Contributors Using AI
+
+- Review all AI-generated code thoroughly
+- Disclose AI usage in your PR description
+- Don't blindly trust AI output
+- Use AI as a tool, not a replacement
+
+### For AI Assistants
+
+- Read project documentation first
+- Understand the codebase before making changes
+- Follow project conventions
+- Plan before coding
+- Document your process
+- Use the "[AI]" prefix in commit messages
+
+For complete AI contribution guidelines, see our [AI Contribution Guidelines](https://github.com/PitchConnect/contribution-guidelines/blob/main/ai-guidelines.md).
 
 ## Issue Management
 
@@ -157,6 +170,14 @@ We use the following labels to categorize issues:
 
 - Use task lists with checkboxes `- [ ]` for tracking progress
 - Update these checkboxes as you complete tasks
+- If you're an AI assistant, remind users to update task checkboxes
+
+## Additional Resources
+
+- [Detailed GitFlow Workflow](https://github.com/PitchConnect/contribution-guidelines/blob/main/workflow.md)
+- [Coding Standards](https://github.com/PitchConnect/contribution-guidelines/blob/main/coding-standards.md)
+- [Pull Request Guidelines](https://github.com/PitchConnect/contribution-guidelines/blob/main/pull-requests.md)
+- [AI Contribution Guidelines](https://github.com/PitchConnect/contribution-guidelines/blob/main/ai-guidelines.md)
 
 ---
 
