@@ -97,3 +97,14 @@ addopts = [
     "--cov-report=html",
     "--cov-report=xml"
 ]
+
+[tool.isort]
+profile = "black"
+multi_line_output = 3
+line_length = 100
+known_first_party = ["src"]
+known_third_party = ["pytest", "requests", "pydantic"]
+
+[tool.bandit]
+exclude_dirs = ["tests"]
+skips = ["B101"]  # Skip assert_used test

@@ -5,9 +5,8 @@ from typing import Optional
 
 import requests
 
-from ..interfaces import PhonebookSyncInterface
 from ..config import settings
-
+from ..interfaces import PhonebookSyncInterface
 
 logger = logging.getLogger(__name__)
 
@@ -17,7 +16,7 @@ class FogisPhonebookSyncService(PhonebookSyncInterface):
 
     def __init__(self, base_url: Optional[str] = None):
         """Initialize the phonebook sync service.
-        
+
         Args:
             base_url: Base URL for the sync service. If None, uses config default.
         """
@@ -26,15 +25,15 @@ class FogisPhonebookSyncService(PhonebookSyncInterface):
 
     def sync_contacts(self) -> bool:
         """Trigger contact synchronization.
-        
+
         Returns:
             True if sync was successful, False otherwise
         """
         logger.info("Triggering contact sync with phonebook...")
-        
+
         try:
             response = requests.post(self.sync_endpoint)
-            
+
             if response.status_code == 200:
                 logger.info("Contact sync process completed successfully.")
                 return True
@@ -45,7 +44,7 @@ class FogisPhonebookSyncService(PhonebookSyncInterface):
                     f"Response: {response.text}"
                 )
                 return False
-                
+
         except requests.exceptions.RequestException as e:
             logger.error(f"Error triggering contact sync: {e}")
             return False

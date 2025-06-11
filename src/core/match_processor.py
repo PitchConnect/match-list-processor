@@ -3,18 +3,17 @@
 import logging
 from typing import Optional
 
+from ..config import settings
 from ..interfaces import AvatarServiceInterface, StorageServiceInterface
 from ..types import MatchDict, ProcessingResult
 from ..utils.file_utils import (
+    create_gdrive_folder_path,
     extract_referee_names,
-    save_description_to_file,
     save_avatar_to_file,
+    save_description_to_file,
     save_group_info_to_file,
-    create_gdrive_folder_path
 )
-from ..config import settings
 from .match_comparator import MatchComparator
-
 
 logger = logging.getLogger(__name__)
 
@@ -26,10 +25,10 @@ class MatchProcessor:
         self,
         avatar_service: AvatarServiceInterface,
         storage_service: StorageServiceInterface,
-        description_generator
+        description_generator,
     ):
         """Initialize the match processor.
-        
+
         Args:
             avatar_service: Service for creating avatars
             storage_service: Service for uploading files
@@ -40,20 +39,20 @@ class MatchProcessor:
         self.description_generator = description_generator
 
     def process_match(
-        self, 
-        match_data: MatchDict, 
-        match_id: int, 
+        self,
+        match_data: MatchDict,
+        match_id: int,
         is_new: bool = True,
-        previous_match_data: Optional[MatchDict] = None
+        previous_match_data: Optional[MatchDict] = None,
     ) -> Optional[ProcessingResult]:
         """Process a match (new or modified).
-        
+
         Args:
             match_data: Current match data
             match_id: Match ID
             is_new: Whether this is a new match
             previous_match_data: Previous match data for comparison (if modified)
-            
+
         Returns:
             Processing result with URLs and status
         """
@@ -73,7 +72,7 @@ class MatchProcessor:
                 logger.info(f"    - {modification}")
 
         # Check number of referees
-        referees = match_data.get('domaruppdraglista', [])
+        referees = match_data.get("domaruppdraglista", [])
         if len(referees) < settings.min_referees_for_whatsapp:
             logger.info(
                 f"  Match ID {match_id} has less than {settings.min_referees_for_whatsapp} "
@@ -104,10 +103,9 @@ class MatchProcessor:
 
             # Create and save avatar
             avatar_data, avatar_error = self.avatar_service.create_avatar(
-                match_data.get('lag1foreningid'),
-                match_data.get('lag2foreningid')
+                match_data.get("lag1foreningid"), match_data.get("lag2foreningid")
             )
-            
+
             if not avatar_data:
                 return self._create_error_result(f"Avatar creation failed: {avatar_error}")
 
@@ -123,29 +121,23 @@ class MatchProcessor:
                 temp_description_filepath,
                 f"whatsapp_group_description_match_{match_id}.txt",
                 gdrive_folder_path,
-                'text/plain'
+                "text/plain",
             )
 
             group_info_result = self._upload_file(
-                temp_group_info_filepath,
-                group_info_filename,
-                gdrive_folder_path,
-                'text/plain'
+                temp_group_info_filepath, group_info_filename, gdrive_folder_path, "text/plain"
             )
 
             avatar_result = self._upload_file(
-                temp_avatar_filepath,
-                avatar_filename,
-                gdrive_folder_path,
-                'image/png'
+                temp_avatar_filepath, avatar_filename, gdrive_folder_path, "image/png"
             )
 
             return {
-                'description_url': description_result.get('file_url'),
-                'group_info_url': group_info_result.get('file_url'),
-                'avatar_url': avatar_result.get('file_url'),
-                'success': True,
-                'error_message': None
+                "description_url": description_result.get("file_url"),
+                "group_info_url": group_info_result.get("file_url"),
+                "avatar_url": avatar_result.get("file_url"),
+                "success": True,
+                "error_message": None,
             }
 
         except Exception as e:
@@ -160,9 +152,9 @@ class MatchProcessor:
     def _create_error_result(self, error_message: str) -> ProcessingResult:
         """Create an error result."""
         return {
-            'description_url': None,
-            'group_info_url': None,
-            'avatar_url': None,
-            'success': False,
-            'error_message': error_message
+            "description_url": None,
+            "group_info_url": None,
+            "avatar_url": None,
+            "success": False,
+            "error_message": error_message,
         }

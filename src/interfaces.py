@@ -3,7 +3,7 @@
 from abc import ABC, abstractmethod
 from typing import Optional, Tuple
 
-from .types import MatchList, UploadResult, FilePath, ServiceUrl
+from .types import FilePath, MatchList, ServiceUrl, UploadResult
 
 
 class ApiClientInterface(ABC):
@@ -12,7 +12,7 @@ class ApiClientInterface(ABC):
     @abstractmethod
     def fetch_matches_list(self) -> MatchList:
         """Fetch a list of matches from the API.
-        
+
         Returns:
             List of match dictionaries.
         """
@@ -25,11 +25,11 @@ class AvatarServiceInterface(ABC):
     @abstractmethod
     def create_avatar(self, team1_id: int, team2_id: int) -> Tuple[Optional[bytes], Optional[str]]:
         """Create an avatar for the given team IDs.
-        
+
         Args:
             team1_id: ID of the first team
             team2_id: ID of the second team
-            
+
         Returns:
             Tuple of (avatar_data, error_message)
         """
@@ -41,20 +41,16 @@ class StorageServiceInterface(ABC):
 
     @abstractmethod
     def upload_file(
-        self, 
-        file_path: FilePath, 
-        file_name: str, 
-        folder_path: str, 
-        mime_type: str
+        self, file_path: FilePath, file_name: str, folder_path: str, mime_type: str
     ) -> UploadResult:
         """Upload a file to storage.
-        
+
         Args:
             file_path: Local path to the file
             file_name: Name for the uploaded file
             folder_path: Destination folder path
             mime_type: MIME type of the file
-            
+
         Returns:
             Upload result with status and URL
         """
@@ -67,7 +63,7 @@ class PhonebookSyncInterface(ABC):
     @abstractmethod
     def sync_contacts(self) -> bool:
         """Trigger contact synchronization.
-        
+
         Returns:
             True if sync was successful, False otherwise
         """

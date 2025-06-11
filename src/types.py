@@ -1,11 +1,13 @@
 """Type definitions for the match list processor."""
 
-from typing import Dict, List, Optional, Any, Union
+from typing import Any, Dict, List, Optional, Union
+
 from typing_extensions import TypedDict
 
 
 class RefereeDict(TypedDict, total=False):
     """Type definition for referee data."""
+
     domarid: Optional[int]
     personnamn: Optional[str]
     namn: Optional[str]
@@ -14,6 +16,7 @@ class RefereeDict(TypedDict, total=False):
 
 class MatchDict(TypedDict, total=False):
     """Type definition for match data."""
+
     matchid: int
     lag1namn: str
     lag2namn: str
@@ -34,6 +37,7 @@ class MatchDict(TypedDict, total=False):
 
 class UploadResult(TypedDict):
     """Type definition for upload operation results."""
+
     status: str
     message: Optional[str]
     file_url: Optional[str]
@@ -41,6 +45,7 @@ class UploadResult(TypedDict):
 
 class ProcessingResult(TypedDict, total=False):
     """Type definition for match processing results."""
+
     description_url: Optional[str]
     group_info_url: Optional[str]
     avatar_url: Optional[str]

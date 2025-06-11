@@ -3,7 +3,6 @@
 import json
 import logging
 import sys
-from typing import Dict
 
 from .config import settings
 from .core.data_manager import MatchDataManager
@@ -11,11 +10,10 @@ from .core.match_comparator import MatchComparator
 from .core.match_processor import MatchProcessor
 from .services.api_client import DockerNetworkApiClient
 from .services.avatar_service import WhatsAppAvatarService
-from .services.storage_service import GoogleDriveStorageService
 from .services.phonebook_service import FogisPhonebookSyncService
-from .utils.description_generator import generate_whatsapp_description
+from .services.storage_service import GoogleDriveStorageService
 from .types import MatchDict_Dict
-
+from .utils.description_generator import generate_whatsapp_description
 
 logger = logging.getLogger(__name__)
 
@@ -31,9 +29,7 @@ class MatchListProcessorApp:
         self.storage_service = GoogleDriveStorageService()
         self.phonebook_service = FogisPhonebookSyncService()
         self.match_processor = MatchProcessor(
-            self.avatar_service,
-            self.storage_service,
-            generate_whatsapp_description
+            self.avatar_service, self.storage_service, generate_whatsapp_description
         )
 
     def run(self) -> None:
@@ -81,16 +77,14 @@ class MatchListProcessorApp:
         """Fetch current matches from API."""
         logger.info("\n--- Fetching Current Matches List ---")
         current_matches_list = self.api_client.fetch_matches_list()
-        
+
         if not current_matches_list:
             return {}
-            
+
         return MatchComparator.convert_to_dict(current_matches_list)
 
     def _process_match_changes(
-        self, 
-        previous_matches: MatchDict_Dict, 
-        current_matches: MatchDict_Dict
+        self, previous_matches: MatchDict_Dict, current_matches: MatchDict_Dict
     ) -> None:
         """Process changes between previous and current matches."""
         logger.info("\n--- Starting Match Comparison and Change Detection ---")
@@ -134,16 +128,13 @@ class MatchListProcessorApp:
             logger.info("No removed matches detected.")
 
     def _process_modified_matches(
-        self, 
-        common_ids: set, 
-        previous_matches: MatchDict_Dict, 
-        current_matches: MatchDict_Dict
+        self, common_ids: set, previous_matches: MatchDict_Dict, current_matches: MatchDict_Dict
     ) -> None:
         """Process modified matches."""
         if common_ids:
             logger.info(f"Checking for MODIFIED matches among {len(common_ids)} common matches...")
             modified_count = 0
-            
+
             for match_id in common_ids:
                 prev_match = previous_matches[match_id]
                 curr_match = current_matches[match_id]
@@ -154,7 +145,9 @@ class MatchListProcessorApp:
                         curr_match, match_id, is_new=False, previous_match_data=prev_match
                     )
 
-            logger.info(f"Found {modified_count} modified matches out of {len(common_ids)} common matches.")
+            logger.info(
+                f"Found {modified_count} modified matches out of {len(common_ids)} common matches."
+            )
         else:
             logger.info("No common matches found between previous and current lists.")
 
@@ -170,8 +163,7 @@ class MatchListProcessorApp:
 def setup_logging() -> None:
     """Set up logging configuration."""
     logging.basicConfig(
-        level=getattr(logging, settings.log_level.upper()),
-        format=settings.log_format
+        level=getattr(logging, settings.log_level.upper()), format=settings.log_format
     )
 
 
