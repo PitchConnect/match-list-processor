@@ -3,7 +3,7 @@
 from abc import ABC, abstractmethod
 from typing import Optional, Tuple
 
-from .types import FilePath, MatchList, ServiceUrl, UploadResult
+from .types import FilePath, MatchList, UploadResult
 
 
 class ApiClientInterface(ABC):
