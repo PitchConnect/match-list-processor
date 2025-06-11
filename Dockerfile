@@ -2,10 +2,16 @@ FROM python:3.9-slim-buster
 
 WORKDIR /app
 
+# Copy requirements and install dependencies
 COPY requirements.txt .
 RUN pip install -r requirements.txt
 
-COPY match_list_processor.py .
+# Copy source code
+COPY src/ ./src/
 COPY create_group_description.py .
 
-CMD ["python", "match_list_processor.py"]
+# Set Python path to include src directory
+ENV PYTHONPATH=/app
+
+# Run the refactored application
+CMD ["python", "-m", "src.app"]
