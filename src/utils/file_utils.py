@@ -141,6 +141,8 @@ def create_gdrive_folder_path(match_data: MatchDict, match_id: int) -> str:
         Formatted folder path for Google Drive
     """
     match_date_formatted = match_data.get("speldatum", "")
-    safe_label = f"{match_id}_{match_data['lag1namn'].replace(' ', '_')}_{match_data['lag2namn'].replace(' ', '_')}"
+    team1_safe = match_data["lag1namn"].replace(" ", "_")
+    team2_safe = match_data["lag2namn"].replace(" ", "_")
+    safe_label = f"{match_id}_{team1_safe}_{team2_safe}"
 
     return f"{settings.gdrive_folder_base}/{match_date_formatted}/Match_{safe_label}"

@@ -61,9 +61,14 @@ class MatchDataManager:
 
         try:
             previous_matches_list = json.loads(raw_json_string)
+            first_three_ids = (
+                [match["matchid"] for match in previous_matches_list[:3]]
+                if previous_matches_list
+                else []
+            )
             logger.debug(
                 f"Parsed raw JSON to list of matches (count: {len(previous_matches_list)}) - "
-                f"first 3 match IDs: {[match['matchid'] for match in previous_matches_list[:3]] if previous_matches_list else []}"
+                f"first 3 match IDs: {first_three_ids}"
             )
             return cast(MatchList, previous_matches_list)
         except json.JSONDecodeError as e:

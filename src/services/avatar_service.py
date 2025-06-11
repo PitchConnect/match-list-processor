@@ -38,7 +38,7 @@ class WhatsAppAvatarService(AvatarServiceInterface):
         logger.info(f"Creating avatar for teams {team1_id} vs {team2_id}...")
 
         try:
-            response = requests.post(self.create_endpoint, json=payload, stream=True)
+            response = requests.post(self.create_endpoint, json=payload, stream=True, timeout=30)
             response.raise_for_status()
 
             if response.headers.get("Content-Type") == "image/png":

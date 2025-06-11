@@ -43,7 +43,7 @@ class GoogleDriveStorageService(StorageServiceInterface):
                 files = {"file": (file_name, file_obj, mime_type)}
                 data = {"folder_path": folder_path}
 
-                response = requests.post(self.upload_endpoint, files=files, data=data)
+                response = requests.post(self.upload_endpoint, files=files, data=data, timeout=30)
                 response.raise_for_status()
 
                 result = response.json()

@@ -35,11 +35,12 @@ class DockerNetworkApiClient(ApiClientInterface):
         logger.info(f"Fetching matches list from: {self.matches_endpoint}...")
 
         try:
-            response = requests.get(self.matches_endpoint)
+            response = requests.get(self.matches_endpoint, timeout=30)
             response.raise_for_status()
 
             logger.info(
-                f"API Client Container Response (Matches List Test - Status Code: {response.status_code})"
+                f"API Client Container Response (Matches List Test - "
+                f"Status Code: {response.status_code})"
             )
 
             response_data = response.json()

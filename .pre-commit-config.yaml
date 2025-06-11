@@ -1,6 +1,9 @@
+# Pre-commit hooks configuration
+# See https://pre-commit.com for more information
 repos:
+  # General hooks
   - repo: https://github.com/pre-commit/pre-commit-hooks
-    rev: v4.4.0
+    rev: v5.0.0
     hooks:
       - id: trailing-whitespace
       - id: end-of-file-fixer
@@ -9,19 +12,40 @@ repos:
       - id: check-merge-conflict
       - id: debug-statements
 
+  # Code formatting
   - repo: https://github.com/psf/black
-    rev: 22.12.0
+    rev: 24.10.0
     hooks:
       - id: black
-        language_version: python3.9
+        language_version: python3
+        args: [--line-length=100]
 
+  # Import sorting
+  - repo: https://github.com/pycqa/isort
+    rev: 5.13.2
+    hooks:
+      - id: isort
+        args: [--profile=black, --line-length=100]
+
+  # Linting
   - repo: https://github.com/pycqa/flake8
-    rev: 6.0.0
+    rev: 7.1.1
     hooks:
       - id: flake8
 
+  # Type checking (only for src/ directory)
   - repo: https://github.com/pre-commit/mirrors-mypy
-    rev: v1.0.0
+    rev: v1.13.0
     hooks:
       - id: mypy
-        additional_dependencies: [types-requests, pydantic]
+        additional_dependencies: [types-requests, pydantic-settings]
+        args: [--no-error-summary]
+        files: ^src/
+
+  # Security scanning
+  - repo: https://github.com/pycqa/bandit
+    rev: 1.7.10
+    hooks:
+      - id: bandit
+        args: [-r, src/, --skip, B101]
+        pass_filenames: false

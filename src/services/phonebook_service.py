@@ -32,7 +32,7 @@ class FogisPhonebookSyncService(PhonebookSyncInterface):
         logger.info("Triggering contact sync with phonebook...")
 
         try:
-            response = requests.post(self.sync_endpoint)
+            response = requests.post(self.sync_endpoint, timeout=30)
 
             if response.status_code == 200:
                 logger.info("Contact sync process completed successfully.")

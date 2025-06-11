@@ -152,7 +152,9 @@ class MatchProcessor:
             logger.error(error_msg)
             return self._create_error_result(error_msg)
 
-    def _upload_file(self, file_path: str, file_name: str, folder_path: str, mime_type: str) -> UploadResult:
+    def _upload_file(
+        self, file_path: str, file_name: str, folder_path: str, mime_type: str
+    ) -> UploadResult:
         """Upload a file using the storage service."""
         return self.storage_service.upload_file(file_path, file_name, folder_path, mime_type)
 

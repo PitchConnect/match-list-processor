@@ -38,7 +38,7 @@ class TestDockerNetworkApiClient:
         result = client.fetch_matches_list()
 
         assert result == sample_matches_list
-        mock_get.assert_called_once_with("http://fogis-api-client-service:8080/matches")
+        mock_get.assert_called_once_with("http://fogis-api-client-service:8080/matches", timeout=30)
 
     @patch("src.services.api_client.requests.get")
     def test_fetch_matches_list_http_error(self, mock_get):
@@ -196,7 +196,9 @@ class TestFogisPhonebookSyncService:
         result = service.sync_contacts()
 
         assert result is True
-        mock_post.assert_called_once_with("http://fogis-calendar-phonebook-sync:5003/sync")
+        mock_post.assert_called_once_with(
+            "http://fogis-calendar-phonebook-sync:5003/sync", timeout=30
+        )
 
     @patch("src.services.phonebook_service.requests.post")
     def test_sync_contacts_failure(self, mock_post):
