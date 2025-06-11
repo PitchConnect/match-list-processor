@@ -1,7 +1,5 @@
 """Tests for match comparison functionality."""
 
-import pytest
-
 from src.core.match_comparator import MatchComparator
 
 

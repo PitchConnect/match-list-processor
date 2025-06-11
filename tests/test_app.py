@@ -1,9 +1,6 @@
 """Tests for the main application."""
 
-import sys
 from unittest.mock import Mock, patch
-
-import pytest
 
 from src.app import MatchListProcessorApp, main, setup_logging
 

@@ -2,10 +2,7 @@
 
 import json
 import os
-import tempfile
-from unittest.mock import patch
 
-import pytest
 
 from src.core.data_manager import MatchDataManager
 

@@ -1,11 +1,11 @@
 """Core match processing logic."""
 
 import logging
-from typing import Optional
+from typing import Callable, Optional
 
 from ..config import settings
 from ..interfaces import AvatarServiceInterface, StorageServiceInterface
-from ..types import MatchDict, ProcessingResult
+from ..types import MatchDict, ProcessingResult, UploadResult
 from ..utils.file_utils import (
     create_gdrive_folder_path,
     extract_referee_names,
@@ -25,7 +25,7 @@ class MatchProcessor:
         self,
         avatar_service: AvatarServiceInterface,
         storage_service: StorageServiceInterface,
-        description_generator,
+        description_generator: Callable[[MatchDict], str],
     ):
         """Initialize the match processor.
 
@@ -102,15 +102,19 @@ class MatchProcessor:
             logger.info(f"  Extracted referee names: {referee_names_list}")
 
             # Create and save avatar
-            avatar_data, avatar_error = self.avatar_service.create_avatar(
-                match_data.get("lag1foreningid"), match_data.get("lag2foreningid")
-            )
+            team1_id = match_data.get("lag1foreningid")
+            team2_id = match_data.get("lag2foreningid")
+
+            if team1_id is None or team2_id is None:
+                return self._create_error_result("Missing team IDs for avatar creation")
+
+            avatar_data, avatar_error = self.avatar_service.create_avatar(team1_id, team2_id)
 
             if not avatar_data:
                 return self._create_error_result(f"Avatar creation failed: {avatar_error}")
 
             temp_avatar_filepath, avatar_filename = save_avatar_to_file(avatar_data, match_id)
-            if not temp_avatar_filepath:
+            if not temp_avatar_filepath or not avatar_filename:
                 return self._create_error_result("Failed to save avatar file")
 
             # Create Google Drive folder path
@@ -123,6 +127,9 @@ class MatchProcessor:
                 gdrive_folder_path,
                 "text/plain",
             )
+
+            if not group_info_filename:
+                return self._create_error_result("Failed to get group info filename")
 
             group_info_result = self._upload_file(
                 temp_group_info_filepath, group_info_filename, gdrive_folder_path, "text/plain"
@@ -145,7 +152,7 @@ class MatchProcessor:
             logger.error(error_msg)
             return self._create_error_result(error_msg)
 
-    def _upload_file(self, file_path: str, file_name: str, folder_path: str, mime_type: str):
+    def _upload_file(self, file_path: str, file_name: str, folder_path: str, mime_type: str) -> UploadResult:
         """Upload a file using the storage service."""
         return self.storage_service.upload_file(file_path, file_name, folder_path, mime_type)
 

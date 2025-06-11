@@ -21,7 +21,7 @@ logger = logging.getLogger(__name__)
 class MatchListProcessorApp:
     """Main application class for match list processing."""
 
-    def __init__(self):
+    def __init__(self) -> None:
         """Initialize the application with all required services."""
         self.data_manager = MatchDataManager()
         self.api_client = DockerNetworkApiClient()

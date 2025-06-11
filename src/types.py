@@ -1,6 +1,6 @@
 """Type definitions for the match list processor."""
 
-from typing import Any, Dict, List, Optional, Union
+from typing import Dict, List, Optional
 
 from typing_extensions import TypedDict
 

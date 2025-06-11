@@ -1,10 +1,6 @@
 """Tests for utility functions."""
 
-import os
-import tempfile
 from unittest.mock import mock_open, patch
-
-import pytest
 
 from src.utils.description_generator import (
     create_example_match_details,

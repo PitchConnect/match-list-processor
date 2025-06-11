@@ -3,7 +3,7 @@
 import json
 import logging
 import os
-from typing import Optional
+from typing import Optional, cast
 
 from ..config import settings
 from ..types import MatchList
@@ -65,7 +65,7 @@ class MatchDataManager:
                 f"Parsed raw JSON to list of matches (count: {len(previous_matches_list)}) - "
                 f"first 3 match IDs: {[match['matchid'] for match in previous_matches_list[:3]] if previous_matches_list else []}"
             )
-            return previous_matches_list
+            return cast(MatchList, previous_matches_list)
         except json.JSONDecodeError as e:
             logger.error(f"Error decoding JSON string: {e}. Starting fresh with empty data.")
             return []

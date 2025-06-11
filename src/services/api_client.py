@@ -1,7 +1,7 @@
 """API client service implementations."""
 
 import logging
-from typing import Optional
+from typing import Optional, cast
 
 import requests
 
@@ -45,7 +45,7 @@ class DockerNetworkApiClient(ApiClientInterface):
             response_data = response.json()
             logger.debug(f"API Response Type for matches list: {type(response_data)}")
 
-            return response_data
+            return cast(MatchList, response_data)
 
         except requests.exceptions.RequestException as e:
             logger.error(f"Error fetching matches list from {self.matches_endpoint}: {e}")

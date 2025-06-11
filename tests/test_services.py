@@ -2,7 +2,6 @@
 
 from unittest.mock import Mock, mock_open, patch
 
-import pytest
 import requests
 
 from src.services.api_client import DockerNetworkApiClient

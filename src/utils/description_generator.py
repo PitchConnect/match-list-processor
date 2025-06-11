@@ -1,7 +1,6 @@
 """WhatsApp group description generation utilities."""
 
 import logging
-from typing import Optional
 
 from ..types import MatchDict
 

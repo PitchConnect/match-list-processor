@@ -3,7 +3,7 @@
 import logging
 from typing import Set, Tuple
 
-from ..types import MatchDict_Dict, MatchId, MatchList
+from ..types import MatchDict, MatchDict_Dict, MatchId, MatchList
 
 logger = logging.getLogger(__name__)
 
@@ -49,7 +49,7 @@ class MatchComparator:
         return new_match_ids, removed_match_ids, common_match_ids
 
     @staticmethod
-    def is_match_modified(previous_match: dict, current_match: dict) -> bool:
+    def is_match_modified(previous_match: MatchDict, current_match: MatchDict) -> bool:
         """Check if a match has been modified.
 
         Args:
@@ -89,7 +89,7 @@ class MatchComparator:
         return False
 
     @staticmethod
-    def get_modification_details(previous_match: dict, current_match: dict) -> list:
+    def get_modification_details(previous_match: MatchDict, current_match: MatchDict) -> list:
         """Get detailed list of modifications between two matches.
 
         Args:
