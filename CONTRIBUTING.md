@@ -84,6 +84,62 @@ For detailed PR guidelines, see our [Pull Request Guide](https://github.com/Pitc
 
 For detailed coding standards, see our [Coding Standards Guide](https://github.com/PitchConnect/contribution-guidelines/blob/main/coding-standards.md).
 
+### Pre-commit Hooks
+
+This project uses pre-commit hooks to ensure code quality and consistency. The hooks automatically run the same checks as our CI/CD pipeline locally before you commit.
+
+#### Installation
+
+Pre-commit hooks are automatically installed when you run the quick start setup. If you need to install them manually:
+
+```bash
+# Install pre-commit (if not already installed)
+pip install pre-commit
+
+# Install the hooks for this repository
+pre-commit install
+```
+
+#### What the hooks check
+
+Our pre-commit configuration includes:
+
+- **Code formatting**: Black automatically formats your Python code
+- **Import sorting**: isort organizes your imports consistently
+- **Linting**: flake8 checks for code style and potential issues
+- **Type checking**: mypy verifies type annotations (src/ directory only)
+- **Security scanning**: bandit scans for common security issues
+- **General checks**: trailing whitespace, file endings, YAML syntax, etc.
+
+#### Running hooks manually
+
+You can run the hooks manually at any time:
+
+```bash
+# Run hooks on all files
+pre-commit run --all-files
+
+# Run hooks on staged files only
+pre-commit run
+
+# Run a specific hook
+pre-commit run black
+pre-commit run flake8
+pre-commit run mypy
+```
+
+#### Troubleshooting
+
+If pre-commit hooks fail:
+
+1. **Read the error messages carefully** - they usually tell you exactly what's wrong
+2. **Let the hooks fix what they can** - Black and isort will automatically fix formatting
+3. **Fix remaining issues manually** - Address any linting or type errors
+4. **Re-run the hooks** to verify fixes
+5. **Commit your changes** once all hooks pass
+
+The hooks are designed to catch the same issues that would fail in CI/CD, saving you time and ensuring consistent code quality.
+
 ## Project-Specific Guidelines
 
 ### Setup and Installation
