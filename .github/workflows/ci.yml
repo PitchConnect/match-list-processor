@@ -108,9 +108,18 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v4
 
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+
       - name: Build Docker image
-        run: |
-          docker build -t match-list-processor:test .
+        uses: docker/build-push-action@v5
+        with:
+          context: .
+          push: false
+          tags: match-list-processor:test
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
+          load: true
 
       - name: Test Docker image
         run: |

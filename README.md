@@ -170,6 +170,62 @@ The project includes a comprehensive CI/CD pipeline that runs:
 
 All checks must pass before code can be merged.
 
+## Container Images
+
+### Official Releases
+
+Official container images are automatically built and published to GitHub Container Registry (GHCR) when version tags are created:
+
+```bash
+# Pull the latest release
+docker pull ghcr.io/pitchconnect/match-list-processor:latest
+
+# Pull a specific version
+docker pull ghcr.io/pitchconnect/match-list-processor:v1.0.0
+
+# Pull a specific major version
+docker pull ghcr.io/pitchconnect/match-list-processor:1
+```
+
+### Available Tags
+
+- `latest` - Latest stable release
+- `vX.Y.Z` - Specific version (e.g., `v1.0.0`)
+- `X.Y` - Major.minor version (e.g., `1.0`)
+- `X` - Major version (e.g., `1`)
+
+### Multi-Architecture Support
+
+Images are built for multiple architectures:
+- `linux/amd64` (x86_64)
+- `linux/arm64` (ARM64/AArch64)
+
+### Image Verification
+
+Container images are signed and can be verified using cosign:
+
+```bash
+cosign verify --certificate-identity-regexp="https://github.com/PitchConnect/match-list-processor" \
+  --certificate-oidc-issuer="https://token.actions.githubusercontent.com" \
+  ghcr.io/pitchconnect/match-list-processor:latest
+```
+
+### Creating Releases
+
+To create a new release:
+
+1. Create and push a version tag:
+   ```bash
+   git tag v1.0.0
+   git push origin v1.0.0
+   ```
+
+2. The release workflow will automatically:
+   - Build multi-architecture container images
+   - Push images to GHCR with appropriate tags
+   - Generate build attestations
+   - Create a GitHub release with release notes
+
 ## License
 
 This project is part of the PitchConnect ecosystem. Please refer to the organization's licensing terms.
