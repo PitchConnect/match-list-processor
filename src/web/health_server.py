@@ -6,9 +6,9 @@ import threading
 from contextlib import asynccontextmanager
 from typing import Any, AsyncGenerator, Dict, Optional
 
-import uvicorn  # type: ignore[import-not-found]
-from fastapi import FastAPI, HTTPException  # type: ignore[import-not-found]
-from fastapi.responses import JSONResponse  # type: ignore[import-not-found]
+import uvicorn
+from fastapi import FastAPI, HTTPException
+from fastapi.responses import JSONResponse
 
 from ..config import Settings
 from ..services.health_service import HealthService
@@ -45,7 +45,7 @@ class HealthServer:
             lifespan=lifespan,
         )
 
-        @app.get("/health", response_model=None)  # type: ignore[misc]
+        @app.get("/health", response_model=None)
         async def health_check() -> JSONResponse:
             """
             Comprehensive health check endpoint.
@@ -84,7 +84,7 @@ class HealthServer:
                     },
                 )
 
-        @app.get("/health/simple")  # type: ignore[misc]
+        @app.get("/health/simple")
         async def simple_health_check() -> Dict[str, Any]:
             """
             Simple health check endpoint without dependency checks.
@@ -97,7 +97,7 @@ class HealthServer:
             """
             return self.health_service.get_simple_health_status()
 
-        @app.get("/health/dependencies")  # type: ignore[misc]
+        @app.get("/health/dependencies")
         async def dependencies_health_check() -> Dict[str, Any]:
             """
             Check only the health of service dependencies.
@@ -119,7 +119,7 @@ class HealthServer:
                 logger.exception("Dependencies check failed")
                 raise HTTPException(status_code=500, detail=f"Dependencies check failed: {str(e)}")
 
-        @app.get("/")  # type: ignore[misc]
+        @app.get("/")
         async def root() -> Dict[str, str]:
             """Root endpoint with basic service information."""
             return {
