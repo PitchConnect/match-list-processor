@@ -11,3 +11,4 @@ pre-commit>=2.20.0
 coverage>=6.0.0
 bandit[toml]>=1.7.0
 types-requests>=2.32.0
+httpx>=0.24.0
