@@ -4,7 +4,12 @@ import asyncio
 import logging
 import threading
 from contextlib import asynccontextmanager
-from typing import Any, AsyncGenerator, Dict, Optional
+from typing import Any, Dict, Optional
+
+try:
+    from typing import AsyncGenerator
+except ImportError:
+    from typing_extensions import AsyncGenerator
 
 import uvicorn
 from fastapi import FastAPI, HTTPException
