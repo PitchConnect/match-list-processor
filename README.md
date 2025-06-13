@@ -170,6 +170,39 @@ The project includes a comprehensive CI/CD pipeline that runs:
 
 All checks must pass before code can be merged.
 
+## Health Check Endpoints
+
+The service includes comprehensive health check endpoints for monitoring and orchestration:
+
+- **Simple Health Check**: `GET /health/simple` - Lightweight check without dependencies
+- **Comprehensive Health**: `GET /health` - Full health status including dependency checks
+- **Dependencies Only**: `GET /health/dependencies` - Status of all service dependencies
+- **Service Info**: `GET /` - Basic service information and available endpoints
+
+### Health Check Features
+
+- **Docker Integration**: Built-in `HEALTHCHECK` directive with curl-based monitoring
+- **Dependency Monitoring**: Checks connectivity to all required services:
+  - fogis-api-client-service
+  - whatsapp-avatar-service
+  - google-drive-service
+  - phonebook-sync-service
+- **Status Levels**: `healthy`, `degraded`, `unhealthy` based on dependency availability
+- **Response Time Tracking**: Monitors dependency response times
+- **Graceful Degradation**: Service remains operational even with some dependency failures
+
+### Quick Health Check
+
+```bash
+# Check if service is running
+curl http://localhost:8000/health/simple
+
+# Get comprehensive status
+curl http://localhost:8000/health
+```
+
+For detailed health check documentation, see [docs/HEALTH_CHECK.md](docs/HEALTH_CHECK.md).
+
 ## Container Images
 
 ### Official Releases
