@@ -2,7 +2,11 @@
 
 import json
 import logging
+import signal
 import sys
+import time
+from types import FrameType
+from typing import Optional
 
 from .config import settings
 from .core.data_manager import MatchDataManager
@@ -14,6 +18,7 @@ from .services.phonebook_service import FogisPhonebookSyncService
 from .services.storage_service import GoogleDriveStorageService
 from .types import MatchDict_Dict
 from .utils.description_generator import generate_whatsapp_description
+from .web.health_server import create_health_server
 
 logger = logging.getLogger(__name__)
 
@@ -32,9 +37,38 @@ class MatchListProcessorApp:
             self.avatar_service, self.storage_service, generate_whatsapp_description
         )
 
+        # Initialize health server
+        self.health_server = create_health_server(settings, port=8000)
+
+        # Set up signal handlers for graceful shutdown
+        signal.signal(signal.SIGTERM, self._signal_handler)
+        signal.signal(signal.SIGINT, self._signal_handler)
+
+    def _signal_handler(self, signum: int, frame: Optional[FrameType]) -> None:  # noqa: ARG002
+        """Handle shutdown signals gracefully."""
+        logger.info(f"Received signal {signum}, shutting down gracefully...")
+        self.shutdown()
+        sys.exit(0)
+
+    def shutdown(self) -> None:
+        """Shutdown the application gracefully."""
+        logger.info("Shutting down health server...")
+        if hasattr(self, "health_server"):
+            self.health_server.stop_server()
+
     def run(self) -> None:
         """Run the main application logic."""
         logger.info("Starting match list processor...")
+
+        # Start health server
+        logger.info("Starting health server on port 8000...")
+        self.health_server.start_server()
+
+        # Give health server time to start
+        time.sleep(2)
+
+        if not self.health_server.is_running():
+            logger.warning("Health server failed to start, but continuing with main processing...")
 
         try:
             # Sync contacts with phonebook
@@ -65,7 +99,11 @@ class MatchListProcessorApp:
         except Exception as e:
             logger.error(f"Unexpected error: {e}")
             logger.exception("Stack trace:")
+            self.shutdown()
             sys.exit(1)
+        finally:
+            # Ensure graceful shutdown
+            self.shutdown()
 
     def _load_previous_matches(self) -> MatchDict_Dict:
         """Load and parse previous matches from storage."""
