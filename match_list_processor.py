@@ -1,5 +1,5 @@
-"""
-DEPRECATED: This module is kept for backward compatibility.
+"""DEPRECATED: This module is kept for backward compatibility.
+
 Please use the new modular structure in the src/ directory.
 
 This file now serves as a wrapper around the new implementation.
