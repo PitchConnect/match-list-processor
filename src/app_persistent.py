@@ -98,7 +98,7 @@ class PersistentMatchListProcessorApp:
                 # Sleep with interruption check
                 for _ in range(self.service_interval):
                     if not self.running:
-                        break
+                        break  # type: ignore[unreachable]
                     time.sleep(1)
 
             except Exception as e:
