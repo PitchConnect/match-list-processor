@@ -2,10 +2,10 @@
 
 import json
 import logging
+import os
 import signal
 import sys
 import time
-import os
 from types import FrameType
 from typing import Optional
 
@@ -86,19 +86,21 @@ class PersistentMatchListProcessorApp:
     def _run_as_service(self) -> None:
         """Run as a persistent service with periodic processing."""
         logger.info(f"Running as persistent service with {self.service_interval}s interval")
-        
+
         while self.running:
             try:
                 logger.info("Starting periodic match processing cycle...")
                 self._process_matches()
-                logger.info(f"Match processing cycle completed. Sleeping for {self.service_interval}s...")
-                
+                logger.info(
+                    f"Match processing cycle completed. Sleeping for {self.service_interval}s..."
+                )
+
                 # Sleep with interruption check
                 for _ in range(self.service_interval):
                     if not self.running:
                         break
                     time.sleep(1)
-                    
+
             except Exception as e:
                 logger.error(f"Error in service loop: {e}")
                 logger.exception("Stack trace:")
@@ -250,7 +252,7 @@ def setup_logging() -> None:
 
 
 def main() -> None:
-    """Main entry point."""
+    """Run the persistent match list processor application."""
     setup_logging()
     app = PersistentMatchListProcessorApp()
     app.run()
