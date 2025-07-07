@@ -51,6 +51,9 @@ class Settings(BaseSettings):
     log_format: str = Field(
         default="%(asctime)s - %(levelname)s - %(message)s", validation_alias="LOG_FORMAT"
     )
+    # Persistent service mode configuration
+    run_mode: str = Field(default="oneshot", validation_alias="RUN_MODE")
+    service_interval: int = Field(default=300, validation_alias="SERVICE_INTERVAL")
 
 
 def get_settings() -> Settings:
