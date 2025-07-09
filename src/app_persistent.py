@@ -192,6 +192,10 @@ class PersistentMatchListProcessorApp:
         """Process newly detected matches."""
         if new_ids:
             logger.info(f"Detected NEW matches: {len(new_ids)}")
+
+            # Trigger calendar sync for new matches using existing service
+            self._trigger_calendar_sync()
+
             for match_id in new_ids:
                 match_data = current_matches[match_id]
                 self.match_processor.process_match(match_data, match_id, is_new=True)
@@ -242,6 +246,27 @@ class PersistentMatchListProcessorApp:
         raw_json_string = json.dumps(current_matches_list, ensure_ascii=False)
         self.data_manager.save_current_matches_raw_json(raw_json_string)
         logger.info("Current matches saved as raw JSON for future comparison.")
+
+    def _trigger_calendar_sync(self) -> None:
+        """Trigger calendar sync using existing fogis-calendar-phonebook-sync service."""
+        try:
+            import requests
+
+            calendar_sync_url = os.environ.get('CALENDAR_SYNC_URL', 'http://fogis-calendar-phonebook-sync:5003/sync')
+            logger.info(f"Triggering calendar sync via: {calendar_sync_url}")
+
+            # Use existing /sync endpoint with empty payload to trigger full sync
+            response = requests.post(calendar_sync_url, json={}, timeout=60)
+
+            if response.status_code == 200:
+                result = response.json()
+                logger.info(f"✅ Calendar sync triggered successfully: {result.get('status', 'Success')}")
+            else:
+                logger.error(f"❌ Calendar sync failed: {response.status_code} - {response.text}")
+
+        except Exception as e:
+            logger.error(f"Error triggering calendar sync: {e}")
+            logger.exception("Calendar sync trigger stack trace:")
 
 
 def setup_logging() -> None:
