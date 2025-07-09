@@ -5,7 +5,6 @@ import tempfile
 from unittest.mock import Mock, patch
 
 import pytest
-import requests
 
 from src.app_persistent import PersistentMatchListProcessorApp
 
