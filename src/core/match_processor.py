@@ -132,11 +132,17 @@ class MatchProcessor:
                 return self._create_error_result("Failed to get group info filename")
 
             group_info_result = self._upload_file(
-                temp_group_info_filepath, group_info_filename, gdrive_folder_path, "text/plain"
+                temp_group_info_filepath,
+                group_info_filename,
+                gdrive_folder_path,
+                "text/plain",
             )
 
             avatar_result = self._upload_file(
-                temp_avatar_filepath, avatar_filename, gdrive_folder_path, "image/png"
+                temp_avatar_filepath,
+                avatar_filename,
+                gdrive_folder_path,
+                "image/png",
             )
 
             return {

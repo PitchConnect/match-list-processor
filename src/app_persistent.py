@@ -36,7 +36,9 @@ class PersistentMatchListProcessorApp:
         self.storage_service = GoogleDriveStorageService()
         self.phonebook_service = FogisPhonebookSyncService()
         self.match_processor = MatchProcessor(
-            self.avatar_service, self.storage_service, generate_whatsapp_description
+            self.avatar_service,
+            self.storage_service,
+            generate_whatsapp_description,
         )
 
         # Initialize health server
@@ -98,7 +100,7 @@ class PersistentMatchListProcessorApp:
                 # Sleep with interruption check
                 for _ in range(self.service_interval):
                     if not self.running:
-                        break  # type: ignore[unreachable]
+                        break
                     time.sleep(1)
 
             except Exception as e:
@@ -216,7 +218,10 @@ class PersistentMatchListProcessorApp:
             logger.info("No removed matches detected.")
 
     def _process_modified_matches(
-        self, common_ids: set, previous_matches: MatchDict_Dict, current_matches: MatchDict_Dict
+        self,
+        common_ids: set,
+        previous_matches: MatchDict_Dict,
+        current_matches: MatchDict_Dict,
     ) -> None:
         """Process modified matches."""
         if common_ids:
@@ -230,7 +235,10 @@ class PersistentMatchListProcessorApp:
                 if MatchComparator.is_match_modified(prev_match, curr_match):
                     modified_count += 1
                     self.match_processor.process_match(
-                        curr_match, match_id, is_new=False, previous_match_data=prev_match
+                        curr_match,
+                        match_id,
+                        is_new=False,
+                        previous_match_data=prev_match,
                     )
 
             logger.info(
@@ -252,7 +260,10 @@ class PersistentMatchListProcessorApp:
         try:
             import requests
 
-            calendar_sync_url = os.environ.get('CALENDAR_SYNC_URL', 'http://fogis-calendar-phonebook-sync:5003/sync')
+            calendar_sync_url = os.environ.get(
+                "CALENDAR_SYNC_URL",
+                "http://fogis-calendar-phonebook-sync:5003/sync",
+            )
             logger.info(f"Triggering calendar sync via: {calendar_sync_url}")
 
             # Use existing /sync endpoint with empty payload to trigger full sync
@@ -260,7 +271,9 @@ class PersistentMatchListProcessorApp:
 
             if response.status_code == 200:
                 result = response.json()
-                logger.info(f"✅ Calendar sync triggered successfully: {result.get('status', 'Success')}")
+                logger.info(
+                    f"✅ Calendar sync triggered successfully: {result.get('status', 'Success')}"
+                )
             else:
                 logger.error(f"❌ Calendar sync failed: {response.status_code} - {response.text}")
 
@@ -272,7 +285,8 @@ class PersistentMatchListProcessorApp:
 def setup_logging() -> None:
     """Set up logging configuration."""
     logging.basicConfig(
-        level=getattr(logging, settings.log_level.upper()), format=settings.log_format
+        level=getattr(logging, settings.log_level.upper()),
+        format=settings.log_format,
     )
 
 
