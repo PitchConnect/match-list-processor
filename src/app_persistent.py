@@ -97,12 +97,11 @@ class PersistentMatchListProcessorApp:
                     f"Match processing cycle completed. Sleeping for {self.service_interval}s..."
                 )
 
-                # Sleep with interruption check
-                for _ in range(self.service_interval):
-                    if not self.running:
-                        break
+                # Sleep with interruption check - allow early exit if stopped
+                sleep_remaining = self.service_interval
+                while sleep_remaining > 0 and self.running:
                     time.sleep(1)
-
+                    sleep_remaining -= 1
             except Exception as e:
                 logger.error(f"Error in service loop: {e}")
                 logger.exception("Stack trace:")
