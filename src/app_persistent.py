@@ -36,7 +36,9 @@ class PersistentMatchListProcessorApp:
         self.storage_service = GoogleDriveStorageService()
         self.phonebook_service = FogisPhonebookSyncService()
         self.match_processor = MatchProcessor(
-            self.avatar_service, self.storage_service, generate_whatsapp_description
+            self.avatar_service,
+            self.storage_service,
+            generate_whatsapp_description,
         )
 
         # Initialize health server
@@ -95,12 +97,11 @@ class PersistentMatchListProcessorApp:
                     f"Match processing cycle completed. Sleeping for {self.service_interval}s..."
                 )
 
-                # Sleep with interruption check
-                for _ in range(self.service_interval):
-                    if not self.running:
-                        break  # type: ignore[unreachable]
+                # Sleep with interruption check - allow early exit if stopped
+                sleep_remaining = self.service_interval
+                while sleep_remaining > 0 and self.running:
                     time.sleep(1)
-
+                    sleep_remaining -= 1
             except Exception as e:
                 logger.error(f"Error in service loop: {e}")
                 logger.exception("Stack trace:")
@@ -192,6 +193,10 @@ class PersistentMatchListProcessorApp:
         """Process newly detected matches."""
         if new_ids:
             logger.info(f"Detected NEW matches: {len(new_ids)}")
+
+            # Trigger calendar sync for new matches using existing service
+            self._trigger_calendar_sync()
+
             for match_id in new_ids:
                 match_data = current_matches[match_id]
                 self.match_processor.process_match(match_data, match_id, is_new=True)
@@ -212,7 +217,10 @@ class PersistentMatchListProcessorApp:
             logger.info("No removed matches detected.")
 
     def _process_modified_matches(
-        self, common_ids: set, previous_matches: MatchDict_Dict, current_matches: MatchDict_Dict
+        self,
+        common_ids: set,
+        previous_matches: MatchDict_Dict,
+        current_matches: MatchDict_Dict,
     ) -> None:
         """Process modified matches."""
         if common_ids:
@@ -226,7 +234,10 @@ class PersistentMatchListProcessorApp:
                 if MatchComparator.is_match_modified(prev_match, curr_match):
                     modified_count += 1
                     self.match_processor.process_match(
-                        curr_match, match_id, is_new=False, previous_match_data=prev_match
+                        curr_match,
+                        match_id,
+                        is_new=False,
+                        previous_match_data=prev_match,
                     )
 
             logger.info(
@@ -243,11 +254,38 @@ class PersistentMatchListProcessorApp:
         self.data_manager.save_current_matches_raw_json(raw_json_string)
         logger.info("Current matches saved as raw JSON for future comparison.")
 
+    def _trigger_calendar_sync(self) -> None:
+        """Trigger calendar sync using existing fogis-calendar-phonebook-sync service."""
+        try:
+            import requests
+
+            calendar_sync_url = os.environ.get(
+                "CALENDAR_SYNC_URL",
+                "http://fogis-calendar-phonebook-sync:5003/sync",
+            )
+            logger.info(f"Triggering calendar sync via: {calendar_sync_url}")
+
+            # Use existing /sync endpoint with empty payload to trigger full sync
+            response = requests.post(calendar_sync_url, json={}, timeout=60)
+
+            if response.status_code == 200:
+                result = response.json()
+                logger.info(
+                    f"✅ Calendar sync triggered successfully: {result.get('status', 'Success')}"
+                )
+            else:
+                logger.error(f"❌ Calendar sync failed: {response.status_code} - {response.text}")
+
+        except Exception as e:
+            logger.error(f"Error triggering calendar sync: {e}")
+            logger.exception("Calendar sync trigger stack trace:")
+
 
 def setup_logging() -> None:
     """Set up logging configuration."""
     logging.basicConfig(
-        level=getattr(logging, settings.log_level.upper()), format=settings.log_format
+        level=getattr(logging, settings.log_level.upper()),
+        format=settings.log_format,
     )
 
 

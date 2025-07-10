@@ -45,7 +45,10 @@ class HealthService:
         self.settings = settings
         self.start_time = time.time()
         self._dependency_endpoints = {
-            "fogis-api-client": {"url": f"{settings.fogis_api_client_url}/hello", "timeout": 5},
+            "fogis-api-client": {
+                "url": f"{settings.fogis_api_client_url}/hello",
+                "timeout": 5,
+            },
             "whatsapp-avatar-service": {
                 "url": f"{settings.whatsapp_avatar_service_url}/health",
                 "timeout": 5,

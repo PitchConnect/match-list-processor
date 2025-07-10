@@ -37,7 +37,9 @@ class HealthServer:
         """Create FastAPI application with health endpoints."""
 
         @asynccontextmanager
-        async def lifespan(app: FastAPI) -> AsyncGenerator[None, None]:  # noqa: ARG001
+        async def lifespan(
+            app: FastAPI,
+        ) -> AsyncGenerator[None, None]:  # noqa: ARG001
             """Manage application lifespan."""
             logger.info("Health server starting up...")
             yield
@@ -74,7 +76,8 @@ class HealthServer:
                     status_code = 503
 
                 return JSONResponse(
-                    status_code=status_code, content=health_status.model_dump(mode="json")
+                    status_code=status_code,
+                    content=health_status.model_dump(mode="json"),
                 )
 
             except Exception as e:
@@ -122,7 +125,10 @@ class HealthServer:
                 }
             except Exception as e:
                 logger.exception("Dependencies check failed")
-                raise HTTPException(status_code=500, detail=f"Dependencies check failed: {str(e)}")
+                raise HTTPException(
+                    status_code=500,
+                    detail=f"Dependencies check failed: {str(e)}",
+                )
 
         @app.get("/")
         async def root() -> Dict[str, str]:

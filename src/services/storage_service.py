@@ -25,7 +25,11 @@ class GoogleDriveStorageService(StorageServiceInterface):
         self.upload_endpoint = f"{self.base_url}/upload_file"
 
     def upload_file(
-        self, file_path: FilePath, file_name: str, folder_path: str, mime_type: str
+        self,
+        file_path: FilePath,
+        file_name: str,
+        folder_path: str,
+        mime_type: str,
     ) -> UploadResult:
         """Upload a file to Google Drive.
 
@@ -51,7 +55,11 @@ class GoogleDriveStorageService(StorageServiceInterface):
                 if result.get("status") == "success":
                     file_url = result.get("file_url")
                     logger.info(f"File uploaded to Google Drive. URL: {file_url}")
-                    return {"status": "success", "message": None, "file_url": file_url}
+                    return {
+                        "status": "success",
+                        "message": None,
+                        "file_url": file_url,
+                    }
                 else:
                     error_msg = (
                         f"Google Drive upload FAILED. "
@@ -59,7 +67,11 @@ class GoogleDriveStorageService(StorageServiceInterface):
                         f"Message: {result.get('message')}"
                     )
                     logger.error(error_msg)
-                    return {"status": "error", "message": error_msg, "file_url": None}
+                    return {
+                        "status": "error",
+                        "message": error_msg,
+                        "file_url": None,
+                    }
 
         except requests.exceptions.RequestException as e:
             error_msg = f"Request error uploading to Google Drive: {e}"

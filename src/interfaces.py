@@ -41,7 +41,11 @@ class StorageServiceInterface(ABC):
 
     @abstractmethod
     def upload_file(
-        self, file_path: FilePath, file_name: str, folder_path: str, mime_type: str
+        self,
+        file_path: FilePath,
+        file_name: str,
+        folder_path: str,
+        mime_type: str,
     ) -> UploadResult:
         """Upload a file to storage.
 

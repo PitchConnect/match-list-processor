@@ -16,19 +16,22 @@ class Settings(BaseSettings):
     # Data storage
     data_folder: str = Field(default="/data", validation_alias="DATA_FOLDER")
     previous_matches_file: str = Field(
-        default="previous_matches.json", validation_alias="PREVIOUS_MATCHES_FILE"
+        default="previous_matches.json",
+        validation_alias="PREVIOUS_MATCHES_FILE",
     )
 
     # Service URLs
     fogis_api_client_url: str = Field(
-        default="http://fogis-api-client-service:8080", validation_alias="FOGIS_API_CLIENT_URL"
+        default="http://fogis-api-client-service:8080",
+        validation_alias="FOGIS_API_CLIENT_URL",
     )
     whatsapp_avatar_service_url: str = Field(
         default="http://whatsapp-avatar-service:5002",
         validation_alias="WHATSAPP_AVATAR_SERVICE_URL",
     )
     google_drive_service_url: str = Field(
-        default="http://google-drive-service:5000", validation_alias="GOOGLE_DRIVE_SERVICE_URL"
+        default="http://google-drive-service:5000",
+        validation_alias="GOOGLE_DRIVE_SERVICE_URL",
     )
     phonebook_sync_service_url: str = Field(
         default="http://fogis-calendar-phonebook-sync:5003",
@@ -49,7 +52,8 @@ class Settings(BaseSettings):
     # Logging
     log_level: str = Field(default="INFO", validation_alias="LOG_LEVEL")
     log_format: str = Field(
-        default="%(asctime)s - %(levelname)s - %(message)s", validation_alias="LOG_FORMAT"
+        default="%(asctime)s - %(levelname)s - %(message)s",
+        validation_alias="LOG_FORMAT",
     )
     # Persistent service mode configuration
     run_mode: str = Field(default="oneshot", validation_alias="RUN_MODE")
