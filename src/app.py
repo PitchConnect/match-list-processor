@@ -34,7 +34,9 @@ class MatchListProcessorApp:
         self.storage_service = GoogleDriveStorageService()
         self.phonebook_service = FogisPhonebookSyncService()
         self.match_processor = MatchProcessor(
-            self.avatar_service, self.storage_service, generate_whatsapp_description
+            self.avatar_service,
+            self.storage_service,
+            generate_whatsapp_description,
         )
 
         # Initialize health server
@@ -166,7 +168,10 @@ class MatchListProcessorApp:
             logger.info("No removed matches detected.")
 
     def _process_modified_matches(
-        self, common_ids: set, previous_matches: MatchDict_Dict, current_matches: MatchDict_Dict
+        self,
+        common_ids: set,
+        previous_matches: MatchDict_Dict,
+        current_matches: MatchDict_Dict,
     ) -> None:
         """Process modified matches."""
         if common_ids:
@@ -180,7 +185,10 @@ class MatchListProcessorApp:
                 if MatchComparator.is_match_modified(prev_match, curr_match):
                     modified_count += 1
                     self.match_processor.process_match(
-                        curr_match, match_id, is_new=False, previous_match_data=prev_match
+                        curr_match,
+                        match_id,
+                        is_new=False,
+                        previous_match_data=prev_match,
                     )
 
             logger.info(
@@ -201,7 +209,8 @@ class MatchListProcessorApp:
 def setup_logging() -> None:
     """Set up logging configuration."""
     logging.basicConfig(
-        level=getattr(logging, settings.log_level.upper()), format=settings.log_format
+        level=getattr(logging, settings.log_level.upper()),
+        format=settings.log_format,
     )
 
 
