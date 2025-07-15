@@ -107,7 +107,7 @@ class TestHealthService:
 
         # Check URLs are properly configured
         endpoints = health_service._dependency_endpoints
-        assert endpoints["fogis-api-client"]["url"] == f"{settings.fogis_api_client_url}/hello"
+        assert endpoints["fogis-api-client"]["url"] == f"{settings.fogis_api_client_url}/health"
         assert (
             endpoints["whatsapp-avatar-service"]["url"]
             == f"{settings.whatsapp_avatar_service_url}/health"
