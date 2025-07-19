@@ -25,5 +25,7 @@ EXPOSE 8000
 HEALTHCHECK --interval=30s --timeout=10s --start-period=30s --retries=3 \
     CMD curl -f http://localhost:8000/health/simple || exit 1
 
-# Run the refactored application
-CMD ["python", "-m", "src.app"]
+# Run the application with smart entry point that selects mode based on RUN_MODE
+# RUN_MODE=service: Uses persistent service mode (prevents restart loops)
+# RUN_MODE=oneshot: Uses traditional oneshot mode (default for backward compatibility)
+CMD ["python", "-m", "src.main"]
