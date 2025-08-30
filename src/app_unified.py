@@ -87,7 +87,13 @@ class UnifiedMatchListProcessorApp:
                 )
 
                 # Sleep with interruption check - allow early exit if stopped
-                sleep_remaining = self.service_interval
+                # In test mode, use shorter intervals to prevent hanging
+                sleep_interval = (
+                    min(self.service_interval, 30)
+                    if os.environ.get("PYTEST_CURRENT_TEST")
+                    else self.service_interval
+                )
+                sleep_remaining = sleep_interval
                 while sleep_remaining > 0 and self.running:
                     time.sleep(1)
                     sleep_remaining -= 1
