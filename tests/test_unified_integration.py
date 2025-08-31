@@ -222,7 +222,14 @@ class TestUnifiedIntegration(unittest.TestCase):
         self.assertEqual(change_record["current"]["time"], "16:00")
 
     @patch("src.web.health_server.create_health_server")
-    @patch.dict(os.environ, {"RUN_MODE": "oneshot", "PROCESSOR_MODE": "unified"})
+    @patch.dict(
+        os.environ,
+        {
+            "RUN_MODE": "oneshot",
+            "PROCESSOR_MODE": "unified",
+            "PYTEST_CURRENT_TEST": "test_unified_app_initialization",
+        },
+    )
     def test_unified_app_initialization(self, mock_health_server):
         """Test unified app initialization."""
         mock_health_server.return_value = MagicMock()
@@ -241,9 +248,18 @@ class TestUnifiedIntegration(unittest.TestCase):
             self.assertIsNotNone(app.unified_processor)
             self.assertEqual(app.run_mode, "oneshot")
             self.assertTrue(app.running)
+            self.assertTrue(app.is_test_mode)  # Verify test mode detection
+            self.assertIsNone(app.health_server)  # Health server should be None in test mode
 
     @patch("src.web.health_server.create_health_server")
-    @patch.dict(os.environ, {"RUN_MODE": "service", "SERVICE_INTERVAL": "60"})
+    @patch.dict(
+        os.environ,
+        {
+            "RUN_MODE": "service",
+            "SERVICE_INTERVAL": "60",
+            "PYTEST_CURRENT_TEST": "test_unified_app_service_mode_config",
+        },
+    )
     def test_unified_app_service_mode_config(self, mock_health_server):
         """Test unified app service mode configuration."""
         mock_health_server.return_value = MagicMock()
@@ -261,6 +277,43 @@ class TestUnifiedIntegration(unittest.TestCase):
 
             self.assertEqual(app.run_mode, "service")
             self.assertEqual(app.service_interval, 60)
+            self.assertTrue(app.is_test_mode)  # Verify test mode detection
+
+    @patch("src.web.health_server.create_health_server")
+    @patch.dict(
+        os.environ,
+        {
+            "RUN_MODE": "service",
+            "SERVICE_INTERVAL": "5",
+            "PYTEST_CURRENT_TEST": "test_service_mode_safe_execution",
+        },
+    )
+    def test_service_mode_safe_execution(self, mock_health_server):
+        """Test that service mode runs safely in test environment without hanging."""
+        mock_health_server.return_value = MagicMock()
+
+        with (
+            patch("src.core.unified_processor.MatchDataManager"),
+            patch("src.core.unified_processor.DockerNetworkApiClient") as mock_api,
+            patch("src.core.unified_processor.WhatsAppAvatarService"),
+            patch("src.core.unified_processor.GoogleDriveStorageService"),
+            patch("src.core.unified_processor.FogisPhonebookSyncService"),
+            patch("src.core.unified_processor.MatchProcessor"),
+        ):
+            # Setup API mock
+            mock_api.return_value.fetch_matches_list.return_value = self.sample_matches
+
+            app = UnifiedMatchListProcessorApp()
+
+            # Verify test mode is detected
+            self.assertTrue(app.is_test_mode)
+            self.assertEqual(app.run_mode, "service")
+
+            # This should run once and exit (not hang) due to test mode detection
+            app._run_as_service()
+
+            # Verify it completed without hanging
+            self.assertTrue(app.running)  # Should still be True since we didn't call shutdown
 
     def test_change_detector_file_persistence(self):
         """Test that change detector properly persists and loads match data."""
