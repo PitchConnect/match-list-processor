@@ -4,8 +4,6 @@ import os
 import sys
 from unittest.mock import patch
 
-import pytest
-
 # Add src to path for testing
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), "..", "src"))
 
@@ -15,107 +13,116 @@ from src.main import main  # noqa: E402
 class TestMainEntryPoint:
     """Test cases for the smart entry point functionality."""
 
-    @pytest.mark.xfail(
-        reason="Expected failure: main entry point now uses unified processor instead of legacy apps"
-    )
     @patch("src.main.logger")
-    @patch("src.app.main")
-    def test_default_mode_oneshot(self, mock_oneshot_main, mock_logger):
-        """Test that default mode uses oneshot application."""
-        # Remove RUN_MODE from environment
+    @patch("src.app_unified.main")
+    def test_default_mode_oneshot(self, mock_unified_main, mock_logger):
+        """Test that default mode uses unified processor."""
+        # Remove RUN_MODE and PROCESSOR_MODE from environment to test defaults
         with patch.dict(os.environ, {}, clear=True):
             main()
 
-        mock_logger.info.assert_any_call("Match List Processor starting in oneshot mode...")
-        mock_logger.info.assert_any_call("Using oneshot mode (src.app)")
-        mock_oneshot_main.assert_called_once()
+        mock_logger.info.assert_any_call(
+            "Match List Processor starting in oneshot mode with unified processor..."
+        )
+        mock_logger.info.assert_any_call(
+            "Using unified processor with integrated change detection (src.app_unified)"
+        )
+        mock_unified_main.assert_called_once()
 
-    @pytest.mark.xfail(
-        reason="Expected failure: main entry point now uses unified processor instead of legacy apps"
-    )
     @patch("src.main.logger")
-    @patch("src.app_persistent.main")
-    def test_service_mode(self, mock_persistent_main, mock_logger):
-        """Test that service mode uses persistent application."""
+    @patch("src.app_unified.main")
+    def test_service_mode(self, mock_unified_main, mock_logger):
+        """Test that service mode uses unified processor."""
         with patch.dict(os.environ, {"RUN_MODE": "service"}):
             main()
 
-        mock_logger.info.assert_any_call("Match List Processor starting in service mode...")
-        mock_logger.info.assert_any_call("Using persistent service mode (src.app_persistent)")
-        mock_persistent_main.assert_called_once()
+        mock_logger.info.assert_any_call(
+            "Match List Processor starting in service mode with unified processor..."
+        )
+        mock_logger.info.assert_any_call(
+            "Using unified processor with integrated change detection (src.app_unified)"
+        )
+        mock_unified_main.assert_called_once()
 
-    @pytest.mark.xfail(
-        reason="Expected failure: main entry point now uses unified processor instead of legacy apps"
-    )
     @patch("src.main.logger")
-    @patch("src.app.main")
-    def test_explicit_oneshot_mode(self, mock_oneshot_main, mock_logger):
-        """Test that explicit oneshot mode works correctly."""
+    @patch("src.app_unified.main")
+    def test_explicit_oneshot_mode(self, mock_unified_main, mock_logger):
+        """Test that explicit oneshot mode uses unified processor."""
         with patch.dict(os.environ, {"RUN_MODE": "oneshot"}):
             main()
 
-        mock_logger.info.assert_any_call("Match List Processor starting in oneshot mode...")
-        mock_logger.info.assert_any_call("Using oneshot mode (src.app)")
-        mock_oneshot_main.assert_called_once()
+        mock_logger.info.assert_any_call(
+            "Match List Processor starting in oneshot mode with unified processor..."
+        )
+        mock_logger.info.assert_any_call(
+            "Using unified processor with integrated change detection (src.app_unified)"
+        )
+        mock_unified_main.assert_called_once()
 
-    @pytest.mark.xfail(
-        reason="Expected failure: main entry point now uses unified processor instead of legacy apps"
-    )
     @patch("src.main.logger")
-    @patch("src.app.main")
-    def test_unknown_mode_defaults_to_oneshot(self, mock_oneshot_main, mock_logger):
-        """Test that unknown RUN_MODE defaults to oneshot."""
+    @patch("src.app_unified.main")
+    def test_unknown_mode_passes_to_unified_processor(self, mock_unified_main, mock_logger):
+        """Test that unknown RUN_MODE is passed to unified processor for handling."""
         with patch.dict(os.environ, {"RUN_MODE": "unknown"}):
             main()
 
-        mock_logger.warning.assert_any_call(
-            "Unknown RUN_MODE 'unknown', defaulting to oneshot mode"
+        mock_logger.info.assert_any_call(
+            "Match List Processor starting in unknown mode with unified processor..."
         )
+        mock_logger.info.assert_any_call(
+            "Using unified processor with integrated change detection (src.app_unified)"
+        )
+        mock_unified_main.assert_called_once()
+
+    @patch("src.main.logger")
+    @patch("src.app.main")
+    @patch("src.app_unified.main", side_effect=ImportError("Test unified import error"))
+    def test_unified_import_error_falls_back_to_legacy(
+        self, mock_unified_main, mock_oneshot_main, mock_logger
+    ):
+        """Test that import error in unified processor falls back to legacy oneshot."""
+        with patch.dict(os.environ, {"RUN_MODE": "oneshot"}):
+            main()
+
+        mock_logger.error.assert_any_call(
+            "Failed to import unified processor module: Test unified import error"
+        )
+        mock_logger.error.assert_any_call("Falling back to legacy processor")
+        mock_logger.info.assert_any_call("Using legacy oneshot mode (src.app)")
         mock_oneshot_main.assert_called_once()
 
-    @pytest.mark.xfail(
-        reason="Expected failure: main entry point now uses unified processor instead of legacy apps"
-    )
-    @patch("src.main.logger")
-    @patch("src.app.main", side_effect=ImportError("Test import error"))
-    def test_oneshot_import_error_exits(self, mock_oneshot_main, mock_logger):
-        """Test that import error in oneshot mode causes exit."""
-        with patch.dict(os.environ, {"RUN_MODE": "oneshot"}):
-            with pytest.raises(SystemExit):
-                main()
-
-        mock_logger.error.assert_any_call("Failed to import oneshot module: Test import error")
-
-    @pytest.mark.xfail(
-        reason="Expected failure: main entry point now uses unified processor instead of legacy apps"
-    )
     @patch("src.main.logger")
     @patch("src.app_persistent.main", side_effect=ImportError("Test persistent import error"))
     @patch("src.app.main")
+    @patch("src.app_unified.main", side_effect=ImportError("Test unified import error"))
     def test_persistent_import_error_falls_back_to_oneshot(
-        self, mock_oneshot_main, mock_persistent_main, mock_logger
+        self, mock_unified_main, mock_oneshot_main, mock_persistent_main, mock_logger
     ):
-        """Test that import error in persistent mode falls back to oneshot."""
+        """Test that import errors in unified and persistent modes fall back to oneshot."""
         with patch.dict(os.environ, {"RUN_MODE": "service"}):
             main()
 
+        mock_logger.error.assert_any_call(
+            "Failed to import unified processor module: Test unified import error"
+        )
+        mock_logger.error.assert_any_call("Falling back to legacy processor")
         mock_logger.error.assert_any_call(
             "Failed to import persistent service module: Test persistent import error"
         )
         mock_logger.error.assert_any_call("Falling back to oneshot mode")
         mock_oneshot_main.assert_called_once()
 
-    @pytest.mark.xfail(
-        reason="Expected failure: main entry point now uses unified processor instead of legacy apps"
-    )
     @patch("src.main.logger")
-    @patch("src.app.main")
-    def test_case_insensitive_mode(self, mock_oneshot_main, mock_logger):
-        """Test that RUN_MODE is case insensitive."""
+    @patch("src.app_unified.main")
+    def test_case_insensitive_mode(self, mock_unified_main, mock_logger):
+        """Test that RUN_MODE is case insensitive and uses unified processor."""
         with patch.dict(os.environ, {"RUN_MODE": "SERVICE"}):
-            # Mock the persistent import to test the case conversion
-            with patch("src.app_persistent.main") as mock_persistent_main:
-                main()
+            main()
 
-            mock_logger.info.assert_any_call("Match List Processor starting in service mode...")
-            mock_persistent_main.assert_called_once()
+        mock_logger.info.assert_any_call(
+            "Match List Processor starting in service mode with unified processor..."
+        )
+        mock_logger.info.assert_any_call(
+            "Using unified processor with integrated change detection (src.app_unified)"
+        )
+        mock_unified_main.assert_called_once()

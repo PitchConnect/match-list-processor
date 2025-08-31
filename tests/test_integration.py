@@ -4,8 +4,6 @@ import json
 import os
 from unittest.mock import Mock, patch
 
-import pytest
-
 from src.app import MatchListProcessorApp
 from src.core.data_manager import MatchDataManager
 from src.core.match_comparator import MatchComparator
@@ -204,28 +202,27 @@ class TestDataFlowIntegration:
         assert 6169106 in match_dict
         assert match_dict[6169105]["lag1namn"] == "IK Kongahälla"
 
-    @pytest.mark.xfail(
-        reason="Expected failure: API client returns empty list in test mode for network isolation"
-    )
     def test_api_client_to_comparator_flow(self, sample_matches_list):
         """Test data flow from API client to comparator."""
-        # Mock API client
-        with patch("src.services.api_client.requests.get") as mock_get:
-            mock_response = Mock()
-            mock_response.status_code = 200
-            mock_response.json.return_value = sample_matches_list
-            mock_get.return_value = mock_response
+        # Set environment variable to allow API client unit testing
+        with patch.dict(os.environ, {"PYTEST_API_CLIENT_UNIT_TEST": "1"}):
+            # Mock API client
+            with patch("src.services.api_client.requests.get") as mock_get:
+                mock_response = Mock()
+                mock_response.status_code = 200
+                mock_response.json.return_value = sample_matches_list
+                mock_get.return_value = mock_response
 
-            # Fetch data using API client
-            api_client = DockerNetworkApiClient()
-            fetched_data = api_client.fetch_matches_list()
+                # Fetch data using API client
+                api_client = DockerNetworkApiClient()
+                fetched_data = api_client.fetch_matches_list()
 
-            # Convert using comparator
-            match_dict = MatchComparator.convert_to_dict(fetched_data)
+                # Convert using comparator
+                match_dict = MatchComparator.convert_to_dict(fetched_data)
 
-            # Verify data integrity
-            assert len(match_dict) == 2
-            assert isinstance(match_dict, dict)
+                # Verify data integrity
+                assert len(match_dict) == 2
+                assert isinstance(match_dict, dict)
 
     def test_comparator_to_processor_flow(self, sample_matches_list):
         """Test data flow from comparator to processor."""
