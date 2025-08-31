@@ -1,5 +1,6 @@
 """Tests for service implementations."""
 
+import os
 from unittest.mock import Mock, mock_open, patch
 
 import requests
@@ -12,6 +13,16 @@ from src.services.storage_service import GoogleDriveStorageService
 
 class TestDockerNetworkApiClient:
     """Test the DockerNetworkApiClient class."""
+
+    def setup_method(self):
+        """Set up test environment."""
+        # Enable unit test mode for API client
+        os.environ["PYTEST_API_CLIENT_UNIT_TEST"] = "1"
+
+    def teardown_method(self):
+        """Clean up test environment."""
+        # Clean up environment variable
+        os.environ.pop("PYTEST_API_CLIENT_UNIT_TEST", None)
 
     def test_init_default_url(self):
         """Test initialization with default URL."""

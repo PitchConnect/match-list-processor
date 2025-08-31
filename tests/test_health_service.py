@@ -1,5 +1,6 @@
 """Tests for the health service."""
 
+import os
 import time
 from datetime import datetime, timezone
 from unittest.mock import Mock, patch
@@ -91,7 +92,12 @@ class TestHealthService:
     @pytest.fixture
     def health_service(self, settings):
         """Create health service instance."""
-        return HealthService(settings)
+        # Set environment variable to enable unit test mode for health service
+        os.environ["PYTEST_HEALTH_SERVICE_UNIT_TEST"] = "1"
+        service = HealthService(settings)
+        yield service
+        # Clean up
+        os.environ.pop("PYTEST_HEALTH_SERVICE_UNIT_TEST", None)
 
     def test_health_service_initialization(self, health_service, settings):
         """Test health service initialization."""

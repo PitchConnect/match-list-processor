@@ -1,7 +1,7 @@
 """Integration tests for health check functionality."""
 
 import time
-from unittest.mock import patch
+from unittest.mock import MagicMock, patch
 
 import pytest
 import requests
@@ -20,7 +20,9 @@ class TestHealthIntegration:
         return Settings()
 
     def test_health_server_integration(self, settings):
-        """Test health server integration with real HTTP requests."""
+        """Test health server integration with test mode detection."""
+        # Test mode detection should prevent actual network calls
+
         health_server = create_health_server(settings, port=8004)
 
         try:
@@ -53,7 +55,9 @@ class TestHealthIntegration:
             health_server.stop_server()
 
     def test_health_server_basic_endpoints(self, settings):
-        """Test basic health server endpoints without dependency mocking."""
+        """Test basic health server endpoints with test mode detection."""
+        # Test mode detection should prevent actual network calls
+
         health_server = create_health_server(settings, port=8005)
 
         try:
@@ -95,7 +99,14 @@ class TestAppHealthIntegration:
             patch("src.services.storage_service.GoogleDriveStorageService"),
             patch("src.services.phonebook_service.FogisPhonebookSyncService"),
             patch("src.core.data_manager.MatchDataManager"),
+            patch("src.services.health_service.requests.get") as mock_health_requests,
         ):
+            # Mock health service requests to prevent DNS resolution
+            mock_response = MagicMock()
+            mock_response.status_code = 200
+            mock_response.json.return_value = {"status": "healthy"}
+            mock_response.elapsed.total_seconds.return_value = 0.1
+            mock_health_requests.return_value = mock_response
             yield
 
     def test_app_starts_health_server(self, mock_services):  # noqa: ARG002
@@ -155,6 +166,8 @@ class TestDockerHealthCheck:
 
     def test_health_check_endpoint_format(self, settings):
         """Test that health check endpoint returns expected format for Docker."""
+        # Test mode detection should prevent actual network calls
+
         health_server = create_health_server(settings, port=8008)
 
         try:
@@ -188,6 +201,8 @@ class TestDockerHealthCheck:
 
     def test_health_check_response_time(self, settings):
         """Test that health check responds quickly for Docker timeout requirements."""
+        # Test mode detection should prevent actual network calls
+
         health_server = create_health_server(settings, port=8009)
 
         try:
