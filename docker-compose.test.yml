@@ -1,0 +1,53 @@
+# Docker Compose configuration for testing consolidated match-list-processor service
+#
+# This is a simplified version for testing without external service dependencies
+# For production deployment, use docker-compose.yml with full service dependencies
+#
+# Updated: 2025-08-31 - Phase 1B configuration consolidation
+services:
+  process-matches-service:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    environment:
+      - TZ=Europe/Stockholm
+      # Unified processor configuration
+      - PROCESSOR_MODE=unified
+      - RUN_MODE=service
+      # Enhanced change categorization settings
+      - ENABLE_CHANGE_CATEGORIZATION=true
+      - CHANGE_PRIORITY_SAME_DAY=critical
+      # Data storage configuration
+      - DATA_FOLDER=/data
+      - PREVIOUS_MATCHES_FILE=previous_matches.json
+      # Service URLs (mock for testing)
+      - FOGIS_API_CLIENT_URL=http://localhost:8080
+      - WHATSAPP_AVATAR_SERVICE_URL=http://localhost:5002
+      - GOOGLE_DRIVE_SERVICE_URL=http://localhost:5000
+      - PHONEBOOK_SYNC_SERVICE_URL=http://localhost:5003
+      # Processing settings
+      - MIN_REFEREES_FOR_WHATSAPP=2
+      - TEMP_FILE_DIRECTORY=/tmp
+      # Google Drive settings
+      - GDRIVE_FOLDER_BASE=WhatsApp_Group_Assets
+      # Logging configuration
+      - LOG_LEVEL=INFO
+      - LOG_FORMAT=%(asctime)s - %(levelname)s - %(message)s
+    container_name: process-matches-service-test
+    volumes:
+      - process-matches-test-data:/data
+      - .:/app
+    ports:
+      - "8001:8000"  # Use different port for testing
+    restart: "no"  # Don't restart for testing
+    # Health check configuration
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8000/health/simple"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 30s
+
+volumes:
+  process-matches-test-data:
+    driver: local
