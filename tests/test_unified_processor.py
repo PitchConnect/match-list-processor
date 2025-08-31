@@ -141,9 +141,11 @@ class TestUnifiedMatchProcessor(unittest.TestCase):
         """Test failed fetching of current matches."""
         self.processor.api_client.fetch_matches_list.side_effect = Exception("API Error")
 
-        matches = self.processor._fetch_current_matches()
-        # Should return empty list on error, not raise exception
-        self.assertEqual(matches, [])
+        # The method now raises the exception instead of swallowing it
+        with self.assertRaises(Exception) as context:
+            self.processor._fetch_current_matches()
+
+        self.assertEqual(str(context.exception), "API Error")
 
     @patch("src.core.unified_processor.UnifiedMatchProcessor._run_existing_processing_logic")
     def test_process_changes_success(self, mock_run_logic):
