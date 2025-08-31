@@ -68,10 +68,12 @@ class TestUnifiedIntegration(unittest.TestCase):
         """Test end-to-end processing when new matches are detected."""
         # Setup mocks
         mock_api_instance = mock_api.return_value
-        mock_api_instance.get_matches.return_value = self.sample_matches
+        mock_api_instance.fetch_matches_list.return_value = self.sample_matches
 
         mock_data_manager_instance = mock_data_manager.return_value
-        mock_data_manager_instance.load_previous_matches.return_value = []
+        mock_data_manager_instance.load_previous_matches_raw_json.return_value = "[]"
+        mock_data_manager_instance.parse_raw_json_to_list.return_value = []
+        mock_data_manager_instance.save_current_matches_raw_json.return_value = None
 
         mock_match_processor_instance = mock_match_processor.return_value
         mock_match_processor_instance.process_match.return_value = {
@@ -99,7 +101,7 @@ class TestUnifiedIntegration(unittest.TestCase):
         self.assertEqual(len(result.errors), 0)
 
         # Verify API was called
-        mock_api_instance.get_matches.assert_called_once()
+        mock_api_instance.fetch_matches_list.assert_called_once()
 
         # Verify match processing was called
         mock_match_processor_instance.process_match.assert_called_once()
@@ -108,7 +110,7 @@ class TestUnifiedIntegration(unittest.TestCase):
         mock_phonebook_instance.sync_contacts.assert_called_once()
 
         # Verify matches were saved
-        mock_data_manager_instance.save_current_matches.assert_called_once()
+        mock_data_manager_instance.save_current_matches_raw_json.assert_called_once()
 
     @patch("src.core.unified_processor.DockerNetworkApiClient")
     @patch("src.core.unified_processor.WhatsAppAvatarService")
@@ -128,10 +130,14 @@ class TestUnifiedIntegration(unittest.TestCase):
         """Test end-to-end processing when no changes are detected."""
         # Setup mocks - same matches for previous and current
         mock_api_instance = mock_api.return_value
-        mock_api_instance.get_matches.return_value = self.sample_matches
+        mock_api_instance.fetch_matches_list.return_value = self.sample_matches
 
         mock_data_manager_instance = mock_data_manager.return_value
-        mock_data_manager_instance.load_previous_matches.return_value = self.sample_matches
+        mock_data_manager_instance.load_previous_matches_raw_json.return_value = json.dumps(
+            self.sample_matches
+        )
+        mock_data_manager_instance.parse_raw_json_to_list.return_value = self.sample_matches
+        mock_data_manager_instance.save_current_matches_raw_json.return_value = None
 
         # Save initial matches to file
         with open(self.temp_matches_file, "w") as f:
@@ -150,7 +156,7 @@ class TestUnifiedIntegration(unittest.TestCase):
         self.assertEqual(len(result.errors), 0)
 
         # Verify API was called
-        mock_api_instance.get_matches.assert_called_once()
+        mock_api_instance.fetch_matches_list.assert_called_once()
 
         # Verify match processing was NOT called (no changes)
         mock_match_processor.return_value.process_match.assert_not_called()
@@ -184,10 +190,14 @@ class TestUnifiedIntegration(unittest.TestCase):
 
         # Setup mocks
         mock_api_instance = mock_api.return_value
-        mock_api_instance.get_matches.return_value = current_matches
+        mock_api_instance.fetch_matches_list.return_value = current_matches
 
         mock_data_manager_instance = mock_data_manager.return_value
-        mock_data_manager_instance.load_previous_matches.return_value = previous_matches
+        mock_data_manager_instance.load_previous_matches_raw_json.return_value = json.dumps(
+            previous_matches
+        )
+        mock_data_manager_instance.parse_raw_json_to_list.return_value = previous_matches
+        mock_data_manager_instance.save_current_matches_raw_json.return_value = None
 
         mock_match_processor_instance = mock_match_processor.return_value
         mock_match_processor_instance.process_match.return_value = {

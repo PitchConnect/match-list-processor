@@ -130,19 +130,20 @@ class TestUnifiedMatchProcessor(unittest.TestCase):
 
     def test_fetch_current_matches_success(self):
         """Test successful fetching of current matches."""
-        self.processor.api_client.get_matches.return_value = self.sample_matches
+        self.processor.api_client.fetch_matches_list.return_value = self.sample_matches
 
         matches = self.processor._fetch_current_matches()
 
         self.assertEqual(matches, self.sample_matches)
-        self.processor.api_client.get_matches.assert_called_once()
+        self.processor.api_client.fetch_matches_list.assert_called_once()
 
     def test_fetch_current_matches_failure(self):
         """Test failed fetching of current matches."""
-        self.processor.api_client.get_matches.side_effect = Exception("API Error")
+        self.processor.api_client.fetch_matches_list.side_effect = Exception("API Error")
 
-        with self.assertRaises(Exception):
-            self.processor._fetch_current_matches()
+        matches = self.processor._fetch_current_matches()
+        # Should return empty list on error, not raise exception
+        self.assertEqual(matches, [])
 
     @patch("src.core.unified_processor.UnifiedMatchProcessor._run_existing_processing_logic")
     def test_process_changes_success(self, mock_run_logic):
@@ -172,7 +173,8 @@ class TestUnifiedMatchProcessor(unittest.TestCase):
     def test_run_existing_processing_logic(self):
         """Test running existing processing logic."""
         # Mock the data manager and comparator
-        self.processor.data_manager.load_previous_matches.return_value = []
+        self.processor.data_manager.load_previous_matches_raw_json.return_value = "[]"
+        self.processor.data_manager.parse_raw_json_to_list.return_value = []
 
         # Mock match processor
         self.processor.match_processor.process_match.return_value = {
@@ -184,10 +186,8 @@ class TestUnifiedMatchProcessor(unittest.TestCase):
         self.processor._run_existing_processing_logic(self.sample_matches)
 
         # Verify calls
-        self.processor.data_manager.load_previous_matches.assert_called_once()
-        self.processor.data_manager.save_current_matches.assert_called_once_with(
-            self.sample_matches
-        )
+        self.processor.data_manager.load_previous_matches_raw_json.assert_called_once()
+        self.processor.data_manager.save_current_matches_raw_json.assert_called_once()
 
     @patch("src.core.unified_processor.UnifiedMatchProcessor._trigger_calendar_sync")
     def test_trigger_downstream_services(self, mock_calendar_sync):

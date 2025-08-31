@@ -1,0 +1,24 @@
+[
+  {
+    "matchid": "12345",
+    "matchnr": "1",
+    "speldatum": "2025-09-01",
+    "avsparkstid": "14:00",
+    "lag1lagid": "100",
+    "lag1namn": "Team A",
+    "lag2lagid": "200",
+    "lag2namn": "Team B",
+    "anlaggningnamn": "Stadium A",
+    "lag1foreningid": "1001",
+    "lag2foreningid": "2001",
+    "domaruppdraglista": [
+      {
+        "domareid": "ref1",
+        "personnamn": "John Referee",
+        "domarrollnamn": "Huvuddomare",
+        "epostadress": "john@example.com",
+        "mobiltelefon": "123456789"
+      }
+    ]
+  }
+]
