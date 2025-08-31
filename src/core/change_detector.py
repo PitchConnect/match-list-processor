@@ -3,27 +3,43 @@
 import json
 import logging
 import os
-from typing import Any, Dict, List, Tuple
+from typing import Any, Dict, List, Optional, Tuple
 
 from ..types import MatchList
+from .change_categorization import CategorizedChanges, ChangePriority
+from .change_categorization import GranularChangeDetector as ChangeCategorizationDetector
+from .change_categorization import MatchChangeDetail
 
 logger = logging.getLogger(__name__)
 
 
 class ChangesSummary:
-    """Summary of detected changes in match list."""
+    """Summary of detected changes in match list with granular categorization."""
 
     def __init__(
         self,
         new_matches: List[Dict[str, Any]],
         updated_matches: List[Dict[str, Any]],
         removed_matches: List[Dict[str, Any]],
+        categorized_changes: Optional[CategorizedChanges] = None,
     ):
         self.new_matches = new_matches
         self.updated_matches = updated_matches
         self.removed_matches = removed_matches
+        self.categorized_changes = categorized_changes
         self.has_changes = bool(new_matches or updated_matches or removed_matches)
         self.total_changes = len(new_matches) + len(updated_matches) + len(removed_matches)
+
+        # Enhanced properties for granular analysis
+        self.has_critical_changes = (
+            categorized_changes.has_critical_changes if categorized_changes else False
+        )
+        self.change_categories = (
+            categorized_changes.change_categories if categorized_changes else set()
+        )
+        self.affected_stakeholders = (
+            categorized_changes.affected_stakeholder_types if categorized_changes else set()
+        )
 
 
 class GranularChangeDetector:
@@ -37,6 +53,9 @@ class GranularChangeDetector:
         """
         self.previous_matches_file = previous_matches_file
         self.data_dir = os.path.dirname(previous_matches_file)
+
+        # Initialize granular categorization detector
+        self.categorization_detector = ChangeCategorizationDetector()
 
         # Ensure data directory exists
         if self.data_dir:
@@ -63,11 +82,17 @@ class GranularChangeDetector:
         # Detect changes
         has_changes, changes = self._compare_match_lists(prev_matches_dict, curr_matches_dict)
 
-        # Create summary
+        # Perform granular categorization for updated matches
+        categorized_changes = self._categorize_updated_matches(
+            changes.get("changed_match_details", []), prev_matches_dict, curr_matches_dict
+        )
+
+        # Create summary with granular categorization
         summary = ChangesSummary(
-            new_matches=changes.get("new_match_details", {}),
-            updated_matches=changes.get("changed_match_details", {}),
-            removed_matches=changes.get("removed_match_details", {}),
+            new_matches=changes.get("new_match_details", []),
+            updated_matches=changes.get("changed_match_details", []),
+            removed_matches=changes.get("removed_match_details", []),
+            categorized_changes=categorized_changes,
         )
 
         if has_changes:
@@ -339,3 +364,59 @@ class GranularChangeDetector:
                 )
 
         return details
+
+    def _categorize_updated_matches(
+        self,
+        changed_match_details: List[Dict[str, Any]],
+        prev_matches_dict: Dict[str, Dict[str, Any]],
+        curr_matches_dict: Dict[str, Dict[str, Any]],
+    ) -> CategorizedChanges:
+        """Categorize changes in updated matches using granular analysis.
+
+        Args:
+            changed_match_details: List of changed match records
+            prev_matches_dict: Previous matches as dictionary
+            curr_matches_dict: Current matches as dictionary
+
+        Returns:
+            CategorizedChanges object with detailed analysis
+        """
+        all_changes: List[MatchChangeDetail] = []
+
+        # Analyze each changed match for granular categorization
+        for change_record in changed_match_details:
+            match_id = change_record.get("match_id")
+            if not match_id:
+                continue
+
+            prev_match = prev_matches_dict.get(match_id, {})
+            curr_match = curr_matches_dict.get(match_id, {})
+
+            if prev_match and curr_match:
+                # Use granular categorization detector
+                match_changes = self.categorization_detector.categorize_changes(
+                    prev_match, curr_match
+                )
+                all_changes.extend(match_changes)
+
+        # Calculate summary statistics
+        total_changes = len(all_changes)
+        critical_changes = len([c for c in all_changes if c.priority == ChangePriority.CRITICAL])
+        high_priority_changes = len([c for c in all_changes if c.priority == ChangePriority.HIGH])
+
+        # Collect unique stakeholder types and change categories
+        affected_stakeholder_types = set()
+        change_categories = set()
+
+        for change in all_changes:
+            affected_stakeholder_types.update(change.affected_stakeholders)
+            change_categories.add(change.category)
+
+        return CategorizedChanges(
+            changes=all_changes,
+            total_changes=total_changes,
+            critical_changes=critical_changes,
+            high_priority_changes=high_priority_changes,
+            affected_stakeholder_types=affected_stakeholder_types,
+            change_categories=change_categories,
+        )
