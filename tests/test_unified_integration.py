@@ -228,11 +228,17 @@ class TestUnifiedIntegration(unittest.TestCase):
             "RUN_MODE": "oneshot",
             "PROCESSOR_MODE": "unified",
             "PYTEST_CURRENT_TEST": "test_unified_app_initialization",
+            "CI": "true",
         },
     )
     def test_unified_app_initialization(self, mock_health_server):
         """Test unified app initialization."""
-        mock_health_server.return_value = MagicMock()
+        # Create a proper mock health server
+        mock_server = MagicMock()
+        mock_server.is_running.return_value = True
+        mock_server.start_server.return_value = None
+        mock_server.stop_server.return_value = None
+        mock_health_server.return_value = mock_server
 
         with (
             patch("src.core.unified_processor.MatchDataManager"),
@@ -258,6 +264,7 @@ class TestUnifiedIntegration(unittest.TestCase):
             "RUN_MODE": "service",
             "SERVICE_INTERVAL": "60",
             "PYTEST_CURRENT_TEST": "test_unified_app_service_mode_config",
+            "CI": "true",
         },
     )
     def test_unified_app_service_mode_config(self, mock_health_server):
@@ -286,6 +293,7 @@ class TestUnifiedIntegration(unittest.TestCase):
             "RUN_MODE": "service",
             "SERVICE_INTERVAL": "5",
             "PYTEST_CURRENT_TEST": "test_service_mode_safe_execution",
+            "CI": "true",
         },
     )
     def test_service_mode_safe_execution(self, mock_health_server):

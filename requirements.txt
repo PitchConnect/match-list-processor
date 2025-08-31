@@ -5,3 +5,4 @@ pydantic-settings
 typing-extensions
 fastapi
 uvicorn[standard]
+pytest-timeout>=2.1.0

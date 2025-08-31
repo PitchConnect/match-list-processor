@@ -20,8 +20,13 @@ class UnifiedMatchListProcessorApp:
 
     def __init__(self) -> None:
         """Initialize the unified application."""
-        # Detect test mode to prevent hanging
-        self.is_test_mode = bool(os.environ.get("PYTEST_CURRENT_TEST"))
+        # Detect test mode to prevent hanging (multiple detection methods)
+        self.is_test_mode = bool(
+            os.environ.get("PYTEST_CURRENT_TEST")
+            or os.environ.get("CI")
+            or "pytest" in sys.modules
+            or "unittest" in sys.modules
+        )
 
         # Initialize unified processor (replaces separate change detection + processing)
         self.unified_processor = UnifiedMatchProcessor()
