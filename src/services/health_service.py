@@ -79,7 +79,8 @@ class HealthService:
         start_time = time.time()
 
         # In test mode, return mock healthy status to prevent network calls
-        if self.is_test_mode:
+        # BUT only for integration tests, not unit tests that specifically test error conditions
+        if self.is_test_mode and not os.environ.get("PYTEST_HEALTH_SERVICE_UNIT_TEST"):
             return DependencyStatus(
                 name=name,
                 url=config["url"],
