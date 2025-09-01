@@ -95,8 +95,32 @@ addopts = [
     "--cov=src",
     "--cov-report=term-missing",
     "--cov-report=html",
-    "--cov-report=xml"
+    "--cov-report=xml",
+    "--cov-fail-under=90",
+    "--timeout=30",
+    "--timeout-method=thread"
 ]
+markers = [
+    "unit: Unit tests",
+    "integration: Integration tests (max 30s timeout)",
+    "e2e: End-to-end tests",
+    "performance: Performance tests",
+    "slow: Slow running tests",
+    "comprehensive: Comprehensive test suite",
+    "asyncio: Async tests",
+    "critical: Critical tests that must pass for CI/CD",
+    "legacy: Legacy tests for old architecture (expected to fail during transition)",
+    "security: Security and vulnerability tests",
+    "stress: Stress tests (high load/long duration)",
+    "smoke: Smoke tests (quick validation)",
+    "regression: Regression tests",
+    "edge_case: Edge case tests",
+    "mock_external: Tests that mock external services",
+    "change_detection: Change detection specific tests",
+    "api: API endpoint tests",
+    "health: Health check tests"
+]
+timeout = 30
 
 [tool.isort]
 profile = "black"
