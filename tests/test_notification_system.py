@@ -4,7 +4,7 @@ import asyncio
 import os
 import tempfile
 import unittest
-from datetime import datetime
+from datetime import datetime, timezone
 from unittest.mock import MagicMock, patch
 
 from src.core.change_categorization import (
@@ -331,7 +331,7 @@ class TestChangeToNotificationConverter(unittest.TestCase):
             current_value="Test Referee",
             change_description="New referee assignment",
             affected_stakeholders=[StakeholderType.REFEREES],
-            timestamp=datetime.utcnow(),
+            timestamp=datetime.now(timezone.utc),
         )
 
         categorized_changes = CategorizedChanges(

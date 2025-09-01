@@ -1,7 +1,7 @@
 """Template models for notification system."""
 
 from dataclasses import dataclass, field
-from datetime import datetime
+from datetime import datetime, timezone
 from enum import Enum
 from typing import Any, Dict, List
 
@@ -136,12 +136,12 @@ class NotificationTemplate:
             created_at=(
                 datetime.fromisoformat(data["created_at"])
                 if "created_at" in data
-                else datetime.utcnow()
+                else datetime.now(timezone.utc)
             ),
             updated_at=(
                 datetime.fromisoformat(data["updated_at"])
                 if "updated_at" in data
-                else datetime.utcnow()
+                else datetime.now(timezone.utc)
             ),
             version=data.get("version", "1.0"),
             is_active=data.get("is_active", True),

@@ -158,6 +158,7 @@ class HealthServer:
                     port=self.port,
                     log_level="info",
                     access_log=False,  # Reduce noise in logs
+                    ws="none",  # Disable WebSocket support to avoid deprecation warnings
                 )
                 self._server = uvicorn.Server(config)
                 if self._server:

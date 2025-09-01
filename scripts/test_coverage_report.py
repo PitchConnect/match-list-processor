@@ -14,7 +14,7 @@ from pathlib import Path
 from typing import Any, Dict, List
 
 
-class TestCoverageAnalyzer:
+class CoverageAnalyzer:
     """Analyze and report on test coverage."""
 
     def __init__(self, project_root: str):
@@ -343,7 +343,7 @@ class TestCoverageAnalyzer:
 def main():
     """Main function to run coverage analysis."""
     project_root = Path(__file__).parent.parent
-    analyzer = TestCoverageAnalyzer(str(project_root))
+    analyzer = CoverageAnalyzer(str(project_root))
 
     print("🔍 Starting comprehensive test coverage analysis...")
 

@@ -317,3 +317,169 @@ def performance_metrics():
         "min_coverage_threshold": 90.0,  # percentage
         "max_test_execution_time": 180.0,  # seconds for full suite
     }
+
+
+# =============================================================================
+# NOTIFICATION SYSTEM FIXTURES
+# =============================================================================
+
+
+@pytest.fixture
+def mock_notification_config():
+    """Mock notification configuration for testing."""
+    return {
+        "enabled": True,
+        "email": {
+            "smtp_server": "smtp.test.com",
+            "smtp_port": 587,
+            "smtp_username": "test@example.com",
+            "smtp_password": "password",
+            "email_from": "fogis@example.com",
+            "use_tls": True,
+        },
+        "discord": {
+            "webhook_url": "https://discord.com/api/webhooks/test",
+            "enabled": True,
+        },
+        "webhook": {
+            "url": "https://api.example.com/webhook",
+            "enabled": True,
+            "headers": {"Authorization": "Bearer test-token"},
+        },
+        "delivery": {
+            "max_retries": 3,
+            "retry_delay": 5,
+            "timeout": 30,
+        },
+        "analytics": {
+            "enabled": True,
+            "retention_days": 30,
+        },
+    }
+
+
+@pytest.fixture
+def mock_stakeholder():
+    """Mock stakeholder for testing."""
+
+    return {
+        "stakeholder_id": "referee_12345",
+        "name": "Bartek Svaberg",
+        "role": "referee",
+        "fogis_person_id": "12345",
+        "contact_info": [
+            {
+                "channel": "email",
+                "address": "bartek.svaberg@gmail.com",
+                "verified": True,
+                "active": True,
+            }
+        ],
+        "preferences": {
+            "enabled_channels": ["email"],
+            "enabled_change_types": ["new_assignment", "referee_change"],
+            "minimum_priority": "medium",
+            "quiet_hours": {"start": "22:00", "end": "08:00"},
+        },
+        "created_at": "2025-09-01T12:00:00Z",
+        "updated_at": "2025-09-01T12:00:00Z",
+    }
+
+
+@pytest.fixture
+def multiple_stakeholders():
+    """Multiple stakeholders for testing."""
+
+    return [
+        {
+            "stakeholder_id": "referee_12345",
+            "name": "Bartek Svaberg",
+            "role": "referee",
+            "fogis_person_id": "12345",
+            "contact_info": [
+                {
+                    "channel": "email",
+                    "address": "bartek.svaberg@gmail.com",
+                    "verified": True,
+                    "active": True,
+                }
+            ],
+            "preferences": {
+                "enabled_channels": ["email"],
+                "enabled_change_types": ["new_assignment", "referee_change"],
+                "minimum_priority": "medium",
+            },
+        },
+        {
+            "stakeholder_id": "referee_67890",
+            "name": "Anna Andersson",
+            "role": "referee",
+            "fogis_person_id": "67890",
+            "contact_info": [
+                {
+                    "channel": "email",
+                    "address": "anna.andersson@example.com",
+                    "verified": True,
+                    "active": True,
+                }
+            ],
+            "preferences": {
+                "enabled_channels": ["email", "discord"],
+                "enabled_change_types": ["new_assignment", "time_change", "venue_change"],
+                "minimum_priority": "low",
+            },
+        },
+    ]
+
+
+@pytest.fixture
+def mock_notification_service():
+    """Mock notification service for testing."""
+    mock_service = Mock()
+    mock_service.enabled = True
+    mock_service.process_changes = AsyncMock(
+        return_value={
+            "enabled": True,
+            "notifications_sent": 1,
+            "delivery_results": {"email": {"status": "sent", "recipients": 1}},
+        }
+    )
+    mock_service.get_health_status = Mock(
+        return_value={
+            "status": "healthy",
+            "enabled": True,
+            "stakeholders_count": 5,
+            "last_notification": "2025-09-01T12:00:00Z",
+        }
+    )
+    return mock_service
+
+
+@pytest.fixture
+def sample_notification_data():
+    """Sample notification data for testing."""
+    from datetime import datetime, timezone
+
+    return {
+        "notification_id": "test-notification-123",
+        "timestamp": datetime.now(timezone.utc),
+        "change_category": "new_assignment",
+        "priority": "high",
+        "change_summary": "New referee assignment",
+        "field_changes": [
+            {
+                "field": "domaruppdraglista",
+                "old_value": [],
+                "new_value": [{"personnamn": "John Doe", "domarrollnamn": "Huvuddomare"}],
+                "description": "Referee assigned to match",
+            }
+        ],
+        "match_context": {
+            "matchid": 6169105,
+            "lag1namn": "Team A",
+            "lag2namn": "Team B",
+            "speldatum": "2025-09-01",
+            "avsparkstid": "15:00",
+        },
+        "affected_stakeholders": ["referee_12345"],
+    }
