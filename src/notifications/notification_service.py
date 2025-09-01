@@ -5,6 +5,7 @@ import logging
 from typing import Any, Dict, List
 
 from ..core.change_categorization import CategorizedChanges
+from .analytics.analytics_service import NotificationAnalyticsService
 from .broadcaster.notification_broadcaster import NotificationBroadcaster
 from .converter.change_to_notification_converter import ChangeToNotificationConverter
 from .models.notification_models import (
@@ -38,6 +39,7 @@ class NotificationService:
         self.stakeholder_resolver = StakeholderResolver(self.stakeholder_manager)
         self.change_converter = ChangeToNotificationConverter(self.stakeholder_resolver)
         self.broadcaster = NotificationBroadcaster(config.get("channels", {}))
+        self.analytics = NotificationAnalyticsService(config.get("analytics_storage_path"))
 
         # Notification queue for batch processing
         self.notification_queue: List[ChangeNotification] = []
