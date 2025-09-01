@@ -14,6 +14,7 @@ from ...models.notification_models import (
     NotificationChannel,
     NotificationRecipient,
 )
+from ...templates.email_templates import EmailTemplateEngine
 
 logger = logging.getLogger(__name__)
 
@@ -35,6 +36,9 @@ class EmailNotificationClient:
         self.email_from = config.get("email_from", "fogis@example.com")
         self.use_tls = config.get("use_tls", True)
         self.enabled = config.get("enabled", False)
+
+        # Initialize template engine
+        self.template_engine = EmailTemplateEngine()
 
         if not self.enabled:
             logger.info("Email notifications are disabled")
