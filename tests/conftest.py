@@ -1,9 +1,10 @@
-"""Pytest configuration and shared fixtures."""
+"""Pytest configuration and shared fixtures for comprehensive test suite."""
 
+import asyncio
 import json
 import os
 import tempfile
-from unittest.mock import Mock
+from unittest.mock import AsyncMock, Mock, patch
 
 import pytest
 
@@ -143,3 +144,176 @@ def sample_json_file(temp_data_dir, sample_matches_list):
     with open(file_path, "w", encoding="utf-8") as f:
         json.dump(sample_matches_list, f, ensure_ascii=False)
     return file_path
+
+
+# =============================================================================
+# COMPREHENSIVE TEST FIXTURES FOR ENHANCED TEST SUITE
+# =============================================================================
+
+
+@pytest.fixture
+def event_loop():
+    """Create event loop for async tests."""
+    loop = asyncio.new_event_loop()
+    yield loop
+    loop.close()
+
+
+@pytest.fixture
+def mock_external_services():
+    """Mock all external service dependencies."""
+    with (
+        patch("src.services.api_client.APIClient") as mock_api,
+        patch("src.services.calendar_sync.CalendarSyncService") as mock_calendar,
+        patch("src.services.asset_generator.AssetGenerator") as mock_assets,
+        patch("src.services.storage_service.StorageService") as mock_storage,
+    ):
+
+        # Configure API client mock
+        mock_api.return_value.fetch_matches = AsyncMock(return_value=[])
+        mock_api.return_value.is_healthy = AsyncMock(return_value=True)
+
+        # Configure calendar sync mock
+        mock_calendar.return_value.sync_matches = AsyncMock(return_value=True)
+        mock_calendar.return_value.is_healthy = AsyncMock(return_value=True)
+
+        # Configure asset generator mock
+        mock_assets.return_value.generate_assets = AsyncMock(return_value=True)
+        mock_assets.return_value.is_healthy = AsyncMock(return_value=True)
+
+        # Configure storage service mock
+        mock_storage.return_value.upload_files = AsyncMock(return_value=True)
+        mock_storage.return_value.is_healthy = AsyncMock(return_value=True)
+
+        yield {
+            "api_client": mock_api.return_value,
+            "calendar_sync": mock_calendar.return_value,
+            "asset_generator": mock_assets.return_value,
+            "storage_service": mock_storage.return_value,
+        }
+
+
+@pytest.fixture
+def large_match_dataset():
+    """Generate large dataset for performance testing."""
+    matches = []
+    for i in range(1000):
+        match = {
+            "matchid": i + 1000000,
+            "lag1namn": f"Team A {i}",
+            "lag2namn": f"Team B {i}",
+            "lag1lagid": 10000 + i,
+            "lag2lagid": 20000 + i,
+            "speldatum": "2025-09-01",
+            "avsparkstid": "15:00",
+            "tid": "2025-09-01T15:00:00",
+            "tavlingnamn": f"Competition {i % 10}",
+            "anlaggningnamn": f"Venue {i % 50}",
+            "domaruppdraglista": [
+                {
+                    "domarid": 1000 + (i * 2),
+                    "personnamn": f"Referee {i * 2}",
+                    "domarrollnamn": "Huvuddomare",
+                }
+            ],
+        }
+        matches.append(match)
+    return matches
+
+
+@pytest.fixture
+def change_scenarios():
+    """Provide various change scenarios for testing."""
+    base_match = {
+        "matchid": 6169105,
+        "lag1namn": "IK Kongahälla",
+        "lag2namn": "Motala AIF FK",
+        "speldatum": "2025-06-14",
+        "avsparkstid": "15:00",
+        "anlaggningnamn": "Kongevi 1 Konstgräs",
+        "domaruppdraglista": [
+            {
+                "domarid": 1001,
+                "personnamn": "John Doe",
+                "domarrollnamn": "Huvuddomare",
+            }
+        ],
+    }
+
+    return {
+        "no_change": (base_match, base_match),
+        "time_change": (
+            base_match,
+            {**base_match, "avsparkstid": "16:00", "tid": "2025-06-14T16:00:00"},
+        ),
+        "venue_change": (base_match, {**base_match, "anlaggningnamn": "New Venue"}),
+        "referee_change": (
+            base_match,
+            {
+                **base_match,
+                "domaruppdraglista": [
+                    {
+                        "domarid": 1002,
+                        "personnamn": "Jane Smith",
+                        "domarrollnamn": "Huvuddomare",
+                    }
+                ],
+            },
+        ),
+        "new_assignment": ({**base_match, "domaruppdraglista": []}, base_match),
+        "cancellation": (base_match, {**base_match, "status": "cancelled"}),
+    }
+
+
+@pytest.fixture
+def mock_configuration():
+    """Mock configuration for testing."""
+    return {
+        "processor_mode": "unified",
+        "run_mode": "service",
+        "enable_change_categorization": True,
+        "change_priority_same_day": "critical",
+        "data_folder": "/tmp/test_data",
+        "previous_matches_file": "test_previous_matches.json",
+        "min_referees_for_whatsapp": 2,
+        "log_level": "DEBUG",
+    }
+
+
+@pytest.fixture
+def mock_health_responses():
+    """Mock health check responses for external services."""
+    return {
+        "fogis-api-client": {
+            "status": "healthy",
+            "response_time": 45,
+            "url": "http://fogis-api-client-service:8080",
+        },
+        "whatsapp-avatar-service": {
+            "status": "healthy",
+            "response_time": 23,
+            "url": "http://whatsapp-avatar-service:5002",
+        },
+        "google-drive-service": {
+            "status": "healthy",
+            "response_time": 67,
+            "url": "http://google-drive-service:5000",
+        },
+        "phonebook-sync-service": {
+            "status": "healthy",
+            "response_time": 34,
+            "url": "http://fogis-calendar-phonebook-sync:5003",
+        },
+    }
+
+
+@pytest.fixture
+def performance_metrics():
+    """Performance benchmarks for testing."""
+    return {
+        "max_processing_time": 30.0,  # seconds
+        "max_change_detection_time": 1.0,  # seconds for 1000 matches
+        "max_memory_increase": 100 * 1024 * 1024,  # 100MB
+        "min_coverage_threshold": 90.0,  # percentage
+        "max_test_execution_time": 180.0,  # seconds for full suite
+    }
