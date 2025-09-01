@@ -175,7 +175,10 @@ class TestMemoryPerformance:
         """Test memory usage remains stable during repeated processing."""
         import os
 
-        import psutil
+        try:
+            import psutil
+        except ImportError:
+            pytest.skip("psutil not available - skipping memory usage test")
 
         process = psutil.Process(os.getpid())
         initial_memory = process.memory_info().rss
@@ -207,7 +210,10 @@ class TestMemoryPerformance:
         """Test memory usage with large datasets."""
         import os
 
-        import psutil
+        try:
+            import psutil
+        except ImportError:
+            pytest.skip("psutil not available - skipping memory usage test")
 
         process = psutil.Process(os.getpid())
         initial_memory = process.memory_info().rss
