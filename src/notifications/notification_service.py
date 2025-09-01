@@ -7,7 +7,13 @@ from typing import Any, Dict, List
 from ..core.change_categorization import CategorizedChanges
 from .broadcaster.notification_broadcaster import NotificationBroadcaster
 from .converter.change_to_notification_converter import ChangeToNotificationConverter
-from .models.notification_models import ChangeNotification, DeliveryResult, DeliveryStatus, NotificationBatch, NotificationChannel
+from .models.notification_models import (
+    ChangeNotification,
+    DeliveryResult,
+    DeliveryStatus,
+    NotificationBatch,
+    NotificationChannel,
+)
 from .stakeholders.stakeholder_manager import StakeholderManager
 from .stakeholders.stakeholder_resolver import StakeholderResolver
 
