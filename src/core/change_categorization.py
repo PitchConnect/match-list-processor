@@ -2,7 +2,7 @@
 
 import logging
 from dataclasses import dataclass
-from datetime import datetime
+from datetime import datetime, timezone
 from enum import Enum
 from typing import Any, Dict, List, Optional, Set
 
@@ -195,7 +195,7 @@ class GranularChangeDetector:
                     previous_value=None,
                     current_value=curr_referees,
                     change_description=f"New referee assignment: {len(curr_referees)} referees assigned",
-                    timestamp=datetime.utcnow(),
+                    timestamp=datetime.now(timezone.utc),
                 )
             )
 
@@ -212,7 +212,7 @@ class GranularChangeDetector:
                     previous_value=prev_referees,
                     current_value=curr_referees,
                     change_description=self._describe_referee_change(prev_referees, curr_referees),
-                    timestamp=datetime.utcnow(),
+                    timestamp=datetime.now(timezone.utc),
                 )
             )
 
@@ -266,7 +266,7 @@ class GranularChangeDetector:
             previous_value=prev_value,
             current_value=curr_value,
             change_description=f"Match date changed from {prev_value} to {curr_value}",
-            timestamp=datetime.utcnow(),
+            timestamp=datetime.now(timezone.utc),
         )
 
     def _analyze_time_change(
@@ -289,7 +289,7 @@ class GranularChangeDetector:
             previous_value=prev_value,
             current_value=curr_value,
             change_description=f"Match time changed from {prev_value} to {curr_value}",
-            timestamp=datetime.utcnow(),
+            timestamp=datetime.now(timezone.utc),
         )
 
     def _analyze_venue_change(
@@ -312,7 +312,7 @@ class GranularChangeDetector:
             previous_value=prev_value,
             current_value=curr_value,
             change_description=f"Venue changed from {prev_value} to {curr_value}",
-            timestamp=datetime.utcnow(),
+            timestamp=datetime.now(timezone.utc),
         )
 
     def _analyze_team_change(
@@ -335,7 +335,7 @@ class GranularChangeDetector:
             previous_value=prev_value,
             current_value=curr_value,
             change_description=f"Team information changed: {field_name} from {prev_value} to {curr_value}",
-            timestamp=datetime.utcnow(),
+            timestamp=datetime.now(timezone.utc),
         )
 
     def _analyze_status_change(
@@ -372,7 +372,7 @@ class GranularChangeDetector:
             previous_value=prev_value,
             current_value=curr_value,
             change_description=description,
-            timestamp=datetime.utcnow(),
+            timestamp=datetime.now(timezone.utc),
         )
 
     def _assess_priority(
@@ -411,7 +411,7 @@ class GranularChangeDetector:
 
             # Parse match date (assuming format YYYY-MM-DD)
             match_date = datetime.strptime(match_date_str, "%Y-%m-%d").date()
-            today = datetime.utcnow().date()
+            today = datetime.now(timezone.utc).date()
 
             return match_date == today
         except (ValueError, TypeError):

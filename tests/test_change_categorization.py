@@ -1,6 +1,6 @@
 """Tests for enhanced change categorization system."""
 
-from datetime import datetime
+from datetime import datetime, timezone
 from unittest.mock import patch
 
 from src.core.change_categorization import (
@@ -54,7 +54,7 @@ class TestMatchChangeDetail:
             previous_value=None,
             current_value=[{"name": "John Doe"}],
             change_description="New referee assigned",
-            timestamp=datetime.utcnow(),
+            timestamp=datetime.now(timezone.utc),
         )
 
         assert change.match_id == "123456"
@@ -64,7 +64,7 @@ class TestMatchChangeDetail:
 
     def test_match_change_detail_to_dict(self):
         """Test converting MatchChangeDetail to dictionary."""
-        timestamp = datetime.utcnow()
+        timestamp = datetime.now(timezone.utc)
         change = MatchChangeDetail(
             match_id="123456",
             match_nr="001",
@@ -103,7 +103,7 @@ class TestCategorizedChanges:
                 previous_value=None,
                 current_value=[],
                 change_description="Test change",
-                timestamp=datetime.utcnow(),
+                timestamp=datetime.now(timezone.utc),
             )
         ]
 
@@ -133,7 +133,7 @@ class TestCategorizedChanges:
             previous_value=None,
             current_value=[],
             change_description="Referee change",
-            timestamp=datetime.utcnow(),
+            timestamp=datetime.now(timezone.utc),
         )
 
         time_change = MatchChangeDetail(
@@ -146,7 +146,7 @@ class TestCategorizedChanges:
             previous_value="14:00",
             current_value="15:00",
             change_description="Time change",
-            timestamp=datetime.utcnow(),
+            timestamp=datetime.now(timezone.utc),
         )
 
         categorized = CategorizedChanges(
@@ -239,7 +239,7 @@ class TestGranularChangeDetector:
     def test_same_day_change_priority(self, mock_datetime):
         """Test that same-day changes get critical priority."""
         # Mock current date
-        mock_datetime.utcnow.return_value.date.return_value = datetime(2025, 8, 31).date()
+        mock_datetime.now.return_value.date.return_value = datetime(2025, 8, 31).date()
         mock_datetime.strptime.return_value = datetime(2025, 8, 31)
 
         prev_match = {
