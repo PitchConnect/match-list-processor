@@ -7,13 +7,11 @@ and generates comprehensive reports for the unified match processor service.
 """
 
 import json
-import os
 import subprocess
 import sys
-import xml.etree.ElementTree as ET
 from datetime import datetime
 from pathlib import Path
-from typing import Any, Dict, List, Optional
+from typing import Any, Dict, List
 
 
 class TestCoverageAnalyzer:

@@ -1,13 +1,8 @@
 """Comprehensive performance tests for the unified match processor service."""
 
-import os
-import threading
 import time
-from concurrent.futures import ThreadPoolExecutor, as_completed
-from typing import Any, Dict, List
 from unittest.mock import Mock, patch
 
-import psutil
 import pytest
 
 from src.core.change_detector import GranularChangeDetector
@@ -103,7 +98,7 @@ class TestChangeDetectionPerformance:
         matches = [sample_match_data] * 10
 
         start_time = time.time()
-        changes = detector.detect_changes(matches)
+        detector.detect_changes(matches)
         end_time = time.time()
 
         processing_time = end_time - start_time
@@ -119,7 +114,7 @@ class TestChangeDetectionPerformance:
         detector = GranularChangeDetector()
 
         start_time = time.time()
-        changes = detector.detect_changes([sample_match_data])
+        detector.detect_changes([sample_match_data])
         end_time = time.time()
 
         processing_time = end_time - start_time

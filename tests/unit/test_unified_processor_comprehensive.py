@@ -1,11 +1,6 @@
 """Comprehensive unit tests for unified processor functionality."""
 
-from typing import Any, Dict, List
 from unittest.mock import Mock, patch
-
-import pytest
-
-from src.core.change_detector import ChangesSummary
 from src.core.unified_processor import ProcessingResult, UnifiedMatchProcessor
 
 
@@ -43,7 +38,7 @@ class TestUnifiedProcessorCore:
                 self.processor, "_fetch_current_matches", return_value=[sample_match_data]
             ),
             patch.object(self.processor.change_detector, "detect_changes") as mock_detect,
-            patch.object(self.processor, "_process_changes") as mock_process,
+            patch.object(self.processor, "_process_changes"),
             patch.object(self.processor, "_trigger_downstream_services"),
         ):
 

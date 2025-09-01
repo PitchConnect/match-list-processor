@@ -1,16 +1,10 @@
 """Comprehensive integration tests for the unified match processor service."""
 
-import json
-import os
-import tempfile
-from datetime import datetime, timedelta
 from unittest.mock import Mock, patch
 
 import pytest
 
-from src.core.change_detector import GranularChangeDetector
 from src.core.unified_processor import ProcessingResult, UnifiedMatchProcessor
-from src.services.health_service import HealthService
 
 
 class TestServiceIntegration:
@@ -64,7 +58,7 @@ class TestServiceIntegration:
     @pytest.mark.integration
     def test_change_detection_integration(self, integration_processor, change_scenarios):
         """Test integration of change detection with processing."""
-        for scenario_name, (prev_match, curr_match) in change_scenarios.items():
+        for scenario_name, (_prev_match, curr_match) in change_scenarios.items():
             with (
                 patch.object(
                     integration_processor, "_fetch_current_matches", return_value=[curr_match]

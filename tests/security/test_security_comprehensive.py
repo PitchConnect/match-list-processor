@@ -2,11 +2,7 @@
 
 import json
 import os
-import tempfile
-from pathlib import Path
-from unittest.mock import Mock, patch
-
-import pytest
+from unittest.mock import patch
 
 from src.core.change_detector import GranularChangeDetector
 from src.core.unified_processor import UnifiedMatchProcessor
@@ -28,7 +24,7 @@ class TestInputValidation:
         for malicious_input in malicious_inputs:
             try:
                 # Should handle malicious input safely
-                data = json.loads(malicious_input)
+                json.loads(malicious_input)
                 # Verify no dangerous properties are set
                 assert not hasattr(detector, "isAdmin")
             except json.JSONDecodeError:
@@ -78,7 +74,7 @@ class TestInputValidation:
             changes = detector.detect_changes([sample_match_data])
             # Verify no code execution or data corruption
             assert changes is not None
-        except (ValueError, TypeError) as e:
+        except (ValueError, TypeError):
             # Validation errors are acceptable
             pass
 
