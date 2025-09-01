@@ -1,6 +1,7 @@
 """Comprehensive unit tests for unified processor functionality."""
 
 from unittest.mock import Mock, patch
+
 from src.core.unified_processor import ProcessingResult, UnifiedMatchProcessor
 
 

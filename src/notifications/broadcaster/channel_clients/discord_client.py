@@ -155,7 +155,7 @@ class DiscordNotificationClient:
         emoji = priority_emojis.get(notification.priority.value, "📢")
 
         # Build embed
-        embed = {
+        embed: Dict[str, Any] = {
             "title": f"{emoji} FOGIS Match Notification",
             "description": f"**{notification.change_summary}**",
             "color": color,

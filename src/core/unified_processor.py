@@ -36,7 +36,7 @@ class ProcessingResult:
         self.assets_generated = 0
         self.calendar_synced = False
         self.notifications_sent = 0
-        self.notification_results = None
+        self.notification_results: Optional[Dict[str, Any]] = None
 
 
 class UnifiedMatchProcessor:
@@ -305,7 +305,8 @@ class UnifiedMatchProcessor:
         # In a more sophisticated implementation, this would extract
         # the specific match that changed
         if current_matches:
-            return current_matches[0]
+            match_data = current_matches[0]
+            return match_data if isinstance(match_data, dict) else {}
         else:
             return {}
 
@@ -356,7 +357,7 @@ class UnifiedMatchProcessor:
         Returns:
             Dictionary with processing statistics
         """
-        stats = {
+        stats: Dict[str, Any] = {
             "service_type": "unified_processor",
             "change_detection": "integrated",
             "last_processing": "not_implemented",  # Will be implemented with state tracking

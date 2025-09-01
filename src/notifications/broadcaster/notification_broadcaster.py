@@ -32,7 +32,7 @@ class NotificationBroadcaster:
         self.webhook_client = WebhookNotificationClient(config.get("webhook", {}))
 
         # Track delivery statistics
-        self.delivery_stats = {
+        self.delivery_stats: Dict[str, Any] = {
             "total_sent": 0,
             "total_delivered": 0,
             "total_failed": 0,

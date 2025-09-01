@@ -148,7 +148,7 @@ class NotificationService:
         Returns:
             Delivery results dictionary
         """
-        all_results = {}
+        all_results: Dict[str, Any] = {}
 
         # Create notification batch
         batch = NotificationBatch(notifications=notifications)

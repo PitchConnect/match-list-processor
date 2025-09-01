@@ -226,6 +226,7 @@ class TestNotificationService(unittest.TestCase):
     )
     def test_process_new_match(self, mock_broadcast):
         """Test processing new match."""
+
         # Mock broadcast to return successful delivery
         async def mock_broadcast_func(*args, **kwargs):
             return {"email_test-123": MagicMock(status=DeliveryStatus.DELIVERED)}
