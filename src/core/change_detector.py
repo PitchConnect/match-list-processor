@@ -87,12 +87,22 @@ class GranularChangeDetector:
             changes.get("changed_match_details", []), prev_matches_dict, curr_matches_dict
         )
 
+        # Also categorize new matches as NEW_ASSIGNMENT changes
+        new_match_categorizations = self._categorize_new_matches(
+            changes.get("new_match_details", []), curr_matches_dict
+        )
+
+        # Combine all categorized changes
+        all_categorized_changes = self._combine_categorized_changes(
+            categorized_changes, new_match_categorizations
+        )
+
         # Create summary with granular categorization
         summary = ChangesSummary(
             new_matches=changes.get("new_match_details", []),
             updated_matches=changes.get("changed_match_details", []),
             removed_matches=changes.get("removed_match_details", []),
-            categorized_changes=categorized_changes,
+            categorized_changes=all_categorized_changes,
         )
 
         if has_changes:
@@ -411,6 +421,92 @@ class GranularChangeDetector:
         for change in all_changes:
             affected_stakeholder_types.update(change.affected_stakeholders)
             change_categories.add(change.category)
+
+        return CategorizedChanges(
+            changes=all_changes,
+            total_changes=total_changes,
+            critical_changes=critical_changes,
+            high_priority_changes=high_priority_changes,
+            affected_stakeholder_types=affected_stakeholder_types,
+            change_categories=change_categories,
+        )
+
+    def _categorize_new_matches(
+        self, new_match_details: List[Dict[str, Any]], curr_matches_dict: Dict[str, Dict[str, Any]]
+    ) -> CategorizedChanges:
+        """Categorize new matches as NEW_ASSIGNMENT changes.
+
+        Args:
+            new_match_details: List of new match data (direct match objects)
+            curr_matches_dict: Dictionary of current matches
+
+        Returns:
+            CategorizedChanges object with new assignment categorizations
+        """
+        all_changes: List[MatchChangeDetail] = []
+
+        # Analyze each new match for referee assignments
+        for new_match in new_match_details:
+            match_id = new_match.get("matchid")
+            if not match_id:
+                continue
+
+            # Check if the new match has referee assignments
+            referees = new_match.get("domaruppdraglista", [])
+            if referees:
+                # Create NEW_ASSIGNMENT change for this match
+                match_changes = self.categorization_detector.categorize_changes(
+                    {}, new_match  # Empty previous match for new assignments
+                )
+                all_changes.extend(match_changes)
+
+        # Calculate summary statistics
+        total_changes = len(all_changes)
+        critical_changes = len([c for c in all_changes if c.priority == ChangePriority.CRITICAL])
+        high_priority_changes = len([c for c in all_changes if c.priority == ChangePriority.HIGH])
+
+        # Collect unique stakeholder types and change categories
+        affected_stakeholder_types = set()
+        change_categories = set()
+
+        for change in all_changes:
+            affected_stakeholder_types.update(change.affected_stakeholders)
+            change_categories.add(change.category)
+
+        return CategorizedChanges(
+            changes=all_changes,
+            total_changes=total_changes,
+            critical_changes=critical_changes,
+            high_priority_changes=high_priority_changes,
+            affected_stakeholder_types=affected_stakeholder_types,
+            change_categories=change_categories,
+        )
+
+    def _combine_categorized_changes(
+        self, updated_changes: CategorizedChanges, new_changes: CategorizedChanges
+    ) -> CategorizedChanges:
+        """Combine categorized changes from updated and new matches.
+
+        Args:
+            updated_changes: Categorized changes from updated matches
+            new_changes: Categorized changes from new matches
+
+        Returns:
+            Combined CategorizedChanges object
+        """
+        # Combine all changes
+        all_changes = updated_changes.changes + new_changes.changes
+
+        # Calculate combined statistics
+        total_changes = len(all_changes)
+        critical_changes = len([c for c in all_changes if c.priority == ChangePriority.CRITICAL])
+        high_priority_changes = len([c for c in all_changes if c.priority == ChangePriority.HIGH])
+
+        # Combine stakeholder types and categories
+        affected_stakeholder_types = (
+            updated_changes.affected_stakeholder_types | new_changes.affected_stakeholder_types
+        )
+        change_categories = updated_changes.change_categories | new_changes.change_categories
 
         return CategorizedChanges(
             changes=all_changes,
