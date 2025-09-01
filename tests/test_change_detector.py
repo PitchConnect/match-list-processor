@@ -232,6 +232,56 @@ class TestGranularChangeDetector(unittest.TestCase):
         # Should skip matches without matchid
         self.assertEqual(len(match_dict), 0)
 
+    def test_enhanced_granular_categorization_new_matches(self):
+        """Test enhanced granular categorization for new matches."""
+        from src.core.change_categorization import ChangeCategory, StakeholderType
+
+        # Test with new match containing referee assignments
+        current_matches = [
+            {
+                "matchid": "123",
+                "matchnr": 1,
+                "domaruppdraglista": [
+                    {"personid": 456, "personnamn": "Test Referee", "uppdragstyp": "Huvuddomare"}
+                ],
+                "speldatum": "2025-09-01",
+                "avsparkstid": "14:00",
+                "anlaggningnamn": "Test Arena",
+                "lag1namn": "Team A",
+                "lag2namn": "Team B",
+                "serienamn": "Test League",
+            }
+        ]
+
+        # Detect changes (no previous matches)
+        changes = self.detector.detect_changes(current_matches)
+
+        # Verify basic change detection
+        self.assertTrue(changes.has_changes)
+        self.assertEqual(len(changes.new_matches), 1)
+        self.assertEqual(len(changes.updated_matches), 0)
+
+        # Verify granular categorization
+        self.assertIsNotNone(changes.categorized_changes)
+        self.assertGreater(changes.categorized_changes.total_changes, 0)
+
+        # Check for NEW_ASSIGNMENT category
+        new_assignment_changes = changes.categorized_changes.get_changes_by_category(
+            ChangeCategory.NEW_ASSIGNMENT
+        )
+        self.assertGreater(len(new_assignment_changes), 0)
+
+        # Verify stakeholder types are identified
+        self.assertIn(
+            StakeholderType.REFEREES, changes.categorized_changes.affected_stakeholder_types
+        )
+        self.assertIn(
+            StakeholderType.COORDINATORS, changes.categorized_changes.affected_stakeholder_types
+        )
+
+        # Verify change categories are identified
+        self.assertIn(ChangeCategory.NEW_ASSIGNMENT, changes.categorized_changes.change_categories)
+
 
 if __name__ == "__main__":
     unittest.main()
