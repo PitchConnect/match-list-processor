@@ -146,7 +146,7 @@ class TestWorkflows:
                 try:
                     yaml.safe_load(f)
                 except yaml.YAMLError as e:
-                    assert False, f"Invalid YAML syntax in {workflow_file.name}: {e}"
+                    raise AssertionError(f"Invalid YAML syntax in {workflow_file.name}: {e}")
 
     def test_docker_actions_versions(self):
         """Test that Docker-related actions use appropriate versions."""

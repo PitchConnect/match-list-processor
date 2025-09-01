@@ -1,23 +1,32 @@
 [
   {
-    "matchid": "12345",
-    "matchnr": "1",
-    "speldatum": "2025-09-01",
-    "avsparkstid": "14:00",
-    "lag1lagid": "100",
-    "lag1namn": "Team A",
-    "lag2lagid": "200",
-    "lag2namn": "Team B",
-    "anlaggningnamn": "Stadium A",
-    "lag1foreningid": "1001",
-    "lag2foreningid": "2001",
+    "matchid": 6169105,
+    "lag1namn": "IK Kongahälla",
+    "lag2namn": "Motala AIF FK",
+    "lag1lagid": 12345,
+    "lag2lagid": 67890,
+    "lag1foreningid": 111,
+    "lag2foreningid": 222,
+    "speldatum": "2025-06-14",
+    "avsparkstid": "15:00",
+    "tid": "2025-06-14T15:00:00",
+    "tidsangivelse": "2025-06-14 15:00",
+    "tavlingnamn": "Div 2 Norra Götaland, herr 2025",
+    "anlaggningnamn": "Kongevi 1 Konstgräs",
+    "anlaggningid": 333,
+    "matchnr": "M001",
     "domaruppdraglista": [
       {
-        "domareid": "ref1",
-        "personnamn": "John Referee",
-        "domarrollnamn": "Huvuddomare",
-        "epostadress": "john@example.com",
-        "mobiltelefon": "123456789"
+        "domarid": 1001,
+        "personnamn": "John Doe",
+        "namn": "John Doe",
+        "domarrollnamn": "Huvuddomare"
+      },
+      {
+        "domarid": 1002,
+        "personnamn": "Jane Smith",
+        "namn": "Jane Smith",
+        "domarrollnamn": "Assisterande domare"
       }
     ]
   }

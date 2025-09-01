@@ -1,9 +1,11 @@
-"""Unified match processor with integrated change detection."""
+"""Unified match processor with integrated change detection and notifications."""
 
+import asyncio
 import logging
 import time
 from typing import Any, Dict, Optional
 
+from ..notifications.notification_service import NotificationService
 from ..services.api_client import DockerNetworkApiClient
 from ..services.avatar_service import WhatsAppAvatarService
 from ..services.phonebook_service import FogisPhonebookSyncService
@@ -33,19 +35,35 @@ class ProcessingResult:
         self.errors = errors or []
         self.assets_generated = 0
         self.calendar_synced = False
+        self.notifications_sent = 0
+        self.notification_results: Optional[Dict[str, Any]] = None
 
 
 class UnifiedMatchProcessor:
-    """Unified processor that combines change detection with match processing."""
+    """Unified processor that combines change detection with match processing and notifications."""
 
-    def __init__(self, previous_matches_file: str = "data/previous_matches.json"):
+    def __init__(
+        self,
+        previous_matches_file: str = "data/previous_matches.json",
+        notification_config: Optional[Dict[str, Any]] = None,
+    ):
         """Initialize the unified processor.
 
         Args:
             previous_matches_file: Path to file storing previous matches state
+            notification_config: Configuration for notification system
         """
         # Initialize change detection
         self.change_detector = GranularChangeDetector(previous_matches_file)
+
+        # Initialize notification service
+        self.notification_service = None
+        if notification_config:
+            try:
+                self.notification_service = NotificationService(notification_config)
+                logger.info("Notification service initialized")
+            except Exception as e:
+                logger.error(f"Failed to initialize notification service: {e}")
 
         # Initialize existing services
         self.data_manager = MatchDataManager()
@@ -95,18 +113,27 @@ class UnifiedMatchProcessor:
                 # Process the changes
                 self._process_changes(changes, current_matches)
 
+                # Send notifications for changes
+                notification_results = self._send_notifications(changes, current_matches)
+
                 # Trigger downstream services
                 self._trigger_downstream_services(changes)
 
                 # Update state
                 self.change_detector.save_current_matches(current_matches)
 
-                return ProcessingResult(
+                result = ProcessingResult(
                     processed=True,
                     changes=changes,
                     processing_time=time.time() - start_time,
                     errors=errors,
                 )
+                result.notification_results = notification_results
+                result.notifications_sent = (
+                    notification_results.get("notifications_sent", 0) if notification_results else 0
+                )
+
+                return result
             else:
                 logger.info("No changes detected - skipping processing")
                 return ProcessingResult(
@@ -222,6 +249,67 @@ class UnifiedMatchProcessor:
             logger.error(f"Failed to run existing processing logic: {e}")
             raise
 
+    def _send_notifications(
+        self, changes: ChangesSummary, current_matches: list
+    ) -> Optional[Dict[str, Any]]:
+        """Send notifications for detected changes.
+
+        Args:
+            changes: Summary of detected changes
+            current_matches: Current matches from API
+
+        Returns:
+            Notification results dictionary or None if notifications disabled
+        """
+        if not self.notification_service:
+            logger.debug("Notification service not configured, skipping notifications")
+            return None
+
+        try:
+            logger.info("Sending notifications for detected changes...")
+
+            # Process changes through notification service
+            if hasattr(changes, "categorized_changes") and changes.categorized_changes:
+                # Use enhanced granular change categorization
+                notification_results = asyncio.run(
+                    self.notification_service.process_changes(
+                        changes.categorized_changes,
+                        self._get_match_context(current_matches, changes),
+                    )
+                )
+            else:
+                # Fallback for basic change detection
+                logger.info("Using fallback notification processing for basic changes")
+                notification_results = {"enabled": True, "notifications_sent": 0, "fallback": True}
+
+            logger.info(
+                f"Notification processing completed: {notification_results.get('notifications_sent', 0)} notifications sent"
+            )
+            return notification_results
+
+        except Exception as e:
+            logger.error(f"Failed to send notifications: {e}")
+            return {"enabled": True, "notifications_sent": 0, "error": str(e)}
+
+    def _get_match_context(self, current_matches: list, changes: ChangesSummary) -> Dict[str, Any]:
+        """Get match context for notifications.
+
+        Args:
+            current_matches: Current matches from API
+            changes: Summary of detected changes
+
+        Returns:
+            Match context dictionary
+        """
+        # For now, return the first match as context
+        # In a more sophisticated implementation, this would extract
+        # the specific match that changed
+        if current_matches:
+            match_data = current_matches[0]
+            return match_data if isinstance(match_data, dict) else {}
+        else:
+            return {}
+
     def _trigger_downstream_services(self, changes: ChangesSummary) -> None:
         """Trigger downstream services like calendar sync.
 
@@ -269,9 +357,52 @@ class UnifiedMatchProcessor:
         Returns:
             Dictionary with processing statistics
         """
-        return {
+        stats: Dict[str, Any] = {
             "service_type": "unified_processor",
             "change_detection": "integrated",
             "last_processing": "not_implemented",  # Will be implemented with state tracking
             "total_processed": "not_implemented",
         }
+
+        # Add notification statistics if available
+        if self.notification_service:
+            stats["notifications"] = {
+                "enabled": True,
+                "stakeholder_stats": self.notification_service.get_stakeholder_statistics(),
+                "delivery_stats": self.notification_service.get_delivery_statistics(),
+                "health_status": self.notification_service.get_health_status(),
+            }
+        else:
+            stats["notifications"] = {"enabled": False}
+
+        return stats
+
+    def get_notification_health(self) -> Dict[str, Any]:
+        """Get notification system health status.
+
+        Returns:
+            Notification health status dictionary
+        """
+        if not self.notification_service:
+            return {"enabled": False, "status": "not_configured"}
+
+        try:
+            return self.notification_service.get_health_status()
+        except Exception as e:
+            logger.error(f"Failed to get notification health: {e}")
+            return {"enabled": True, "status": "error", "error": str(e)}
+
+    def test_notification_channels(self) -> Dict[str, Any]:
+        """Test notification channels.
+
+        Returns:
+            Test results for all notification channels
+        """
+        if not self.notification_service:
+            return {"enabled": False, "channels": {}}
+
+        try:
+            return self.notification_service.test_notification_channels()
+        except Exception as e:
+            logger.error(f"Failed to test notification channels: {e}")
+            return {"enabled": True, "error": str(e), "channels": {}}
