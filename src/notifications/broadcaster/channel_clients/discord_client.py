@@ -90,10 +90,12 @@ class DiscordNotificationClient:
             webhook_url: Discord webhook URL
             embed_data: Discord embed data
         """
-        # Validate webhook URL
+        # Validate webhook URL for security (addresses B310)
         parsed_url = urlparse(webhook_url)
         if not parsed_url.netloc or "discord" not in parsed_url.netloc:
             raise ValueError("Invalid Discord webhook URL")
+        if parsed_url.scheme not in ("http", "https"):
+            raise ValueError("Invalid webhook URL scheme")
 
         # Prepare webhook payload
         payload = {"username": self.bot_username, "embeds": [embed_data]}
@@ -112,7 +114,7 @@ class DiscordNotificationClient:
             },
         )
 
-        with urlopen(request, timeout=30) as response:
+        with urlopen(request, timeout=30) as response:  # nosec B310
             if response.status not in (200, 204):
                 raise Exception(f"Discord webhook returned status {response.status}")
 

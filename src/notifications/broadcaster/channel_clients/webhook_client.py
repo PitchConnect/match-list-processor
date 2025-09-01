@@ -3,7 +3,7 @@
 import asyncio
 import json
 import logging
-from typing import Any, Dict
+from typing import Any, Dict, Optional
 from urllib.parse import urlparse
 from urllib.request import Request, urlopen
 
@@ -126,10 +126,12 @@ class WebhookNotificationClient:
             webhook_url: Webhook URL
             payload: Webhook payload
         """
-        # Validate webhook URL
+        # Validate webhook URL for security (addresses B310)
         parsed_url = urlparse(webhook_url)
         if not parsed_url.netloc:
             raise ValueError("Invalid webhook URL")
+        if parsed_url.scheme not in ("http", "https"):
+            raise ValueError("Invalid webhook URL scheme")
 
         # Prepare request
         data = json.dumps(payload).encode("utf-8")
@@ -142,7 +144,7 @@ class WebhookNotificationClient:
         request = Request(webhook_url, data=data, headers=headers)
 
         # Send request
-        with urlopen(request, timeout=self.timeout) as response:
+        with urlopen(request, timeout=self.timeout) as response:  # nosec B310
             if response.status not in (200, 201, 202, 204):
                 response_body = response.read().decode("utf-8", errors="ignore")
                 raise Exception(f"Webhook returned status {response.status}: {response_body}")
@@ -224,7 +226,7 @@ class WebhookNotificationClient:
             "timestamp": notification.timestamp.isoformat(),
         }
 
-    def test_webhook(self, webhook_url: str = None) -> bool:
+    def test_webhook(self, webhook_url: Optional[str] = None) -> bool:
         """Test webhook connectivity.
 
         Args:

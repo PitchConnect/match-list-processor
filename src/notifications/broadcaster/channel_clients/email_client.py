@@ -5,7 +5,7 @@ import logging
 import smtplib
 from email.mime.multipart import MIMEMultipart
 from email.mime.text import MIMEText
-from typing import Any, Dict, Optional
+from typing import Any, Dict
 
 from ...models.notification_models import (
     ChangeNotification,

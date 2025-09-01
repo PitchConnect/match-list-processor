@@ -3,8 +3,7 @@
 import logging
 from typing import Any, Dict, List
 
-from ..models.notification_models import NotificationChannel, NotificationRecipient
-from ..models.stakeholder_models import Stakeholder
+from ..models.notification_models import NotificationRecipient
 from .stakeholder_manager import StakeholderManager
 
 logger = logging.getLogger(__name__)

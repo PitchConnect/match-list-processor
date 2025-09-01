@@ -7,7 +7,7 @@ from datetime import datetime
 from typing import Dict, List, Optional
 
 from ..models.notification_models import NotificationChannel
-from ..models.stakeholder_models import ContactInfo, NotificationPreferences, Stakeholder
+from ..models.stakeholder_models import NotificationPreferences, Stakeholder
 
 logger = logging.getLogger(__name__)
 
@@ -252,8 +252,8 @@ class StakeholderManager:
         """
         total = len(self.stakeholders)
         active = len([s for s in self.stakeholders.values() if s.active])
-        by_role = {}
-        by_channel = {}
+        by_role: Dict[str, int] = {}
+        by_channel: Dict[str, int] = {}
 
         for stakeholder in self.stakeholders.values():
             if not stakeholder.active:

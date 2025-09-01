@@ -27,10 +27,8 @@ from src.core.change_categorization import (  # noqa: E402
     MatchChangeDetail,
     StakeholderType,
 )
-from src.notifications.models.notification_models import (  # noqa: E402
-    NotificationChannel,
-    NotificationPriority,
-)
+
+# NotificationChannel and NotificationPriority imported in NotificationService
 from src.notifications.notification_service import NotificationService  # noqa: E402
 
 
@@ -183,13 +181,13 @@ async def demo_notification_service_initialization():
         # Initialize service
         service = NotificationService(config)
 
-        print(f"\n✅ Service initialized successfully")
+        print("\n✅ Service initialized successfully")
         print(f"  - Service enabled: {service.enabled}")
-        print(f"  - Components initialized: stakeholder_manager, broadcaster, converter")
+        print("  - Components initialized: stakeholder_manager, broadcaster, converter")
 
         # Get health status
         health = service.get_health_status()
-        print(f"\n🏥 Health Status:")
+        print("\n🏥 Health Status:")
         print(f"  - Enabled: {health['enabled']}")
         print(f"  - Stakeholder count: {health['stakeholder_count']}")
         print(f"  - Queue size: {health['queue_size']}")

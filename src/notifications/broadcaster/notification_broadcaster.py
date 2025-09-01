@@ -2,8 +2,7 @@
 
 import asyncio
 import logging
-from datetime import datetime
-from typing import Any, Dict, List, Optional
+from typing import Any, Dict, List
 
 from ..models.notification_models import (
     ChangeNotification,
@@ -88,7 +87,9 @@ class NotificationBroadcaster:
         logger.info(f"Completed broadcasting notification {notification.notification_id}")
         return all_results
 
-    def _group_recipients_by_channel(self, recipients) -> Dict[NotificationChannel, List]:
+    def _group_recipients_by_channel(
+        self, recipients: List[Any]
+    ) -> Dict[NotificationChannel, List[Any]]:
         """Group recipients by notification channel.
 
         Args:
@@ -97,7 +98,7 @@ class NotificationBroadcaster:
         Returns:
             Dictionary mapping channels to recipient lists
         """
-        grouped = {}
+        grouped: Dict[NotificationChannel, List[Any]] = {}
         for recipient in recipients:
             channel = recipient.channel
             if channel not in grouped:

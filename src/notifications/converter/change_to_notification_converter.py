@@ -3,12 +3,7 @@
 import logging
 from typing import Any, Dict, List
 
-from ...core.change_categorization import (
-    CategorizedChanges,
-    ChangeCategory,
-    ChangePriority,
-    StakeholderType,
-)
+from ...core.change_categorization import CategorizedChanges, ChangeCategory, ChangePriority
 from ..models.notification_models import ChangeNotification, NotificationPriority
 from ..stakeholders.stakeholder_resolver import StakeholderResolver
 
@@ -82,7 +77,7 @@ class ChangeToNotificationConverter:
         Returns:
             Dictionary mapping (category, priority) tuples to change lists
         """
-        grouped = {}
+        grouped: Dict[tuple, List] = {}
 
         for change in changes:
             key = (change.category, change.priority)
@@ -183,7 +178,7 @@ class ChangeToNotificationConverter:
         else:
             # Generic summary for other categories
             if len(changes) == 1:
-                return changes[0].change_description
+                return str(changes[0].change_description)
             else:
                 return f"{len(changes)} changes detected in {category.value.replace('_', ' ')}"
 

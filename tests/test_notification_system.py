@@ -1,12 +1,11 @@
 """Tests for notification system."""
 
 import asyncio
-import json
 import os
 import tempfile
 import unittest
 from datetime import datetime
-from unittest.mock import AsyncMock, MagicMock, patch
+from unittest.mock import MagicMock, patch
 
 from src.core.change_categorization import (
     CategorizedChanges,

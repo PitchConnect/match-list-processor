@@ -2,12 +2,12 @@
 
 import asyncio
 import logging
-from typing import Any, Dict, List, Optional
+from typing import Any, Dict, List
 
 from ..core.change_categorization import CategorizedChanges
 from .broadcaster.notification_broadcaster import NotificationBroadcaster
 from .converter.change_to_notification_converter import ChangeToNotificationConverter
-from .models.notification_models import ChangeNotification, NotificationBatch
+from .models.notification_models import ChangeNotification, DeliveryResult, DeliveryStatus, NotificationBatch, NotificationChannel
 from .stakeholders.stakeholder_manager import StakeholderManager
 from .stakeholders.stakeholder_resolver import StakeholderResolver
 
@@ -178,7 +178,13 @@ class NotificationService:
                             failed_deliveries += 1
             elif isinstance(result, Exception):
                 logger.error(f"Notification {i} failed: {result}")
-                all_results[f"notification_{i}"] = {"error": str(result)}
+                all_results[f"notification_{i}"] = DeliveryResult(
+                    recipient_id=f"notification_{i}",
+                    channel=NotificationChannel.EMAIL,
+                    status=DeliveryStatus.FAILED,
+                    message="Notification failed",
+                    error_details=str(result),
+                )
                 failed_deliveries += len(notifications[i].recipients)
 
         # Update batch statistics
