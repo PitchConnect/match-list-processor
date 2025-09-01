@@ -201,21 +201,140 @@ python -m pytest -v --timeout=30
 4. **📚 Documentation**: Update docs for new features
 5. **🔧 Deployment Validation**: Run `./scripts/validate_deployment.sh`
 
+### ⚠️ MANDATORY: Issue Reference Requirements
+
+**Every PR must properly reference all issues it resolves** to ensure automatic closure and accurate milestone tracking.
+
+#### Required Format
+
+Use these exact keywords in your PR description:
+
+- `Fixes #123` - Closes issue #123 when PR is merged
+- `Closes #456` - Closes issue #456 when PR is merged
+- `Resolves #789` - Closes issue #789 when PR is merged
+
+#### Issue Reference Checklist
+
+Before submitting your PR, verify:
+
+- [ ] **Primary Issue Referenced**: Main issue addressed by this PR
+- [ ] **All Resolved Issues Listed**: Every issue this PR fully resolves
+- [ ] **Cross-Reference Check**: Reviewed open issues to identify additional closures
+- [ ] **Acceptance Criteria Met**: All requirements from referenced issues satisfied
+- [ ] **No Partial Implementations**: Issues only referenced if completely resolved
+
+#### Common Mistakes to Avoid
+
+❌ **Don't do this:**
+```markdown
+Related to #123
+See #456
+Addresses #789
+```
+
+✅ **Do this instead:**
+```markdown
+Fixes #123
+Closes #456
+Resolves #789
+```
+
 ### PR Requirements
 
 1. **Clear Description**: Explain what changes and why
-2. **Issue References**: Link to related issues (`Fixes #123`)
+2. **Proper Issue References**: Use "Fixes #X" format for all resolved issues
 3. **Test Evidence**: Include test results and coverage reports
 4. **Breaking Changes**: Document any breaking changes
 5. **Migration Notes**: Include migration steps if needed
 
+### Multi-Issue PRs
+
+When your PR resolves multiple issues:
+
+1. **List all resolved issues** in the PR description
+2. **Verify each issue is completely addressed**
+3. **Consider breaking large PRs** into smaller, focused changes
+4. **Document the relationship** between issues if complex
+
 ### Review Process
 
+#### Reviewer Responsibilities
+
+Reviewers must verify:
+
+##### Issue Closure Verification
+- [ ] **All resolved issues properly referenced** with "Fixes #X" format
+- [ ] **Implementation addresses all acceptance criteria**
+- [ ] **No additional issues resolved** without proper references
+- [ ] **Automatic closure will work** upon merge
+
+##### Code Quality Review
+- [ ] **Code follows project conventions**
+- [ ] **Tests provide adequate coverage**
+- [ ] **Documentation is complete**
+- [ ] **Security considerations addressed**
+- [ ] **Performance impact acceptable**
+
+#### Review Steps
+
 1. **Automated Checks**: CI pipeline must pass
-2. **Code Review**: At least one maintainer approval
-3. **Testing**: Reviewer validates functionality
-4. **Documentation**: Verify docs are updated
-5. **Merge**: Maintainer merges after approval
+2. **Issue Reference Verification**: Confirm all resolved issues are properly referenced
+3. **Code Review**: At least one maintainer approval
+4. **Testing**: Reviewer validates functionality
+5. **Documentation**: Verify docs are updated
+6. **Merge**: Maintainer merges after approval
+
+## 📅 Milestone Audit Process
+
+### Monthly Milestone Review
+
+To ensure accurate milestone tracking and prevent missed issue closures, we conduct monthly milestone audits.
+
+#### Audit Schedule
+- **Frequency**: First week of each month
+- **Responsibility**: Project maintainer or designated reviewer
+- **Duration**: 1-2 hours depending on milestone size
+
+#### Audit Steps
+
+1. **Review Open Issues**
+   ```bash
+   # List all open issues in current milestone
+   gh issue list --milestone "Current Milestone" --state open
+   ```
+
+2. **Cross-Reference Recent PRs**
+   ```bash
+   # List recently merged PRs
+   gh pr list --state merged --limit 20
+   ```
+
+3. **Identify Missed Closures**
+   - Compare implemented functionality with open issue requirements
+   - Look for PRs that resolve issues without proper "Fixes #X" references
+   - Check if acceptance criteria from open issues are met by merged code
+
+4. **Update Issue Status**
+   - Close resolved issues with explanatory comments
+   - Update issue descriptions if partially resolved
+   - Add proper cross-references between related issues
+
+#### Preventing Future Missed Closures
+
+**For Contributors:**
+- Always use "Fixes #X" format in PR descriptions
+- Review open issues before submitting PRs
+- Cross-reference your implementation with issue requirements
+
+**For Reviewers:**
+- Verify all resolved issues are properly referenced
+- Check if PR resolves additional unreferenced issues
+- Confirm automatic closure will work upon merge
+
+**For Maintainers:**
+- Conduct regular milestone audits
+- Update PR and review templates as needed
+- Train team on proper issue reference practices
 
 ## 🎨 Coding Standards
 
