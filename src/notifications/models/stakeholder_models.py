@@ -2,7 +2,7 @@
 
 import uuid
 from dataclasses import dataclass, field
-from datetime import datetime
+from datetime import datetime, timezone
 from typing import Any, Dict, List, Optional, Set
 
 from .notification_models import NotificationChannel
@@ -41,7 +41,7 @@ class ContactInfo:
             created_at=(
                 datetime.fromisoformat(data["created_at"])
                 if "created_at" in data
-                else datetime.utcnow()
+                else datetime.now(timezone.utc)
             ),
             last_verified=(
                 datetime.fromisoformat(data["last_verified"]) if data.get("last_verified") else None
@@ -161,12 +161,12 @@ class Stakeholder:
             created_at=(
                 datetime.fromisoformat(data["created_at"])
                 if "created_at" in data
-                else datetime.utcnow()
+                else datetime.now(timezone.utc)
             ),
             updated_at=(
                 datetime.fromisoformat(data["updated_at"])
                 if "updated_at" in data
-                else datetime.utcnow()
+                else datetime.now(timezone.utc)
             ),
             active=data.get("active", True),
             metadata=data.get("metadata", {}),
@@ -195,7 +195,7 @@ class Stakeholder:
                 active=True,
             )
         )
-        self.updated_at = datetime.utcnow()
+        self.updated_at = datetime.now(timezone.utc)
 
     def should_receive_notification(self, change_category: str, priority: str) -> bool:
         """Check if stakeholder should receive notification based on preferences."""

@@ -458,11 +458,11 @@ def mock_notification_service():
 @pytest.fixture
 def sample_notification_data():
     """Sample notification data for testing."""
-    from datetime import datetime
+    from datetime import datetime, timezone
 
     return {
         "notification_id": "test-notification-123",
-        "timestamp": datetime.utcnow(),
+        "timestamp": datetime.now(timezone.utc),
         "change_category": "new_assignment",
         "priority": "high",
         "change_summary": "New referee assignment",

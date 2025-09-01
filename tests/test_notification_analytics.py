@@ -2,7 +2,7 @@
 
 import tempfile
 import unittest
-from datetime import datetime, timedelta
+from datetime import datetime, timedelta, timezone
 
 from src.notifications.analytics.analytics_service import NotificationAnalyticsService
 from src.notifications.analytics.metrics_models import (
@@ -58,7 +58,7 @@ class TestMetricsModels(unittest.TestCase):
 
     def test_analytics_metrics_creation(self):
         """Test analytics metrics creation."""
-        start_time = datetime.utcnow()
+        start_time = datetime.now(timezone.utc)
         end_time = start_time + timedelta(hours=1)
 
         metrics = AnalyticsMetrics(start_time=start_time, end_time=end_time)
@@ -241,8 +241,8 @@ class TestNotificationAnalyticsService(unittest.TestCase):
     def test_generate_report(self):
         """Test generating analytics report."""
         # Add some test data
-        start_time = datetime.utcnow() - timedelta(hours=1)
-        end_time = datetime.utcnow()
+        start_time = datetime.now(timezone.utc) - timedelta(hours=1)
+        end_time = datetime.now(timezone.utc)
 
         # Add deliveries
         for i in range(5):
