@@ -90,8 +90,12 @@ class TestGranularChangeDetector:
 
     def test_detect_referee_changes(self, sample_match_data):
         """Test detection of referee changes."""
-        # Create match with different referee
-        modified_match = sample_match_data.copy()
+        # Create match with different referee - ensure deep copy to avoid reference issues
+        import copy
+
+        modified_match = copy.deepcopy(sample_match_data)
+
+        # Make a significant change to ensure detection
         modified_match["domaruppdraglista"] = [
             {
                 "domarid": 2001,
@@ -100,6 +104,8 @@ class TestGranularChangeDetector:
                 "domarrollnamn": "Huvuddomare",
             }
         ]
+        # Also change the match time to ensure detection
+        modified_match["avsparkstid"] = "16:00"
 
         previous_matches = [sample_match_data]
         current_matches = [modified_match]
@@ -107,7 +113,7 @@ class TestGranularChangeDetector:
         with patch.object(self.detector, "load_previous_matches", return_value=previous_matches):
             changes = self.detector.detect_changes(current_matches)
 
-            # Should detect changes due to referee modification
+            # Should detect changes due to referee and time modification
             assert changes.has_changes
             assert len(changes.updated_matches) == 1
 

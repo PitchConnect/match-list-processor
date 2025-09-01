@@ -42,71 +42,80 @@ class TestMatchDataManager:
         # Verify file exists
         assert os.path.exists(self.data_manager.file_path)
 
-        # Load matches
-        loaded_matches = self.data_manager.load_previous_matches()
+        # Load raw JSON and parse
+        loaded_raw = self.data_manager.load_previous_matches_raw_json()
+        assert loaded_raw is not None
+        loaded_matches = self.data_manager.parse_raw_json_to_list(loaded_raw)
         assert len(loaded_matches) == 1
         assert loaded_matches[0]["matchid"] == sample_match_data["matchid"]
 
-    def test_save_current_matches(self, sample_match_data):
-        """Test saving current matches."""
-        matches = [sample_match_data]
+    def test_parse_raw_json_to_list(self, sample_match_data):
+        """Test parsing raw JSON to list."""
+        matches_json = json.dumps([sample_match_data])
 
-        # Save current matches
-        self.data_manager.save_current_matches(matches)
-
-        # Verify file exists
-        assert os.path.exists(self.data_manager.file_path)
-
-        # Load and verify
-        loaded_matches = self.data_manager.load_previous_matches()
-        assert len(loaded_matches) == 1
+        # Parse JSON string to list
+        parsed_matches = self.data_manager.parse_raw_json_to_list(matches_json)
+        assert len(parsed_matches) == 1
+        assert parsed_matches[0]["matchid"] == sample_match_data["matchid"]
 
     def test_load_previous_matches_no_file(self):
         """Test loading when no previous file exists."""
-        # Should return empty list when file doesn't exist
-        loaded_matches = self.data_manager.load_previous_matches()
-        assert loaded_matches == []
+        # Should return None when file doesn't exist
+        loaded_raw = self.data_manager.load_previous_matches_raw_json()
+        assert loaded_raw is None
+
+        # Parsing None should return empty list
+        parsed_matches = self.data_manager.parse_raw_json_to_list(loaded_raw)
+        assert parsed_matches == []
 
 
 @pytest.mark.unit
 class TestMatchComparator:
     """Test match comparator functionality."""
 
-    def setup_method(self):
-        """Set up test fixtures."""
-        self.comparator = MatchComparator()
-
     def test_convert_to_dict(self, sample_match_data):
         """Test converting match list to dictionary."""
         matches = [sample_match_data]
-        result = self.comparator.convert_to_dict(matches)
+        result = MatchComparator.convert_to_dict(matches)
         assert isinstance(result, dict)
         assert int(sample_match_data["matchid"]) in result
 
-    def test_find_changes(self, sample_match_data):
-        """Test finding changes between match lists."""
-        previous_matches = [sample_match_data]
-        current_matches = []  # Empty current matches
+    def test_detect_changes(self, sample_match_data):
+        """Test detecting changes between match dictionaries."""
+        previous_dict = {int(sample_match_data["matchid"]): sample_match_data}
+        current_dict = {}  # Empty current matches
 
-        new_matches, modified_matches, removed_matches = self.comparator.find_changes(
-            previous_matches, current_matches
+        new_ids, removed_ids, common_ids = MatchComparator.detect_changes(
+            previous_dict, current_dict
         )
 
-        assert len(new_matches) == 0
-        assert len(modified_matches) == 0
-        assert len(removed_matches) == 1
+        assert len(new_ids) == 0
+        assert len(removed_ids) == 1
+        assert len(common_ids) == 0
 
     def test_is_match_modified(self, sample_match_data):
         """Test checking if match is modified."""
         # Same match should not be modified
-        is_modified = self.comparator.is_match_modified(sample_match_data, sample_match_data)
+        is_modified = MatchComparator.is_match_modified(sample_match_data, sample_match_data)
         assert not is_modified
 
         # Different time should be modified
         modified_match = sample_match_data.copy()
         modified_match["tid"] = "2025-09-01T16:00:00"
-        is_modified = self.comparator.is_match_modified(sample_match_data, modified_match)
+        is_modified = MatchComparator.is_match_modified(sample_match_data, modified_match)
         assert is_modified
+
+    def test_get_modification_details(self, sample_match_data):
+        """Test getting modification details."""
+        # No changes should return empty list
+        details = MatchComparator.get_modification_details(sample_match_data, sample_match_data)
+        assert details == []
+
+        # Time change should be detected
+        modified_match = sample_match_data.copy()
+        modified_match["tid"] = "2025-09-01T16:00:00"
+        details = MatchComparator.get_modification_details(sample_match_data, modified_match)
+        assert len(details) > 0
 
 
 @pytest.mark.unit
@@ -128,7 +137,7 @@ class TestMatchProcessor:
         """Test processor initialization."""
         assert self.processor.avatar_service == self.mock_avatar_service
         assert self.processor.storage_service == self.mock_storage_service
-        assert hasattr(self.processor, "comparator")
+        assert hasattr(self.processor, "description_generator")
 
     def test_process_match_new(self, sample_match_data):
         """Test processing a new match."""
@@ -178,27 +187,36 @@ class TestApiClient:
     def test_client_initialization(self):
         """Test client initialization."""
         assert hasattr(self.client, "base_url")
-        assert hasattr(self.client, "timeout")
+        assert hasattr(self.client, "matches_endpoint")
+        assert hasattr(self.client, "is_test_mode")
 
     def test_fetch_matches_list_success(self, sample_match_data):
         """Test successful matches list fetch."""
-        with patch("requests.get") as mock_get:
-            mock_response = Mock()
-            mock_response.json.return_value = [sample_match_data]
-            mock_response.raise_for_status.return_value = None
-            mock_get.return_value = mock_response
+        # Set environment variable to enable unit testing
+        with patch.dict(os.environ, {"PYTEST_API_CLIENT_UNIT_TEST": "1"}):
+            with patch("requests.get") as mock_get:
+                mock_response = Mock()
+                mock_response.json.return_value = [sample_match_data]
+                mock_response.raise_for_status.return_value = None
+                mock_response.status_code = 200
+                mock_get.return_value = mock_response
 
-            matches = self.client.fetch_matches_list()
-            assert len(matches) == 1
-            assert matches[0]["matchid"] == sample_match_data["matchid"]
+                matches = self.client.fetch_matches_list()
+                assert len(matches) == 1
+                assert matches[0]["matchid"] == sample_match_data["matchid"]
 
     def test_fetch_matches_list_error(self):
         """Test matches list fetch with error."""
-        with patch("requests.get") as mock_get:
-            mock_get.side_effect = Exception("Network error")
+        # Set environment variable to enable unit testing
+        with patch.dict(os.environ, {"PYTEST_API_CLIENT_UNIT_TEST": "1"}):
+            with patch("requests.get") as mock_get:
+                import requests
 
-            with pytest.raises(Exception):
-                self.client.fetch_matches_list()
+                mock_get.side_effect = requests.exceptions.RequestException("Network error")
+
+                # Should return empty list on error, not raise exception
+                matches = self.client.fetch_matches_list()
+                assert matches == []
 
 
 @pytest.mark.unit
@@ -211,29 +229,49 @@ class TestAvatarService:
 
     def test_service_initialization(self):
         """Test service initialization."""
-        assert hasattr(self.service, "api_key")
         assert hasattr(self.service, "base_url")
+        assert hasattr(self.service, "create_endpoint")
 
     def test_create_avatar_success(self):
         """Test successful avatar creation."""
         with patch("requests.post") as mock_post:
             mock_response = Mock()
             mock_response.content = b"fake_image_data"
+            mock_response.headers = {"Content-Type": "image/png"}
             mock_response.raise_for_status.return_value = None
             mock_post.return_value = mock_response
 
-            image_data, error = self.service.create_avatar("Test description")
+            image_data, error = self.service.create_avatar(123, 456)
             assert image_data == b"fake_image_data"
             assert error is None
 
     def test_create_avatar_error(self):
         """Test avatar creation with error."""
         with patch("requests.post") as mock_post:
-            mock_post.side_effect = Exception("API error")
+            import requests
 
-            image_data, error = self.service.create_avatar("Test description")
+            mock_post.side_effect = requests.exceptions.RequestException("API error")
+
+            # The service catches exceptions and returns (None, error_message)
+            image_data, error = self.service.create_avatar(123, 456)
             assert image_data is None
             assert error is not None
+            assert "API error" in str(error)
+
+    def test_create_avatar_wrong_content_type(self):
+        """Test avatar creation with wrong content type."""
+        with patch("requests.post") as mock_post:
+            mock_response = Mock()
+            mock_response.content = b"error_response"
+            mock_response.headers = {"Content-Type": "text/html"}
+            mock_response.text = "Error occurred"
+            mock_response.raise_for_status.return_value = None
+            mock_post.return_value = mock_response
+
+            image_data, error = self.service.create_avatar(123, 456)
+            assert image_data is None
+            assert error is not None
+            assert "Unexpected Content-Type" in error
 
 
 @pytest.mark.unit
@@ -246,30 +284,52 @@ class TestStorageService:
 
     def test_service_initialization(self):
         """Test service initialization."""
-        assert hasattr(self.service, "credentials_file")
-        assert hasattr(self.service, "folder_id")
+        assert hasattr(self.service, "base_url")
+        assert hasattr(self.service, "upload_endpoint")
 
     def test_upload_file_success(self):
         """Test successful file upload."""
-        with patch.object(self.service, "_get_drive_service") as mock_service:
-            mock_drive = Mock()
-            mock_file = Mock()
-            mock_file.execute.return_value = {"id": "test-file-id"}
-            mock_drive.files.return_value.create.return_value = mock_file
-            mock_service.return_value = mock_drive
+        # Create a temporary file for testing
+        with tempfile.NamedTemporaryFile(delete=False) as temp_file:
+            temp_file.write(b"test content")
+            temp_file_path = temp_file.name
 
-            result = self.service.upload_file("test.txt", b"test content")
-            assert result["status"] == "success"
-            assert "file_id" in result
+        try:
+            with patch("requests.post") as mock_post:
+                mock_response = Mock()
+                mock_response.json.return_value = {
+                    "status": "success",
+                    "file_url": "https://drive.google.com/file/test",
+                }
+                mock_response.raise_for_status.return_value = None
+                mock_post.return_value = mock_response
+
+                result = self.service.upload_file(
+                    temp_file_path, "test.txt", "folder/path", "text/plain"
+                )
+                assert result["status"] == "success"
+                assert "file_url" in result
+        finally:
+            os.unlink(temp_file_path)
 
     def test_upload_file_error(self):
         """Test file upload with error."""
-        with patch.object(self.service, "_get_drive_service") as mock_service:
-            mock_service.side_effect = Exception("Drive API error")
+        # Create a temporary file for testing
+        with tempfile.NamedTemporaryFile(delete=False) as temp_file:
+            temp_file.write(b"test content")
+            temp_file_path = temp_file.name
 
-            result = self.service.upload_file("test.txt", b"test content")
-            assert result["status"] == "error"
-            assert "error" in result
+        try:
+            with patch("requests.post") as mock_post:
+                mock_post.side_effect = Exception("Network error")
+
+                result = self.service.upload_file(
+                    temp_file_path, "test.txt", "folder/path", "text/plain"
+                )
+                assert result["status"] == "error"
+                assert "message" in result
+        finally:
+            os.unlink(temp_file_path)
 
 
 @pytest.mark.unit
@@ -282,26 +342,39 @@ class TestPhonebookService:
 
     def test_service_initialization(self):
         """Test service initialization."""
-        assert hasattr(self.service, "api_base_url")
-        assert hasattr(self.service, "timeout")
+        assert hasattr(self.service, "base_url")
+        assert hasattr(self.service, "sync_endpoint")
 
-    def test_sync_contacts_success(self, sample_match_data):
+    def test_sync_contacts_success(self):
         """Test successful contact sync."""
         with patch("requests.post") as mock_post:
             mock_response = Mock()
-            mock_response.json.return_value = {"status": "success", "synced": 1}
-            mock_response.raise_for_status.return_value = None
+            mock_response.status_code = 200
             mock_post.return_value = mock_response
 
-            result = self.service.sync_contacts([sample_match_data])
+            result = self.service.sync_contacts()
             assert result is True
 
-    def test_sync_contacts_error(self, sample_match_data):
+    def test_sync_contacts_error(self):
         """Test contact sync with error."""
         with patch("requests.post") as mock_post:
-            mock_post.side_effect = Exception("Sync error")
+            import requests
 
-            result = self.service.sync_contacts([sample_match_data])
+            mock_post.side_effect = requests.exceptions.RequestException("Sync error")
+
+            # The service catches exceptions and returns False
+            result = self.service.sync_contacts()
+            assert result is False
+
+    def test_sync_contacts_http_error(self):
+        """Test contact sync with HTTP error."""
+        with patch("requests.post") as mock_post:
+            mock_response = Mock()
+            mock_response.status_code = 500
+            mock_response.text = "Internal Server Error"
+            mock_post.return_value = mock_response
+
+            result = self.service.sync_contacts()
             assert result is False
 
 
@@ -309,21 +382,19 @@ class TestPhonebookService:
 class TestUtilities:
     """Test utility functions."""
 
-    def test_description_generator(self):
+    def test_description_generator(self, sample_match_data):
         """Test description generator function."""
-        description = generate_whatsapp_description(
-            "Team A", "Team B", "2025-09-01", "15:00", ["Referee 1"]
-        )
-        assert "Team A" in description
-        assert "Team B" in description
-        assert "2025-09-01" in description
+        description = generate_whatsapp_description(sample_match_data)
+        assert sample_match_data["lag1namn"] in description
+        assert sample_match_data["lag2namn"] in description
+        assert "Match Facts:" in description
 
-    def test_file_utils_create_gdrive_folder_path(self):
+    def test_file_utils_create_gdrive_folder_path(self, sample_match_data):
         """Test creating Google Drive folder path."""
-        path = create_gdrive_folder_path("Team A", "Team B", "2025-09-01")
-        assert "Team A" in path
-        assert "Team B" in path
-        assert "2025-09-01" in path
+        path = create_gdrive_folder_path(sample_match_data, 123)
+        assert sample_match_data["lag1namn"].replace(" ", "_") in path
+        assert sample_match_data["lag2namn"].replace(" ", "_") in path
+        assert "Match_123" in path
 
     def test_file_utils_extract_referee_names(self, sample_match_data):
         """Test extracting referee names."""
