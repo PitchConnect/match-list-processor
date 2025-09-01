@@ -3,7 +3,7 @@
 import json
 import logging
 import uuid
-from datetime import datetime
+from datetime import datetime, timezone
 from pathlib import Path
 from typing import Any, Dict, List, Optional
 
@@ -33,7 +33,7 @@ class NotificationAnalyticsService:
 
         # In-memory metrics for current session
         self._current_metrics = AnalyticsMetrics(
-            start_time=datetime.utcnow(), end_time=datetime.utcnow()
+            start_time=datetime.now(timezone.utc), end_time=datetime.now(timezone.utc)
         )
 
         # Delivery tracking
@@ -52,7 +52,7 @@ class NotificationAnalyticsService:
             notification_type: Type of notification (e.g., 'new_assignment', 'time_change')
         """
         delivery_event = {
-            "timestamp": datetime.utcnow().isoformat(),
+            "timestamp": datetime.now(timezone.utc).isoformat(),
             "recipient_id": delivery_result.recipient_id,
             "channel": delivery_result.channel.value,
             "status": delivery_result.status.value,
@@ -86,7 +86,7 @@ class NotificationAnalyticsService:
             metadata: Additional event metadata
         """
         engagement_event = {
-            "timestamp": datetime.utcnow().isoformat(),
+            "timestamp": datetime.now(timezone.utc).isoformat(),
             "notification_id": notification_id,
             "recipient_id": recipient_id,
             "event_type": event_type,
@@ -121,7 +121,7 @@ class NotificationAnalyticsService:
         # Generate report
         report = NotificationReport(
             report_id=str(uuid.uuid4()),
-            generated_at=datetime.utcnow(),
+            generated_at=datetime.now(timezone.utc),
             report_type=report_type,
             metrics=metrics,
         )
@@ -141,7 +141,7 @@ class NotificationAnalyticsService:
         Returns:
             Current analytics metrics
         """
-        self._current_metrics.end_time = datetime.utcnow()
+        self._current_metrics.end_time = datetime.now(timezone.utc)
         self._current_metrics.calculate_summary_metrics()
         return self._current_metrics
 
@@ -203,7 +203,7 @@ class NotificationAnalyticsService:
     def reset_metrics(self) -> None:
         """Reset current metrics and start fresh tracking."""
         self._current_metrics = AnalyticsMetrics(
-            start_time=datetime.utcnow(), end_time=datetime.utcnow()
+            start_time=datetime.now(timezone.utc), end_time=datetime.now(timezone.utc)
         )
         self._delivery_history.clear()
         self._engagement_events.clear()

@@ -2,7 +2,7 @@
 
 import uuid
 from dataclasses import dataclass, field
-from datetime import datetime
+from datetime import datetime, timezone
 from enum import Enum
 from typing import Any, Dict, List, Optional
 
@@ -114,7 +114,7 @@ class ChangeNotification:
             timestamp=(
                 datetime.fromisoformat(data["timestamp"])
                 if "timestamp" in data
-                else datetime.utcnow()
+                else datetime.now(timezone.utc)
             ),
             change_category=data.get("change_category", ""),
             priority=NotificationPriority(data.get("priority", "medium")),

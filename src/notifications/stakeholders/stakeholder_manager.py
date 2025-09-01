@@ -3,7 +3,7 @@
 import json
 import logging
 import os
-from datetime import datetime
+from datetime import datetime, timezone
 from typing import Dict, List, Optional
 
 from ..models.notification_models import NotificationChannel
@@ -60,7 +60,7 @@ class StakeholderManager:
         try:
             data = {
                 "version": "1.0",
-                "updated_at": datetime.utcnow().isoformat(),
+                "updated_at": datetime.now(timezone.utc).isoformat(),
                 "stakeholders": [s.to_dict() for s in self.stakeholders.values()],
             }
 
@@ -81,7 +81,7 @@ class StakeholderManager:
         Args:
             stakeholder: Stakeholder to register
         """
-        stakeholder.updated_at = datetime.utcnow()
+        stakeholder.updated_at = datetime.now(timezone.utc)
         self.stakeholders[stakeholder.stakeholder_id] = stakeholder
         self._save_stakeholders()
         logger.info(f"Registered stakeholder: {stakeholder.name} ({stakeholder.stakeholder_id})")
@@ -193,7 +193,7 @@ class StakeholderManager:
             return False
 
         stakeholder.preferences = preferences
-        stakeholder.updated_at = datetime.utcnow()
+        stakeholder.updated_at = datetime.now(timezone.utc)
         self._save_stakeholders()
         logger.info(f"Updated preferences for stakeholder: {stakeholder.name}")
         return True
@@ -239,7 +239,7 @@ class StakeholderManager:
             return False
 
         stakeholder.active = False
-        stakeholder.updated_at = datetime.utcnow()
+        stakeholder.updated_at = datetime.now(timezone.utc)
         self._save_stakeholders()
         logger.info(f"Deactivated stakeholder: {stakeholder.name}")
         return True
