@@ -1,0 +1,207 @@
+# Unified Match Processor Configuration
+# This file defines the configuration schema for the consolidated service
+# Updated: 2025-09-01 - Issue #25 implementation
+
+# =============================================================================
+# PROCESSOR CONFIGURATION
+# =============================================================================
+processor:
+  # Processing mode (unified is the only supported mode after Phase 1A)
+  mode: "unified"
+
+  # Run mode: 'service' for persistent operation, 'oneshot' for single execution
+  run_mode: "service"
+
+  # Processing interval in seconds (for service mode)
+  interval: 3600
+
+  # Enable detailed logging
+  debug_mode: false
+
+# =============================================================================
+# CHANGE DETECTION CONFIGURATION
+# =============================================================================
+change_detection:
+  # Enable enhanced change categorization system (Phase 1B feature)
+  enabled: true
+
+  # State file for storing previous matches
+  state_file: "/app/data/previous_matches.json"
+
+  # Priority for same-day changes (critical, high, medium, low)
+  same_day_priority: "critical"
+
+  # Enable detailed change logging
+  detailed_logging: true
+
+  # Log level for change detection (DEBUG, INFO, WARNING, ERROR)
+  log_level: "INFO"
+
+# =============================================================================
+# DATA STORAGE CONFIGURATION
+# =============================================================================
+storage:
+  # Base data folder
+  data_folder: "/app/data"
+
+  # Temporary file directory
+  temp_directory: "/tmp"
+
+  # Previous matches file name
+  previous_matches_file: "previous_matches.json"
+
+# =============================================================================
+# EXTERNAL SERVICE INTEGRATIONS
+# =============================================================================
+integrations:
+  # FOGIS API Client Service
+  fogis_api:
+    url: "http://fogis-api-client-service:8080"
+    timeout: 30
+    health_endpoint: "/hello"
+
+  # WhatsApp Avatar Service
+  whatsapp_avatar:
+    url: "http://whatsapp-avatar-service:5002"
+    timeout: 30
+    health_endpoint: "/health"
+
+  # Google Drive Service
+  google_drive:
+    url: "http://google-drive-service:5000"
+    timeout: 120
+    health_endpoint: "/health"
+    folder_base: "WhatsApp_Group_Assets"
+
+  # Phonebook Sync Service
+  phonebook_sync:
+    url: "http://fogis-calendar-phonebook-sync:5003"
+    timeout: 60
+    health_endpoint: "/health"
+
+# =============================================================================
+# PROCESSING SETTINGS
+# =============================================================================
+processing:
+  # Minimum number of referees required for WhatsApp group creation
+  min_referees_for_whatsapp: 2
+
+  # Processing timeouts
+  timeouts:
+    api_request: 30
+    file_upload: 120
+    calendar_sync: 60
+
+  # Retry settings
+  retries:
+    max_attempts: 3
+    delay_seconds: 5
+    backoff_multiplier: 2
+
+# =============================================================================
+# LOGGING CONFIGURATION
+# =============================================================================
+logging:
+  # Log level (DEBUG, INFO, WARNING, ERROR, CRITICAL)
+  level: "INFO"
+
+  # Log format
+  format: "%(asctime)s - %(name)s - %(levelname)s - %(message)s"
+
+  # Log file settings
+  file:
+    enabled: true
+    path: "/app/logs/unified_processor.log"
+    max_size_mb: 100
+    backup_count: 5
+
+  # Console logging
+  console:
+    enabled: true
+    colored: true
+
+# =============================================================================
+# HEALTH CHECK CONFIGURATION
+# =============================================================================
+health:
+  # Health check server settings
+  server:
+    enabled: true
+    host: "0.0.0.0"
+    port: 8000
+
+  # Health check endpoints
+  endpoints:
+    simple: "/health/simple"
+    detailed: "/health/detailed"
+
+  # Dependency health checks
+  dependencies:
+    enabled: true
+    timeout: 10
+    check_interval: 30
+
+# =============================================================================
+# MONITORING AND METRICS
+# =============================================================================
+monitoring:
+  # Enable metrics collection
+  enabled: true
+
+  # Metrics to track
+  metrics:
+    - "processing_time"
+    - "matches_processed"
+    - "changes_detected"
+    - "errors_encountered"
+    - "api_response_times"
+
+  # Performance thresholds
+  thresholds:
+    max_processing_time: 300  # seconds
+    max_memory_usage: 512     # MB
+    max_api_response_time: 30 # seconds
+
+# =============================================================================
+# SECURITY CONFIGURATION
+# =============================================================================
+security:
+  # Input validation
+  validation:
+    enabled: true
+    max_string_length: 1000
+    allowed_file_extensions: [".json", ".txt", ".log"]
+
+  # Rate limiting
+  rate_limiting:
+    enabled: false
+    requests_per_minute: 60
+
+  # CORS settings (if web interface is enabled)
+  cors:
+    enabled: false
+    allowed_origins: ["http://localhost:3000"]
+
+# =============================================================================
+# FEATURE FLAGS
+# =============================================================================
+features:
+  # Enhanced change categorization (Phase 1B)
+  enhanced_change_categorization: true
+
+  # Notification system (Phase 2 - coming soon)
+  notification_system: false
+
+  # Advanced analytics (Future)
+  advanced_analytics: false
+
+  # Web dashboard (Future)
+  web_dashboard: false
+
+# =============================================================================
+# ENVIRONMENT OVERRIDES
+# =============================================================================
+# Note: Environment variables will override these settings
+# Format: SECTION_SUBSECTION_KEY (e.g., PROCESSOR_MODE, CHANGE_DETECTION_ENABLED)
+# Boolean values: true/false, yes/no, 1/0
+# Arrays: comma-separated values

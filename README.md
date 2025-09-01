@@ -2,7 +2,7 @@
 
 **A unified service for comprehensive football match processing with integrated change detection and enhanced categorization.**
 
-*Updated: 2025-08-31 - Phase 1B: Consolidated Service Architecture*
+*Updated: 2025-09-01 - Issue #25: Configuration and Deployment Updates*
 
 ## 🎯 Overview
 
