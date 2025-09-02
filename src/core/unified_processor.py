@@ -91,6 +91,11 @@ class UnifiedMatchProcessor:
         self.storage_service = GoogleDriveStorageService()
         self.phonebook_service = FogisPhonebookSyncService()
 
+        # Connect notification service to monitored services
+        if self.notification_service:
+            self.api_client.set_notification_service(self.notification_service)
+            logger.info("Connected notification service to API client monitoring")
+
         # Initialize match processor
         self.match_processor = MatchProcessor(
             self.avatar_service,
