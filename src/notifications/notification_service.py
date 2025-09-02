@@ -318,3 +318,123 @@ class NotificationService:
             "delivery_stats": self.get_delivery_statistics(),
             "channel_tests": self.test_notification_channels(),
         }
+
+    async def send_system_alert(self, alert_data: Dict[str, Any]) -> Dict[str, Any]:
+        """Send system alert notification for service monitoring.
+
+        Args:
+            alert_data: Alert information including type, service, severity, etc.
+
+        Returns:
+            Processing results dictionary
+        """
+        if not self.enabled:
+            logger.debug("Notification service is disabled, skipping system alert")
+            return {"enabled": False, "notifications_sent": 0}
+
+        logger.info(
+            f"Processing system alert: {alert_data.get('alert_type')} for {alert_data.get('service')}"
+        )
+
+        try:
+            # Create system alert notification
+            notification = self._create_system_alert_notification(alert_data)
+
+            if not notification.recipients:
+                logger.info("No recipients found for system alert notification")
+                return {"enabled": True, "notifications_sent": 0}
+
+            # Send notification
+            results = await self._send_notifications([notification])
+
+            logger.info(
+                f"Processed system alert notification with {len(notification.recipients)} recipients"
+            )
+            return {
+                "enabled": True,
+                "notifications_sent": 1,
+                "delivery_results": results,
+                "alert_type": alert_data.get("alert_type"),
+                "service": alert_data.get("service"),
+                "severity": alert_data.get("severity"),
+            }
+
+        except Exception as e:
+            logger.error(f"Error processing system alert: {e}")
+            return {"enabled": True, "notifications_sent": 0, "error": str(e)}
+
+    def _create_system_alert_notification(self, alert_data: Dict[str, Any]) -> ChangeNotification:
+        """Create a system alert notification from alert data."""
+        import uuid
+
+        from .models.notification_models import ChangeNotification, NotificationPriority
+
+        # Map severity to notification priority
+        severity_priority_map = {
+            "critical": NotificationPriority.CRITICAL,
+            "high": NotificationPriority.HIGH,
+            "medium": NotificationPriority.MEDIUM,
+            "low": NotificationPriority.LOW,
+        }
+
+        priority = severity_priority_map.get(
+            alert_data.get("severity", "medium").lower(), NotificationPriority.MEDIUM
+        )
+
+        # Create notification
+        notification = ChangeNotification(
+            notification_id=str(uuid.uuid4()),
+            change_category="system_alert",
+            change_summary=f"🚨 {alert_data.get('service', 'System')} Alert: {alert_data.get('alert_type', 'Unknown')} - {alert_data.get('message', 'System alert triggered')}",
+            priority=priority,
+            recipients=[],  # Will be populated by stakeholder resolver
+            match_context={
+                "alert_type": alert_data.get("alert_type"),
+                "service": alert_data.get("service"),
+                "severity": alert_data.get("severity"),
+                "timestamp": alert_data.get("timestamp"),
+                "error_details": alert_data.get("error_details"),
+                "recovery_actions": alert_data.get("recovery_actions", []),
+                "affected_functionality": alert_data.get("affected_functionality", []),
+            },
+        )
+
+        # Resolve recipients based on alert type and severity
+        notification.recipients = self._resolve_system_alert_recipients(alert_data)
+
+        return notification
+
+    def _resolve_system_alert_recipients(self, alert_data: Dict[str, Any]) -> list:
+        """Resolve recipients for system alerts based on alert type and severity."""
+        # For now, send to all administrators
+        # This could be enhanced to route based on alert type, service, severity, etc.
+        all_stakeholders = self.stakeholder_manager.get_all_stakeholders()
+
+        # Filter for administrators or create default admin recipients
+        admin_stakeholders = [
+            stakeholder
+            for stakeholder in all_stakeholders
+            if "admin" in stakeholder.role.lower() or "administrator" in stakeholder.role.lower()
+        ]
+
+        if not admin_stakeholders:
+            # If no admin stakeholders found, send to all stakeholders for critical alerts
+            if alert_data.get("severity") == "critical":
+                admin_stakeholders = all_stakeholders
+
+        # Convert stakeholders to notification recipients
+        recipients = []
+        for stakeholder in admin_stakeholders:
+            for contact in stakeholder.contact_info:
+                if contact.active:
+                    from .models.notification_models import NotificationRecipient
+
+                    recipient = NotificationRecipient(
+                        stakeholder_id=stakeholder.stakeholder_id,
+                        name=getattr(stakeholder, "name", "System Administrator"),
+                        channel=contact.channel,
+                        address=contact.address,
+                    )
+                    recipients.append(recipient)
+
+        return recipients
