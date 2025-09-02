@@ -1,0 +1,23 @@
+{
+  "timestamp": 1756800553.594809,
+  "date": "2025-09-02 10:09:13",
+  "thresholds": {
+    "processor_initialization": 2.0,
+    "processing_cycle_empty": 1.0,
+    "processing_cycle_with_data": 5.0,
+    "health_check_response": 0.1,
+    "memory_usage_mb": 256,
+    "cpu_usage_percent": 50
+  },
+  "results": {
+    "repeated_avg_time": 0.00011420249938964844,
+    "repeated_std_dev": 6.901027041958061e-05,
+    "repeated_min_time": 8.487701416015625e-05,
+    "repeated_max_time": 0.00030994415283203125
+  },
+  "system_info": {
+    "cpu_count": 8,
+    "memory_total_mb": 8192.0,
+    "python_version": "3.13.3 (v3.13.3:6280bb54784, Apr  8 2025, 10:47:54) [Clang 15.0.0 (clang-1500.3.9.4)]"
+  }
+}
