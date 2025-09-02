@@ -162,15 +162,17 @@ class TestNotificationServiceSystemAlerts:
         admin_stakeholder = Mock()
         admin_stakeholder.stakeholder_id = "admin-1"
         admin_stakeholder.role = "Administrator"
-        admin_stakeholder.contacts = [
-            Mock(channel="email", address="admin@example.com", enabled=True)
+        admin_stakeholder.name = "System Administrator"
+        admin_stakeholder.contact_info = [
+            Mock(channel=NotificationChannel.EMAIL, address="admin@example.com", active=True)
         ]
 
         user_stakeholder = Mock()
         user_stakeholder.stakeholder_id = "user-1"
         user_stakeholder.role = "User"
-        user_stakeholder.contacts = [
-            Mock(channel="email", address="user@example.com", enabled=True)
+        user_stakeholder.name = "Regular User"
+        user_stakeholder.contact_info = [
+            Mock(channel=NotificationChannel.EMAIL, address="user@example.com", active=True)
         ]
 
         notification_service.stakeholder_manager.get_all_stakeholders.return_value = [
@@ -191,8 +193,9 @@ class TestNotificationServiceSystemAlerts:
         user_stakeholder = Mock()
         user_stakeholder.stakeholder_id = "user-1"
         user_stakeholder.role = "User"
-        user_stakeholder.contacts = [
-            Mock(channel="email", address="user@example.com", enabled=True)
+        user_stakeholder.name = "Regular User"
+        user_stakeholder.contact_info = [
+            Mock(channel=NotificationChannel.EMAIL, address="user@example.com", active=True)
         ]
 
         notification_service.stakeholder_manager.get_all_stakeholders.return_value = [
@@ -211,9 +214,12 @@ class TestNotificationServiceSystemAlerts:
         admin_stakeholder = Mock()
         admin_stakeholder.stakeholder_id = "admin-1"
         admin_stakeholder.role = "Administrator"
-        admin_stakeholder.contacts = [
-            Mock(channel="email", address="admin@example.com", enabled=True),
-            Mock(channel="discord", address="webhook-url", enabled=False),  # Disabled
+        admin_stakeholder.name = "System Administrator"
+        admin_stakeholder.contact_info = [
+            Mock(channel=NotificationChannel.EMAIL, address="admin@example.com", active=True),
+            Mock(
+                channel=NotificationChannel.DISCORD, address="webhook-url", active=False
+            ),  # Disabled
         ]
 
         notification_service.stakeholder_manager.get_all_stakeholders.return_value = [
@@ -225,7 +231,7 @@ class TestNotificationServiceSystemAlerts:
 
         # Should only include enabled contact
         assert len(recipients) == 1
-        assert recipients[0].channel == "email"
+        assert recipients[0].channel == NotificationChannel.EMAIL
 
     @pytest.mark.asyncio
     async def test_send_system_alert_error_handling(self, notification_service):
