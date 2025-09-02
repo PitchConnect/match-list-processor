@@ -14,7 +14,16 @@ from ..config import settings
 from ..custom_types import MatchList
 from ..interfaces import ApiClientInterface
 
-logger = logging.getLogger(__name__)
+# Import enhanced logging and retry utilities
+try:
+    from ..core.logging_config import get_logger, log_error_context
+
+    logger = get_logger(__name__)
+    HAS_ENHANCED_LOGGING = True
+except ImportError:
+    # Fallback to standard logging if core modules not available
+    logger = logging.getLogger(__name__)
+    HAS_ENHANCED_LOGGING = False
 
 
 class ServiceMonitoringMixin:
@@ -225,6 +234,18 @@ class DockerNetworkApiClient(ServiceMonitoringMixin, ApiClientInterface):
         """Handle HTTP errors with appropriate alert severity."""
         status_code = error.response.status_code if error.response else 0
 
+        # Enhanced error logging with context
+        error_context = {
+            "status_code": status_code,
+            "response_time": response_time,
+            "service": self.service_name,
+            "url": error.response.url if error.response else "unknown",
+        }
+
+        if HAS_ENHANCED_LOGGING:
+            log_error_context(logger, error, context=error_context, operation="api_request")
+        else:
+            logger.error(f"HTTP error {status_code}: {str(error)}", extra=error_context)
         if status_code == 401:
             # CRITICAL: Authentication failure
             self._send_system_alert(
@@ -288,6 +309,17 @@ class DockerNetworkApiClient(ServiceMonitoringMixin, ApiClientInterface):
 
     def _handle_timeout_error(self, response_time: float) -> None:
         """Handle timeout errors."""
+        # Enhanced error logging with context
+        error_context = {
+            "response_time": response_time,
+            "service": self.service_name,
+            "timeout_threshold": getattr(self, "timeout", "unknown"),
+        }
+
+        logger.warning(
+            f"Request timeout after {response_time:.2f}s for {self.service_name}",
+            extra=error_context,
+        )
         self._send_system_alert(
             alert_type="timeout_error",
             service=self.service_name,
@@ -307,6 +339,18 @@ class DockerNetworkApiClient(ServiceMonitoringMixin, ApiClientInterface):
         self, error: requests.exceptions.ConnectionError, response_time: float
     ) -> None:
         """Handle connection errors."""
+        # Enhanced error logging with context
+        error_context = {
+            "response_time": response_time,
+            "service": self.service_name,
+            "endpoint": getattr(self, "matches_endpoint", "unknown"),
+            "error_type": type(error).__name__,
+        }
+
+        if HAS_ENHANCED_LOGGING:
+            log_error_context(logger, error, context=error_context, operation="api_connection")
+        else:
+            logger.error(f"Connection error: {str(error)}", extra=error_context)
         self._send_system_alert(
             alert_type="connection_error",
             service=self.service_name,
@@ -320,10 +364,21 @@ class DockerNetworkApiClient(ServiceMonitoringMixin, ApiClientInterface):
                 "Monitor network infrastructure",
             ],
         )
-        logger.error(f"Connection error fetching matches from {self.matches_endpoint}: {error}")
 
     def _handle_parsing_error(self, error: ValueError, response_time: float) -> None:
         """Handle JSON parsing errors."""
+        # Enhanced error logging with context
+        error_context = {
+            "response_time": response_time,
+            "service": self.service_name,
+            "endpoint": getattr(self, "matches_endpoint", "unknown"),
+            "error_type": type(error).__name__,
+        }
+
+        if HAS_ENHANCED_LOGGING:
+            log_error_context(logger, error, context=error_context, operation="response_parsing")
+        else:
+            logger.error(f"JSON parsing error: {str(error)}", extra=error_context)
         self._send_system_alert(
             alert_type="parsing_error",
             service=self.service_name,
@@ -337,10 +392,23 @@ class DockerNetworkApiClient(ServiceMonitoringMixin, ApiClientInterface):
                 "Contact FOGIS support if format changed",
             ],
         )
-        logger.error(f"JSON parsing error for response from {self.matches_endpoint}: {error}")
 
     def _handle_unexpected_error(self, error: Exception, response_time: float) -> None:
         """Handle unexpected errors."""
+        # Enhanced error logging with context
+        error_context = {
+            "response_time": response_time,
+            "service": self.service_name,
+            "endpoint": getattr(self, "matches_endpoint", "unknown"),
+            "error_type": type(error).__name__,
+        }
+
+        if HAS_ENHANCED_LOGGING:
+            log_error_context(
+                logger, error, context=error_context, operation="api_request_unexpected"
+            )
+        else:
+            logger.error(f"Unexpected error: {str(error)}", extra=error_context, exc_info=True)
         self._send_system_alert(
             alert_type="unexpected_error",
             service=self.service_name,
