@@ -318,7 +318,7 @@ class TestSimple90PercentPush:
         """Test accessing module-level constants and variables."""
         # Import modules and access their attributes
         import src.config
-        import src.types
+        import src.custom_types
 
         # Verify modules have expected structure
         assert hasattr(src.config, "Settings")

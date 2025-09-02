@@ -77,7 +77,7 @@ class TestMinimalCoverageBoost:
     def test_types_basic(self):
         """Test basic types functionality."""
         # Just import and check that types module exists
-        import src.types
+        import src.custom_types
 
         assert src.types is not None
 
