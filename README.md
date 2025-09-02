@@ -30,6 +30,8 @@ graph TD
 - **📅 Calendar Integration**: Automatic calendar sync for referee assignments
 - **☁️ Cloud Storage**: Google Drive integration for asset management
 - **🏥 Health Monitoring**: Comprehensive health checks and monitoring endpoints
+- **🚨 Real-time Service Monitoring**: Proactive detection and alerting for authentication failures, service outages, and performance issues
+- **📧 Multi-channel Notifications**: Email, Discord, and webhook alerts for critical system events
 - **⚙️ Unified Configuration**: Single service configuration and management
 - **🚀 Production Ready**: Docker-based deployment with comprehensive validation
 
@@ -218,6 +220,33 @@ LOG_LEVEL=INFO
 LOG_FORMAT=%(asctime)s - %(levelname)s - %(message)s
 ```
 
+#### Service Monitoring & Alerts
+```bash
+# Monitoring configuration
+MONITORING_ENABLED=true
+ALERT_COOLDOWN_SECONDS=300
+SLOW_RESPONSE_THRESHOLD_SECONDS=15
+
+# Notification system
+NOTIFICATION_SERVICE_ENABLED=true
+SYSTEM_ALERT_STAKEHOLDER_ROLES=Administrator,SystemAdmin
+
+# Email notifications
+SMTP_HOST=smtp.gmail.com
+SMTP_PORT=587
+SMTP_USERNAME=notifications@yourcompany.com
+SMTP_PASSWORD=your_app_password
+SMTP_USE_TLS=true
+
+# Discord webhooks (optional)
+DISCORD_WEBHOOK_URL=https://discord.com/api/webhooks/your_webhook_url
+DISCORD_WEBHOOK_ENABLED=true
+
+# Generic webhooks (optional)
+WEBHOOK_URL=https://your-monitoring-system.com/webhook
+WEBHOOK_ENABLED=true
+```
+
 ## 🧪 Development Workflow
 
 ### Code Quality Tools
@@ -288,12 +317,39 @@ python -m mypy src/core/change_categorization.py
 python -m mypy src/app_unified.py
 ```
 
-## 🏥 Health Monitoring
+## 🏥 Health Monitoring & Service Alerts
 
 ### Health Check Endpoints
 
 - **Simple Health**: `GET /health/simple` - Basic service status
 - **Detailed Health**: `GET /health/detailed` - Comprehensive service information
+
+### 🚨 Enhanced Service Monitoring
+
+The system includes comprehensive real-time monitoring with proactive alerting:
+
+#### **Real-time Error Detection**
+- **Authentication Failures (401)**: Critical alerts for expired credentials
+- **Service Outages (500/502/503)**: High-priority alerts for service unavailability
+- **Network Issues**: Medium-priority alerts for connectivity problems
+- **Performance Degradation**: Alerts for slow response times (>15 seconds)
+
+#### **Multi-channel Notifications**
+- **📧 Email Alerts**: Immediate notifications to administrators
+- **💬 Discord Webhooks**: Real-time alerts to development channels
+- **🔗 Generic Webhooks**: Integration with external monitoring systems
+
+#### **Smart Alert Management**
+- **5-minute cooldown** prevents notification spam
+- **Severity-based routing** ensures appropriate response
+- **Async delivery** maintains system performance
+- **Automatic recovery detection** and notifications
+
+#### **Monitored Services**
+- **FOGIS API Client**: Authentication and response monitoring
+- **Google Drive Service**: Upload operations and quota monitoring
+- **Avatar Service**: Image processing and availability monitoring
+- **Phonebook Service**: Calendar sync and token monitoring
 
 ### Service Monitoring
 
@@ -604,6 +660,21 @@ git push origin v2.0.0
 - **🚀 Production Ready**: Comprehensive deployment validation and monitoring
 - **📚 Complete Documentation**: Deployment guides, API docs, and troubleshooting
 - **🧪 Quality Assurance**: 100% test success rate with comprehensive coverage
+
+## 📚 Documentation
+
+### Monitoring & Alerting Documentation
+
+- **[Monitoring Architecture](docs/MONITORING_ARCHITECTURE.md)** - Comprehensive monitoring system overview
+- **[Alert Management](docs/ALERT_MANAGEMENT.md)** - Alert types, handling, and recovery procedures
+- **[Notification Configuration](docs/NOTIFICATION_CONFIGURATION.md)** - Setup and configuration guide
+- **[Troubleshooting Monitoring](docs/TROUBLESHOOTING_MONITORING.md)** - Common issues and solutions
+
+### Additional Documentation
+
+- **[API Documentation](docs/API_DOCUMENTATION.md)** - Complete API reference
+- **[Deployment Guide](docs/DEPLOYMENT_GUIDE.md)** - Production deployment instructions
+- **[Configuration Reference](docs/CONFIGURATION.md)** - Environment variables and settings
 
 ## 📞 Support
 
