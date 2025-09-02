@@ -5,7 +5,7 @@ import os
 from typing import List, Optional, Tuple
 
 from ..config import settings
-from ..types import FilePath, MatchDict
+from ..custom_types import FilePath, MatchDict
 
 logger = logging.getLogger(__name__)
 
