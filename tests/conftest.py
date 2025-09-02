@@ -8,7 +8,7 @@ from unittest.mock import AsyncMock, Mock, patch
 
 import pytest
 
-from src.types import MatchDict, RefereeDict
+from src.custom_types import MatchDict, RefereeDict
 
 
 @pytest.fixture
