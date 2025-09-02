@@ -5,6 +5,7 @@ Smart entry point for match list processor.
 This module automatically selects the appropriate application mode based on environment variables:
 - PROCESSOR_MODE=unified: Uses new unified processor with integrated change detection (default)
 - PROCESSOR_MODE=legacy: Uses legacy processor with separate change detection
+- PROCESSOR_MODE=event-driven: Uses event-driven webhook processor (new)
 - RUN_MODE=service: Uses persistent service mode
 - RUN_MODE=oneshot: Uses traditional oneshot mode
 - Default: unified processor in oneshot mode for backward compatibility
@@ -29,6 +30,19 @@ def main() -> None:
     logger.info(
         f"Match List Processor starting in {run_mode} mode with {processor_mode} processor..."
     )
+
+    # Event-driven processor mode (new webhook-based architecture)
+    if processor_mode == "event-driven":
+        logger.info("Using event-driven webhook processor (src.app_event_driven)")
+        try:
+            from src.app_event_driven import main as event_driven_main
+
+            event_driven_main()
+            return
+        except ImportError as e:
+            logger.error(f"Failed to import event-driven processor module: {e}")
+            logger.error("Falling back to unified processor")
+            processor_mode = "unified"
 
     # Use unified processor by default (new architecture)
     if processor_mode == "unified":
