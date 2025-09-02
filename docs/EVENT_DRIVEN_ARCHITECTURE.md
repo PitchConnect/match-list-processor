@@ -2,7 +2,23 @@
 
 ## Overview
 
-The Event-Driven Architecture transforms the match-list-processor from a oneshot execution model to a webhook-triggered persistent service. This eliminates unnecessary processing cycles and provides optimal resource utilization with real-time responsiveness.
+The Event-Driven Architecture provides an **alternative architectural approach** for the match-list-processor, offering webhook-triggered persistent service capabilities alongside the default internal orchestration mode. This gives operational teams flexibility to choose the best approach for their deployment scenario.
+
+## 🏗️ Architectural Modes
+
+The match-list-processor now supports **two complementary architectural approaches**:
+
+### 1. **Internal Orchestration Mode** (Default - Recommended)
+- **Configuration**: `PROCESSOR_MODE=unified`
+- **Purpose**: Single-service architecture with integrated change detection
+- **Benefits**: Minimal services, no external dependencies, simplified deployment
+- **Use Case**: Standard deployments where simplicity is preferred
+
+### 2. **Event-Driven Mode** (Alternative - This Implementation)
+- **Configuration**: `PROCESSOR_MODE=event-driven`
+- **Purpose**: Webhook-triggered processing with external change detection
+- **Benefits**: Separation of concerns, multiple trigger sources, horizontal scaling
+- **Use Case**: Complex deployments requiring external triggering or multiple processors
 
 ## Architecture Components
 
@@ -114,19 +130,27 @@ Processing performance metrics
 }
 ```
 
-## Configuration
+## 🔧 Configuration
+
+### Architectural Mode Selection
+
+#### Internal Orchestration (Default)
+```bash
+# Single service with integrated change detection
+PROCESSOR_MODE=unified      # Default - recommended for most deployments
+RUN_MODE=service           # Persistent service mode
+SERVICE_INTERVAL=3600      # Processing interval in seconds (1 hour)
+```
+
+#### Event-Driven Architecture (Alternative)
+```bash
+# Webhook-triggered processing
+PROCESSOR_MODE=event-driven # Alternative - for complex deployments
+HOST=0.0.0.0               # Server host
+PORT=8000                  # Server port
+```
 
 ### Environment Variables
-
-#### Mode Selection
-```bash
-# Use event-driven architecture
-PROCESSOR_MODE=event-driven
-
-# Alternative modes
-PROCESSOR_MODE=unified      # Unified processor (default)
-PROCESSOR_MODE=legacy       # Legacy processor
-```
 
 #### Service Configuration
 ```bash

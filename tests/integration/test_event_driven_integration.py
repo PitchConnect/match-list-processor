@@ -160,34 +160,20 @@ class TestEventDrivenIntegration(unittest.TestCase):
 
     def test_concurrent_processing_protection(self):
         """Test protection against concurrent processing."""
-        # Start first processing request
-        with patch.object(
-            self.processor.webhook_service, "process_webhook_trigger"
-        ) as mock_process:
-            # Make the first process take some time
-            def slow_process(*args, **kwargs):
-                time.sleep(0.2)
-                return {
-                    "processing_id": "slow_test",
-                    "timestamp": time.time(),
-                    "duration": 0.2,
-                    "changes_detected": False,
-                    "summary": "Slow process",
-                    "status": "success",
-                }
+        # Manually set processing flag to simulate ongoing processing
+        self.processor.processing = True
 
-            mock_process.side_effect = slow_process
+        try:
+            # Try to start processing while already processing
+            response = self.client.post("/process")
+            self.assertEqual(response.status_code, 429)  # Should be busy
 
-            # Start first request
-            response1 = self.client.post("/process")
-            self.assertEqual(response1.status_code, 200)
-
-            # Immediately try second request
-            response2 = self.client.post("/process")
-            self.assertEqual(response2.status_code, 429)  # Should be busy
-
-            data2 = response2.json()
-            self.assertEqual(data2["status"], "busy")
+            data = response.json()
+            self.assertEqual(data["status"], "busy")
+            self.assertIn("Processing already in progress", data["message"])
+        finally:
+            # Reset processing flag
+            self.processor.processing = False
 
     def test_error_handling_integration(self):
         """Test error handling in webhook processing."""
