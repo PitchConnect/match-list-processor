@@ -4,21 +4,46 @@
 
 The Event-Driven Architecture provides an **alternative architectural approach** for the match-list-processor, offering webhook-triggered persistent service capabilities alongside the default internal orchestration mode. This gives operational teams flexibility to choose the best approach for their deployment scenario.
 
-## 🏗️ Architectural Modes
+## 🏗️ Architectural Decision Context
 
-The match-list-processor now supports **two complementary architectural approaches**:
+Following architectural analysis, the match-list-processor now supports **two complementary approaches**:
+
+### **Architectural Decision Summary**
+- **Primary Architecture**: Internal Orchestration (unified mode) - **RECOMMENDED**
+- **Alternative Architecture**: Event-Driven (webhook mode) - **AVAILABLE**
+- **Rationale**: Provides operational flexibility while maintaining simplicity as default
+
+## 🏗️ Architectural Modes
 
 ### 1. **Internal Orchestration Mode** (Default - Recommended)
 - **Configuration**: `PROCESSOR_MODE=unified`
 - **Purpose**: Single-service architecture with integrated change detection
 - **Benefits**: Minimal services, no external dependencies, simplified deployment
 - **Use Case**: Standard deployments where simplicity is preferred
+- **Status**: ✅ **Already implemented and production-ready**
 
 ### 2. **Event-Driven Mode** (Alternative - This Implementation)
 - **Configuration**: `PROCESSOR_MODE=event-driven`
 - **Purpose**: Webhook-triggered processing with external change detection
 - **Benefits**: Separation of concerns, multiple trigger sources, horizontal scaling
 - **Use Case**: Complex deployments requiring external triggering or multiple processors
+- **Status**: ✅ **Newly implemented in this PR**
+
+## 🎯 When to Use Each Mode
+
+### Use **Internal Orchestration** (unified) when:
+- ✅ You want **simplicity** and minimal service count
+- ✅ You prefer **self-contained** processing with no external dependencies
+- ✅ You need **reliable scheduling** with configurable intervals
+- ✅ You want **easier deployment** and maintenance
+- ✅ You're doing **standard match processing** workflows
+
+### Use **Event-Driven** (webhook) when:
+- ✅ You need **external triggering** from other services
+- ✅ You want **separation of concerns** between change detection and processing
+- ✅ You require **multiple processors** listening to the same change detector
+- ✅ You need **horizontal scaling** capabilities
+- ✅ You have **complex integration** requirements with external systems
 
 ## Architecture Components
 
@@ -130,16 +155,32 @@ Processing performance metrics
 }
 ```
 
-## 🔧 Configuration
+## 🔧 Configuration Comparison
 
-### Architectural Mode Selection
+### Quick Configuration Reference
 
-#### Internal Orchestration (Default)
+| Aspect | Internal Orchestration | Event-Driven |
+|--------|----------------------|---------------|
+| **Mode** | `PROCESSOR_MODE=unified` | `PROCESSOR_MODE=event-driven` |
+| **Services** | 1 (self-contained) | 1 (webhook server) |
+| **Dependencies** | None | Optional external change detector |
+| **Triggering** | Internal scheduling | External webhooks |
+| **Scaling** | Vertical | Horizontal |
+| **Complexity** | Low | Medium |
+| **Use Case** | Standard deployments | Complex integrations |
+
+### Detailed Configuration
+
+#### Internal Orchestration (Default - Recommended)
 ```bash
 # Single service with integrated change detection
 PROCESSOR_MODE=unified      # Default - recommended for most deployments
 RUN_MODE=service           # Persistent service mode
 SERVICE_INTERVAL=3600      # Processing interval in seconds (1 hour)
+
+# Data configuration (same for both modes)
+DATA_FOLDER=/data
+TEMP_FILE_DIRECTORY=/tmp
 ```
 
 #### Event-Driven Architecture (Alternative)
@@ -148,6 +189,10 @@ SERVICE_INTERVAL=3600      # Processing interval in seconds (1 hour)
 PROCESSOR_MODE=event-driven # Alternative - for complex deployments
 HOST=0.0.0.0               # Server host
 PORT=8000                  # Server port
+
+# Data configuration (same for both modes)
+DATA_FOLDER=/data
+TEMP_FILE_DIRECTORY=/tmp
 ```
 
 ### Environment Variables
@@ -323,36 +368,115 @@ scrape_configs:
 - **Load Balancing**: Standard HTTP load balancing applies
 - **Resource Efficiency**: Minimal resource usage when idle
 
-## Migration Guide
+## 🚀 Deployment Comparison
 
-### From Oneshot to Event-Driven
+### Docker Deployment
 
-1. **Update Environment Variables**
-   ```bash
-   # Change from oneshot
-   PROCESSOR_MODE=unified
+#### Internal Orchestration (Recommended)
+```dockerfile
+# Dockerfile for unified mode
+ENV PROCESSOR_MODE=unified
+ENV RUN_MODE=service
+ENV SERVICE_INTERVAL=3600
 
-   # To event-driven
-   PROCESSOR_MODE=event-driven
-   ```
+# No port exposure needed (internal processing)
+CMD ["python", "-m", "src.main"]
+```
 
-2. **Update Deployment Configuration**
-   - Add port exposure (8000)
-   - Add health check endpoints
-   - Configure webhook triggers
+#### Event-Driven Architecture
+```dockerfile
+# Dockerfile for event-driven mode
+ENV PROCESSOR_MODE=event-driven
+ENV HOST=0.0.0.0
+ENV PORT=8000
 
-3. **Update Monitoring**
-   - Switch from cron-based monitoring to HTTP health checks
-   - Implement webhook-based triggering
-   - Add metrics collection
+# Expose webhook port
+EXPOSE 8000
+CMD ["python", "-m", "src.main"]
+```
+
+### Kubernetes Deployment
+
+#### Internal Orchestration
+```yaml
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: match-processor-unified
+spec:
+  replicas: 1
+  template:
+    spec:
+      containers:
+      - name: match-processor
+        env:
+        - name: PROCESSOR_MODE
+          value: "unified"
+        - name: SERVICE_INTERVAL
+          value: "3600"
+        # No service/ingress needed
+```
+
+#### Event-Driven Architecture
+```yaml
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: match-processor-events
+spec:
+  replicas: 2  # Can scale horizontally
+  template:
+    spec:
+      containers:
+      - name: match-processor
+        env:
+        - name: PROCESSOR_MODE
+          value: "event-driven"
+        ports:
+        - containerPort: 8000
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: match-processor-service
+spec:
+  ports:
+  - port: 8000
+    targetPort: 8000
+```
+
+## 🔄 Migration Guide
+
+### Choosing Your Architecture
+
+#### Migrate to Internal Orchestration (Recommended)
+```bash
+# Simple migration - just change mode
+PROCESSOR_MODE=unified
+RUN_MODE=service
+SERVICE_INTERVAL=3600  # Adjust as needed
+```
+
+#### Migrate to Event-Driven (Advanced)
+```bash
+# For complex deployments
+PROCESSOR_MODE=event-driven
+HOST=0.0.0.0
+PORT=8000
+
+# Update deployment to expose port 8000
+# Configure external webhook triggers
+# Set up load balancing if needed
+```
 
 ### Backward Compatibility
 
-The event-driven architecture maintains full backward compatibility:
-- All existing processing logic is preserved
-- Configuration remains the same
-- Data formats and outputs are unchanged
-- Can fallback to previous modes if needed
+Both architectures maintain full backward compatibility:
+- ✅ All existing processing logic is preserved
+- ✅ Configuration remains the same
+- ✅ Data formats and outputs are unchanged
+- ✅ Can switch between modes without data migration
+- ✅ Fallback to previous modes if needed
 
 ## Troubleshooting
 
