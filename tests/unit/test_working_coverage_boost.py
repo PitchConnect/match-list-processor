@@ -79,7 +79,7 @@ class TestMinimalCoverageBoost:
         # Just import and check that types module exists
         import src.custom_types
 
-        assert src.types is not None
+        assert src.custom_types is not None
 
         # Check that the module has some expected attributes
         assert hasattr(src.types, "__file__")

@@ -336,7 +336,7 @@ class TestFinal90PercentPush:
         import src.custom_types
 
         # Verify types module
-        assert src.types is not None
+        assert src.custom_types is not None
 
     def test_web_health_server_basic_functionality(self):
         """Test web health server basic functionality."""

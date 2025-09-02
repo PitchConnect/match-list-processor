@@ -322,7 +322,7 @@ class TestSimple90PercentPush:
 
         # Verify modules have expected structure
         assert hasattr(src.config, "Settings")
-        assert src.types is not None
+        assert src.custom_types is not None
 
         # Test creating config
         from src.config import Settings

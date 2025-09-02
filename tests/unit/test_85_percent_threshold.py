@@ -19,7 +19,7 @@ class Test85PercentThreshold:
 
         # Verify imports worked
         assert src.interfaces is not None
-        assert src.types is not None
+        assert src.custom_types is not None
         assert src.__main__ is not None
 
     def test_environment_edge_cases(self):
