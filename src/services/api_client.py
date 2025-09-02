@@ -8,8 +8,8 @@ from typing import Optional, cast
 import requests
 
 from ..config import settings
+from ..custom_types import MatchList
 from ..interfaces import ApiClientInterface
-from ..types import MatchList
 
 logger = logging.getLogger(__name__)
 

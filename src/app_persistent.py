@@ -14,11 +14,11 @@ from src.config import settings
 from src.core.data_manager import MatchDataManager
 from src.core.match_comparator import MatchComparator
 from src.core.match_processor import MatchProcessor
+from src.custom_types import MatchDict_Dict
 from src.services.api_client import DockerNetworkApiClient
 from src.services.avatar_service import WhatsAppAvatarService
 from src.services.phonebook_service import FogisPhonebookSyncService
 from src.services.storage_service import GoogleDriveStorageService
-from src.types import MatchDict_Dict
 from src.utils.description_generator import generate_whatsapp_description
 from src.web.health_server import create_health_server
 

@@ -2,7 +2,7 @@
 
 import logging
 
-from ..types import MatchDict
+from ..custom_types import MatchDict
 
 logger = logging.getLogger(__name__)
 

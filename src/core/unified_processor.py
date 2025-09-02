@@ -2,9 +2,12 @@
 
 import asyncio
 import logging
+import os
 import time
 from typing import Any, Dict, Optional
 
+from ..notifications.adapters.semantic_to_legacy_adapter import SemanticToLegacyAdapter
+from ..notifications.analysis.semantic_analyzer import SemanticChangeAnalyzer
 from ..notifications.notification_service import NotificationService
 from ..services.api_client import DockerNetworkApiClient
 from ..services.avatar_service import WhatsAppAvatarService
@@ -55,6 +58,22 @@ class UnifiedMatchProcessor:
         """
         # Initialize change detection
         self.change_detector = GranularChangeDetector(previous_matches_file)
+
+        # Initialize semantic analysis system
+        self.use_semantic_analysis = self._get_config_bool("ENABLE_SEMANTIC_ANALYSIS", True)
+        self.fallback_to_legacy = self._get_config_bool("FALLBACK_TO_LEGACY", True)
+
+        if self.use_semantic_analysis:
+            try:
+                self.semantic_analyzer = SemanticChangeAnalyzer()
+                self.semantic_adapter = SemanticToLegacyAdapter()
+                logger.info("Semantic analysis system initialized")
+            except Exception as e:
+                logger.error(f"Failed to initialize semantic analysis: {e}")
+                if not self.fallback_to_legacy:
+                    raise
+                self.use_semantic_analysis = False
+                logger.info("Disabled semantic analysis, using legacy detection")
 
         # Initialize notification service
         self.notification_service = None
@@ -252,7 +271,7 @@ class UnifiedMatchProcessor:
     def _send_notifications(
         self, changes: ChangesSummary, current_matches: list
     ) -> Optional[Dict[str, Any]]:
-        """Send notifications for detected changes.
+        """Send notifications for detected changes with semantic analysis integration.
 
         Args:
             changes: Summary of detected changes
@@ -268,7 +287,32 @@ class UnifiedMatchProcessor:
         try:
             logger.info("Sending notifications for detected changes...")
 
-            # Process changes through notification service
+            # Enhanced notification flow with semantic analysis
+            if self.use_semantic_analysis and hasattr(self, "semantic_analyzer"):
+                try:
+                    # Perform semantic analysis on changed matches
+                    categorized_changes = self._perform_semantic_analysis(changes, current_matches)
+
+                    if categorized_changes:
+                        # Send notifications with semantic context
+                        notification_results = asyncio.run(
+                            self.notification_service.process_changes(
+                                categorized_changes,
+                                self._get_match_context(current_matches, changes),
+                            )
+                        )
+                        notification_results["semantic_analysis"] = True
+                        return notification_results
+
+                except Exception as e:
+                    logger.error(f"Semantic analysis failed: {e}")
+
+                    if not self.fallback_to_legacy:
+                        raise
+
+                    logger.info("Falling back to legacy change detection")
+
+            # Legacy notification processing
             if hasattr(changes, "categorized_changes") and changes.categorized_changes:
                 # Use enhanced granular change categorization
                 notification_results = asyncio.run(
@@ -277,6 +321,7 @@ class UnifiedMatchProcessor:
                         self._get_match_context(current_matches, changes),
                     )
                 )
+                notification_results["semantic_analysis"] = False
             else:
                 # Fallback for basic change detection
                 logger.info("Using fallback notification processing for basic changes")
@@ -290,6 +335,71 @@ class UnifiedMatchProcessor:
         except Exception as e:
             logger.error(f"Failed to send notifications: {e}")
             return {"enabled": True, "notifications_sent": 0, "error": str(e)}
+
+    def _perform_semantic_analysis(
+        self, changes: ChangesSummary, current_matches: list
+    ) -> Optional[Any]:
+        """
+        Perform semantic analysis on detected changes.
+
+        Args:
+            changes: Summary of detected changes
+            current_matches: Current matches from API
+
+        Returns:
+            CategorizedChanges object with semantic analysis or None
+        """
+        if not hasattr(self, "semantic_analyzer") or not hasattr(self, "semantic_adapter"):
+            logger.warning("Semantic analysis components not available")
+            return None
+
+        try:
+            # Load previous matches for comparison
+            previous_matches = self.change_detector.load_previous_matches()
+            prev_matches_dict = self.change_detector._convert_to_dict(previous_matches)
+            curr_matches_dict = self.change_detector._convert_to_dict(
+                [dict(match) if hasattr(match, "__dict__") else match for match in current_matches]
+            )
+
+            # Perform semantic analysis on each changed match
+            all_semantic_analyses = []
+
+            # Get changed match IDs from the changes summary
+            if hasattr(changes, "changed_matches") and changes.changed_matches:
+                for match_id in changes.changed_matches:
+                    prev_match = prev_matches_dict.get(match_id)
+                    curr_match = curr_matches_dict.get(match_id)
+
+                    if prev_match and curr_match:
+                        # Perform semantic analysis
+                        semantic_analysis = self.semantic_analyzer.analyze_match_changes(
+                            prev_match, curr_match
+                        )
+                        all_semantic_analyses.append(semantic_analysis)
+
+            # If we have semantic analyses, convert them to legacy format
+            if all_semantic_analyses:
+                # For now, use the first analysis (could be enhanced to merge multiple)
+                primary_analysis = all_semantic_analyses[0]
+
+                # Convert semantic analysis to legacy categorized changes
+                categorized_changes = self.semantic_adapter.convert_semantic_to_categorized(
+                    primary_analysis
+                )
+
+                logger.info(
+                    f"Semantic analysis completed: {len(primary_analysis.field_changes)} "
+                    f"changes analyzed with {primary_analysis.overall_impact.value} impact"
+                )
+
+                return categorized_changes
+
+            logger.debug("No semantic analysis performed - no changed matches found")
+            return None
+
+        except Exception as e:
+            logger.error(f"Error during semantic analysis: {e}")
+            raise
 
     def _get_match_context(self, current_matches: list, changes: ChangesSummary) -> Dict[str, Any]:
         """Get match context for notifications.
@@ -309,6 +419,20 @@ class UnifiedMatchProcessor:
             return match_data if isinstance(match_data, dict) else {}
         else:
             return {}
+
+    def _get_config_bool(self, key: str, default: bool = False) -> bool:
+        """
+        Get boolean configuration value from environment.
+
+        Args:
+            key: Environment variable key
+            default: Default value if not found
+
+        Returns:
+            Boolean configuration value
+        """
+        value = os.getenv(key, str(default)).lower()
+        return value in ("true", "1", "yes", "on", "enabled")
 
     def _trigger_downstream_services(self, changes: ChangesSummary) -> None:
         """Trigger downstream services like calendar sync.

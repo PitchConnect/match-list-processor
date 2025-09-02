@@ -3,7 +3,7 @@
 import logging
 from typing import Set, Tuple
 
-from ..types import MatchDict, MatchDict_Dict, MatchId, MatchList
+from ..custom_types import MatchDict, MatchDict_Dict, MatchId, MatchList
 
 logger = logging.getLogger(__name__)
 
