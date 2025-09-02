@@ -12,9 +12,11 @@ class TestSettings:
 
     def test_default_settings(self):
         """Test default configuration values."""
-        settings = Settings()
+        # Clear any environment variables that might interfere
+        with patch.dict(os.environ, {}, clear=True):
+            settings = Settings()
 
-        assert settings.data_folder == "/data"
+            assert settings.data_folder == "/data"
         assert settings.previous_matches_file == "previous_matches.json"
         assert settings.fogis_api_client_url == "http://fogis-api-client-service:8080"
         assert settings.whatsapp_avatar_service_url == "http://whatsapp-avatar-service:5002"
@@ -45,14 +47,18 @@ class TestSettings:
             env_file = f.name
 
         try:
-            settings = Settings(_env_file=env_file)
-            assert settings.data_folder == "/env/data"
-            assert settings.temp_file_directory == "/env/tmp"
+            # Clear environment variables to ensure we're testing file loading
+            with patch.dict(os.environ, {}, clear=True):
+                settings = Settings(_env_file=env_file)
+                assert settings.data_folder == "/env/data"
+                assert settings.temp_file_directory == "/env/tmp"
         finally:
             os.unlink(env_file)
 
     def test_get_settings_function(self):
         """Test the get_settings function."""
-        settings = get_settings()
-        assert isinstance(settings, Settings)
-        assert settings.data_folder == "/data"
+        # Clear environment variables to test default behavior
+        with patch.dict(os.environ, {}, clear=True):
+            settings = get_settings()
+            assert isinstance(settings, Settings)
+            assert settings.data_folder == "/data"

@@ -333,10 +333,10 @@ class TestFinal90PercentPush:
 
     def test_type_definitions_import(self):
         """Test type definitions import to cover types.py."""
-        import src.types
+        import src.custom_types
 
         # Verify types module
-        assert src.types is not None
+        assert src.custom_types is not None
 
     def test_web_health_server_basic_functionality(self):
         """Test web health server basic functionality."""

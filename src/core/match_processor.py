@@ -4,8 +4,8 @@ import logging
 from typing import Callable, Optional
 
 from ..config import settings
+from ..custom_types import MatchDict, ProcessingResult, UploadResult
 from ..interfaces import AvatarServiceInterface, StorageServiceInterface
-from ..types import MatchDict, ProcessingResult, UploadResult
 from ..utils.file_utils import (
     create_gdrive_folder_path,
     extract_referee_names,

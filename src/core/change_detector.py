@@ -5,7 +5,7 @@ import logging
 import os
 from typing import Any, Dict, List, Optional, Tuple
 
-from ..types import MatchList
+from ..custom_types import MatchList
 from .change_categorization import CategorizedChanges, ChangePriority
 from .change_categorization import GranularChangeDetector as ChangeCategorizationDetector
 from .change_categorization import MatchChangeDetail

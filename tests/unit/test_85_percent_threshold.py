@@ -14,12 +14,12 @@ class Test85PercentThreshold:
         """Test additional imports to reach 85% threshold."""
         # Import additional modules to cover remaining import statements
         import src.__main__
+        import src.custom_types
         import src.interfaces
-        import src.types
 
         # Verify imports worked
         assert src.interfaces is not None
-        assert src.types is not None
+        assert src.custom_types is not None
         assert src.__main__ is not None
 
     def test_environment_edge_cases(self):

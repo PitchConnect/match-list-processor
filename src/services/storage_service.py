@@ -6,8 +6,8 @@ from typing import Optional
 import requests
 
 from ..config import settings
+from ..custom_types import FilePath, UploadResult
 from ..interfaces import StorageServiceInterface
-from ..types import FilePath, UploadResult
 
 logger = logging.getLogger(__name__)
 

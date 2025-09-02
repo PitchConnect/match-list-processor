@@ -425,10 +425,10 @@ class TestAdditionalCoverageBoost:
     def test_types_module_coverage(self):
         """Test types module to increase coverage."""
         # Just import and check that types module exists
-        import src.types
+        import src.custom_types
 
-        assert src.types is not None
-        assert hasattr(src.types, "__file__")
+        assert src.custom_types is not None
+        assert hasattr(src.custom_types, "__file__")
 
     def test_interfaces_module_coverage(self):
         """Test interfaces module to increase coverage."""
