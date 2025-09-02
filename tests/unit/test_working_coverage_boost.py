@@ -82,7 +82,7 @@ class TestMinimalCoverageBoost:
         assert src.custom_types is not None
 
         # Check that the module has some expected attributes
-        assert hasattr(src.types, "__file__")
+        assert hasattr(src.custom_types, "__file__")
 
     def test_analytics_metrics_basic(self):
         """Test basic analytics metrics functionality."""
