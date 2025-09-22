@@ -9,17 +9,17 @@ Date: 2025-09-21
 Issue: Redis pub/sub integration for match processor
 """
 
-from .publisher import MatchProcessorRedisPublisher
-from .message_formatter import MatchUpdateMessageFormatter, ProcessingStatusMessageFormatter
 from .connection_manager import RedisConnectionManager
-from .redis_service import MatchProcessorRedisService
+from .message_formatter import MatchUpdateMessageFormatter, ProcessingStatusMessageFormatter
+from .publisher import MatchProcessorRedisPublisher
+from .services import MatchProcessorRedisService
 
 __all__ = [
-    'MatchProcessorRedisPublisher',
-    'MatchUpdateMessageFormatter', 
-    'ProcessingStatusMessageFormatter',
-    'RedisConnectionManager',
-    'MatchProcessorRedisService'
+    "MatchProcessorRedisPublisher",
+    "MatchUpdateMessageFormatter",
+    "ProcessingStatusMessageFormatter",
+    "RedisConnectionManager",
+    "MatchProcessorRedisService",
 ]
 
 __version__ = "1.0.0"
