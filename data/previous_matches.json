@@ -1,14 +1,18 @@
 [
   {
-    "match_id": "12345",
-    "home_team": "Team A",
-    "away_team": "Team B",
-    "match_date": "2025-09-02",
-    "match_time": "15:00",
-    "venue": "Stadium A",
-    "referees": [
-      "Referee 1",
-      "Referee 2"
-    ]
+    "matchid": 6169105,
+    "lag1namn": "IK Kongahälla",
+    "lag2namn": "Motala AIF FK",
+    "speldatum": "2025-06-14",
+    "avsparkstid": "15:00",
+    "anlaggningnamn": "Kongevi 1 Konstgräs",
+    "domaruppdraglista": [
+      {
+        "domarid": 1001,
+        "personnamn": "John Doe",
+        "domarrollnamn": "Huvuddomare"
+      }
+    ],
+    "status": "cancelled"
   }
 ]

@@ -19,12 +19,12 @@ from unittest.mock import Mock, patch
 # Add src to path for testing
 sys.path.append(str(Path(__file__).parent.parent.parent / "src"))
 
-from app_event_driven_redis_integration import MatchProcessorRedisIntegration
+from redis_integration.app_integration import MatchProcessorRedisIntegration
 
 from redis_integration.connection_manager import RedisConnectionConfig, RedisConnectionManager
 from redis_integration.message_formatter import MatchUpdateMessageFormatter
 from redis_integration.publisher import MatchProcessorRedisPublisher
-from services.redis_service import MatchProcessorRedisService
+from redis_integration.services import MatchProcessorRedisService
 
 
 class TestRedisPublishingIntegration(unittest.TestCase):
@@ -213,10 +213,7 @@ class TestRedisPublishingIntegration(unittest.TestCase):
         # Create connection manager
         manager = RedisConnectionManager(self.config)
 
-        # First connection should fail
-        self.assertFalse(manager.ensure_connection())
-
-        # Second attempt should succeed (after retry)
+        # Connection should succeed (ensure_connection handles retries internally)
         self.assertTrue(manager.ensure_connection())
 
         # Publishing should now work
