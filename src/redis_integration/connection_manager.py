@@ -17,7 +17,7 @@ from datetime import datetime
 from typing import Any, Dict, Optional
 
 try:
-    import redis
+    import redis  # type: ignore[import-untyped]
 
     REDIS_AVAILABLE = True
 except ImportError:
@@ -84,8 +84,6 @@ class RedisConnectionManager:
                 decode_responses=self.config.decode_responses,
                 socket_connect_timeout=self.config.socket_connect_timeout,
                 socket_timeout=self.config.socket_timeout,
-                retry_on_timeout=self.config.retry_on_timeout,
-                health_check_interval=self.config.health_check_interval,
             )
 
             # Test connection
@@ -171,6 +169,9 @@ class RedisConnectionManager:
             return -1
 
         try:
+            if self.client is None:
+                logger.warning(f"⚠️ Cannot publish to {channel}: Redis client is None")
+                return -1
             result = self.client.publish(channel, message)
             logger.debug(f"📡 Published to {channel}: {result} subscribers notified")
             return int(result) if result is not None else 0

@@ -223,7 +223,7 @@ def create_redis_integration() -> MatchProcessorRedisIntegration:
 
 
 def add_redis_integration_to_processor(
-    processor_instance, redis_integration: Optional[MatchProcessorRedisIntegration] = None
+    processor_instance: Any, redis_integration: Optional[MatchProcessorRedisIntegration] = None
 ) -> None:
     """
     Add Redis integration to existing match processor instance.
@@ -241,7 +241,7 @@ def add_redis_integration_to_processor(
     # Store original _process_matches_sync method
     original_process_matches_sync = processor_instance._process_matches_sync
 
-    def _process_matches_sync_with_redis(self) -> None:
+    def _process_matches_sync_with_redis(self: Any) -> Any:
         """Enhanced _process_matches_sync with Redis integration."""
         processing_start_time = datetime.now()
         processing_cycle = getattr(self, "_processing_cycle", 0)
