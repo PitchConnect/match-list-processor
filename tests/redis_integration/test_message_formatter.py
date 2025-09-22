@@ -12,7 +12,6 @@ Issue: Redis message formatter testing
 import json
 import sys
 import unittest
-from datetime import datetime
 from pathlib import Path
 
 # Add src to path for testing

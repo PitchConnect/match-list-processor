@@ -12,9 +12,8 @@ Issue: Redis publisher testing
 import json
 import sys
 import unittest
-from datetime import datetime
 from pathlib import Path
-from unittest.mock import MagicMock, Mock, patch
+from unittest.mock import Mock, patch
 
 # Add src to path for testing
 sys.path.append(str(Path(__file__).parent.parent.parent / "src"))
@@ -286,7 +285,7 @@ class TestConvenienceFunctions(unittest.TestCase):
         mock_publisher_class.return_value = mock_publisher
 
         # Test with default URL
-        publisher = create_redis_publisher()
+        create_redis_publisher()
 
         mock_publisher_class.assert_called_once()
         config_arg = mock_publisher_class.call_args[0][0]
@@ -294,7 +293,7 @@ class TestConvenienceFunctions(unittest.TestCase):
 
         # Test with custom URL
         mock_publisher_class.reset_mock()
-        publisher = create_redis_publisher("redis://custom:6379")
+        create_redis_publisher("redis://custom:6379")
 
         config_arg = mock_publisher_class.call_args[0][0]
         self.assertEqual(config_arg.url, "redis://custom:6379")

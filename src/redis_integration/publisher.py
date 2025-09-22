@@ -18,8 +18,6 @@ from typing import Any, Dict, List, Optional
 
 from .connection_manager import RedisConnectionConfig, RedisConnectionManager
 from .message_formatter import (
-    MatchUpdateMessageFormatter,
-    ProcessingStatusMessageFormatter,
     create_match_update_message,
     create_processing_status_message,
     create_system_alert_message,
