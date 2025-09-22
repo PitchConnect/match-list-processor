@@ -1,4 +1,4 @@
-#!/usr/bin/env python3
+# flake8: noqa: E402#!/usr/bin/env python3
 """
 Tests for Redis Publisher
 
@@ -302,3 +302,4 @@ class TestConvenienceFunctions(unittest.TestCase):
 if __name__ == "__main__":
     # Run tests
     unittest.main(verbosity=2)
+# flake8: noqa: E402
