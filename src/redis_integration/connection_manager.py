@@ -173,7 +173,7 @@ class RedisConnectionManager:
         try:
             result = self.client.publish(channel, message)
             logger.debug(f"📡 Published to {channel}: {result} subscribers notified")
-            return result
+            return int(result) if result is not None else 0
 
         except Exception as e:
             logger.error(f"❌ Failed to publish to {channel}: {e}")

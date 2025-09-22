@@ -135,7 +135,10 @@ class MatchProcessorRedisIntegration:
             return False
 
     def publish_processing_error(
-        self, error: Exception, processing_cycle: int = 0, processing_start_time: Optional[datetime] = None
+        self,
+        error: Exception,
+        processing_cycle: int = 0,
+        processing_start_time: Optional[datetime] = None,
     ) -> bool:
         """
         Publish processing error notification.
@@ -221,7 +224,7 @@ def create_redis_integration() -> MatchProcessorRedisIntegration:
 
 def add_redis_integration_to_processor(
     processor_instance, redis_integration: Optional[MatchProcessorRedisIntegration] = None
-):
+) -> None:
     """
     Add Redis integration to existing match processor instance.
 

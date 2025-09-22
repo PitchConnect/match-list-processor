@@ -221,7 +221,7 @@ class RedisConfigManager:
             bool: True if configuration is valid
         """
         validation = self.validate_config()
-        return validation.get("valid", False)
+        return bool(validation.get("valid", False))
 
     def get_connection_url(self) -> str:
         """

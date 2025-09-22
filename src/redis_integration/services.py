@@ -61,7 +61,7 @@ class MatchProcessorRedisService:
             bool: True if initialization successful
         """
         try:
-            config = RedisConnectionConfig(url=self.redis_url)
+            config = RedisConnectionConfig(url=self.redis_url or "redis://localhost:6379")
             self.publisher = MatchProcessorRedisPublisher(config)
 
             logger.info("✅ Redis publisher initialized successfully")
@@ -354,7 +354,9 @@ class MatchProcessorRedisService:
 
 
 # Convenience functions for external use
-def create_redis_service(redis_url: Optional[str] = None, enabled: Optional[bool] = None) -> MatchProcessorRedisService:
+def create_redis_service(
+    redis_url: Optional[str] = None, enabled: Optional[bool] = None
+) -> MatchProcessorRedisService:
     """
     Create Redis service with optional configuration.
 
