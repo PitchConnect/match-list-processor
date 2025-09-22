@@ -33,11 +33,11 @@ class PublishResult:
     success: bool
     channel: str
     subscribers_notified: int
-    message_id: Optional[str] = None
-    error: Optional[str] = None
-    timestamp: Optional[datetime] = None
+    message_id: Optional[Optional[str]] = None
+    error: Optional[Optional[str]] = None
+    timestamp: Optional[Optional[datetime]] = None
 
-    def __post_init__(self):
+    def __post_init__(self) -> None:
         if self.timestamp is None:
             self.timestamp = datetime.now()
 
@@ -45,7 +45,7 @@ class PublishResult:
 class MatchProcessorRedisPublisher:
     """Redis publisher for match list processor with comprehensive error handling."""
 
-    def __init__(self, redis_config: RedisConnectionConfig = None):
+    def __init__(self, redis_config: Optional[RedisConnectionConfig] = None) -> None:
         """
         Initialize Redis publisher.
 
@@ -107,7 +107,7 @@ class MatchProcessorRedisPublisher:
 
             if subscribers >= 0:
                 self.publish_stats["successful_publishes"] += 1
-                self.publish_stats["last_publish_time"] = datetime.now()
+                self.publish_stats["last_publish_time"] = int(datetime.now().timestamp())
 
                 logger.info("✅ Match updates published successfully")
                 logger.info(f"   Subscribers notified: {subscribers}")
@@ -173,7 +173,7 @@ class MatchProcessorRedisPublisher:
 
             if subscribers >= 0:
                 self.publish_stats["successful_publishes"] += 1
-                self.publish_stats["last_publish_time"] = datetime.now()
+                self.publish_stats["last_publish_time"] = int(datetime.now().timestamp())
 
                 logger.info("✅ Processing status published successfully")
                 logger.info(f"   Subscribers notified: {subscribers}")
@@ -211,7 +211,7 @@ class MatchProcessorRedisPublisher:
             self.publish_stats["total_published"] += 1
 
     def publish_system_alert(
-        self, alert_type: str, message: str, severity: str = "info", details: Dict[str, Any] = None
+        self, alert_type: str, message: str, severity: str = "info", details: Optional[Dict[str, Any]] = None
     ) -> PublishResult:
         """
         Publish system alert to Redis channel.
@@ -243,7 +243,7 @@ class MatchProcessorRedisPublisher:
 
             if subscribers >= 0:
                 self.publish_stats["successful_publishes"] += 1
-                self.publish_stats["last_publish_time"] = datetime.now()
+                self.publish_stats["last_publish_time"] = int(datetime.now().timestamp())
 
                 logger.info("✅ System alert published successfully")
                 logger.info(f"   Subscribers notified: {subscribers}")
@@ -304,7 +304,7 @@ class MatchProcessorRedisPublisher:
 
 
 # Convenience functions for external use
-def create_redis_publisher(redis_url: str = None) -> MatchProcessorRedisPublisher:
+def create_redis_publisher(redis_url: Optional[str] = None) -> MatchProcessorRedisPublisher:
     """
     Create Redis publisher with optional custom URL.
 

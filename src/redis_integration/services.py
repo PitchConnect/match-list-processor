@@ -24,7 +24,7 @@ logger = logging.getLogger(__name__)
 class MatchProcessorRedisService:
     """High-level Redis service integration for match processor."""
 
-    def __init__(self, redis_url: str = None, enabled: bool = None):
+    def __init__(self, redis_url: Optional[str] = None, enabled: Optional[bool] = None) -> None:
         """
         Initialize Redis service integration.
 
@@ -41,8 +41,8 @@ class MatchProcessorRedisService:
         )
 
         # Initialize publisher if enabled
-        self.publisher: Optional[MatchProcessorRedisPublisher] = None
-        self.initialization_error: Optional[str] = None
+        self.publisher: Optional[Optional[MatchProcessorRedisPublisher]] = None
+        self.initialization_error: Optional[Optional[str]] = None
 
         logger.info("🔧 Match Processor Redis Service initializing...")
         logger.info(f"   Redis URL: {self.redis_url}")
@@ -100,7 +100,7 @@ class MatchProcessorRedisService:
         self,
         matches: List[Dict[str, Any]],
         changes: Dict[str, Any],
-        processing_details: Dict[str, Any] = None,
+        processing_details: Optional[Dict[str, Any]] = None,
     ) -> bool:
         """
         Handle match processing completion with Redis publishing.
@@ -182,7 +182,7 @@ class MatchProcessorRedisService:
             return False
 
     def handle_processing_error(
-        self, error: Exception, processing_details: Dict[str, Any] = None
+        self, error: Exception, processing_details: Optional[Dict[str, Any]] = None
     ) -> bool:
         """
         Handle processing errors with Redis notifications.
@@ -260,7 +260,7 @@ class MatchProcessorRedisService:
             logger.error(f"❌ Failed to handle processing error notification: {e}")
             return False
 
-    def handle_processing_start(self, processing_details: Dict[str, Any] = None) -> bool:
+    def handle_processing_start(self, processing_details: Optional[Dict[str, Any]] = None) -> bool:
         """
         Handle processing start with Redis notifications.
 
@@ -354,7 +354,7 @@ class MatchProcessorRedisService:
 
 
 # Convenience functions for external use
-def create_redis_service(redis_url: str = None, enabled: bool = None) -> MatchProcessorRedisService:
+def create_redis_service(redis_url: Optional[str] = None, enabled: Optional[bool] = None) -> MatchProcessorRedisService:
     """
     Create Redis service with optional configuration.
 

@@ -23,9 +23,9 @@ class ValidationResult:
 
     is_valid: bool
     errors: List[str]
-    warnings: List[str] = None
+    warnings: Optional[List[str]] = None
 
-    def __post_init__(self):
+    def __post_init__(self) -> None:
         if self.warnings is None:
             self.warnings = []
 
@@ -226,7 +226,7 @@ class ProcessingStatusMessageFormatter:
         alert_type: str,
         message: str,
         severity: str = "info",
-        details: Optional[Dict[str, Any]] = None,
+        details: Optional[Optional[Dict[str, Any]]] = None,
         source: str = "match-list-processor",
     ) -> Dict[str, Any]:
         """
@@ -301,7 +301,7 @@ def create_system_alert_message(
     alert_type: str,
     message: str,
     severity: str = "info",
-    details: Dict = None,
+    details: Optional[Dict] = None,
     source: str = "match-list-processor",
 ) -> str:
     """

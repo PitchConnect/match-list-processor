@@ -180,7 +180,7 @@ class RedisConfig:
 class RedisConfigManager:
     """Manages Redis configuration for the match processor."""
 
-    def __init__(self, config: RedisConfig = None):
+    def __init__(self, config: Optional[RedisConfig] = None) -> None:
         """
         Initialize Redis configuration manager.
 
@@ -188,7 +188,7 @@ class RedisConfigManager:
             config: Redis configuration (optional, loads from environment if not provided)
         """
         self.config = config or RedisConfig.from_environment()
-        self._validation_result: Optional[Dict[str, Any]] = None
+        self._validation_result: Optional[Optional[Dict[str, Any]]] = None
 
         logger.info("🔧 Redis Configuration Manager initialized")
 
@@ -276,7 +276,7 @@ class RedisConfigManager:
 
 
 # Global configuration instance
-_config_manager: Optional[RedisConfigManager] = None
+_config_manager: Optional[Optional[RedisConfigManager]] = None
 
 
 def get_redis_config() -> RedisConfig:

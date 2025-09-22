@@ -43,7 +43,7 @@ class RedisConnectionConfig:
 class RedisConnectionManager:
     """Manages Redis connections with automatic reconnection and health monitoring."""
 
-    def __init__(self, config: Optional[RedisConnectionConfig] = None):
+    def __init__(self, config: Optional[Optional[RedisConnectionConfig]] = None) -> None:
         """
         Initialize Redis connection manager.
 
@@ -55,7 +55,7 @@ class RedisConnectionManager:
         self.last_health_check = datetime.min
         self.connection_attempts = 0
         self.is_connected = False
-        self.last_error: Optional[str] = None
+        self.last_error: Optional[Optional[str]] = None
 
         logger.info("🔧 Redis Connection Manager initialized")
         logger.info(f"   Redis URL: {self.config.url}")
@@ -219,7 +219,7 @@ class RedisConnectionManager:
 
 
 # Convenience functions for external use
-def create_redis_connection(redis_url: str = None) -> RedisConnectionManager:
+def create_redis_connection(redis_url: Optional[str] = None) -> RedisConnectionManager:
     """
     Create Redis connection manager with optional custom URL.
 
@@ -236,7 +236,7 @@ def create_redis_connection(redis_url: str = None) -> RedisConnectionManager:
     return RedisConnectionManager(config)
 
 
-def test_redis_connection(redis_url: str = None) -> bool:
+def test_redis_connection(redis_url: Optional[str] = None) -> bool:
     """
     Test Redis connection availability.
 

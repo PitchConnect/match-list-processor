@@ -23,11 +23,11 @@ logger = logging.getLogger(__name__)
 class MatchProcessorRedisIntegration:
     """Redis integration for the EventDrivenMatchListProcessor."""
 
-    def __init__(self):
+    def __init__(self) -> None:
         """Initialize Redis integration."""
-        self.redis_service: Optional[MatchProcessorRedisService] = None
+        self.redis_service: Optional[Optional[MatchProcessorRedisService]] = None
         self.integration_enabled = False
-        self.initialization_error: Optional[str] = None
+        self.initialization_error: Optional[Optional[str]] = None
 
         logger.info("🔧 Match Processor Redis Integration initializing...")
 
@@ -89,7 +89,7 @@ class MatchProcessorRedisIntegration:
         self,
         all_matches: List[Dict[str, Any]],
         changes: Dict[str, Any],
-        processing_start_time: datetime = None,
+        processing_start_time: Optional[datetime] = None,
         processing_cycle: int = 0,
     ) -> bool:
         """
@@ -135,7 +135,7 @@ class MatchProcessorRedisIntegration:
             return False
 
     def publish_processing_error(
-        self, error: Exception, processing_cycle: int = 0, processing_start_time: datetime = None
+        self, error: Exception, processing_cycle: int = 0, processing_start_time: Optional[datetime] = None
     ) -> bool:
         """
         Publish processing error notification.
@@ -220,7 +220,7 @@ def create_redis_integration() -> MatchProcessorRedisIntegration:
 
 
 def add_redis_integration_to_processor(
-    processor_instance, redis_integration: MatchProcessorRedisIntegration = None
+    processor_instance, redis_integration: Optional[MatchProcessorRedisIntegration] = None
 ):
     """
     Add Redis integration to existing match processor instance.
@@ -238,7 +238,7 @@ def add_redis_integration_to_processor(
     # Store original _process_matches_sync method
     original_process_matches_sync = processor_instance._process_matches_sync
 
-    def _process_matches_sync_with_redis(self):
+    def _process_matches_sync_with_redis(self) -> None:
         """Enhanced _process_matches_sync with Redis integration."""
         processing_start_time = datetime.now()
         processing_cycle = getattr(self, "_processing_cycle", 0)
@@ -296,18 +296,18 @@ INTEGRATION_EXAMPLE = """
 from app_event_driven_redis_integration import add_redis_integration_to_processor
 
 class EventDrivenMatchListProcessor:
-    def __init__(self):
+    def __init__(self) -> None:
         # Existing initialization code...
 
         # Add Redis integration
         add_redis_integration_to_processor(self)
 
-    def _process_matches_sync(self):
+    def _process_matches_sync(self) -> None:
         # This method will be automatically enhanced with Redis publishing
         # when add_redis_integration_to_processor() is called
         pass
 
-    def get_status(self):
+    def get_status(self) -> None:
         # Add Redis status to existing status endpoint
         status = {
             # Existing status fields...
