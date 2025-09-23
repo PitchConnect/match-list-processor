@@ -47,7 +47,7 @@ jobs:
 
       - name: Run tests with pytest
         run: |
-          pytest -v --tb=short --override-ini="addopts="
+          pytest -v --tb=short --no-cov
 
       # Coverage upload temporarily disabled for debugging
       # - name: Upload coverage to Codecov
