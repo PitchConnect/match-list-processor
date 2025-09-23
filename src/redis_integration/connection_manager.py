@@ -234,7 +234,7 @@ class RedisConnectionManager:
             "last_error": status["last_error"],
             "config": {
                 "url": status["config"]["url"],
-                "timeout": status["config"]["socket_timeout"],
+                "timeout": status["config"]["timeout"],
                 "max_retries": status["config"]["max_retries"],
             },
         }

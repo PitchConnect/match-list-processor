@@ -60,12 +60,15 @@ class MatchProcessorRedisIntegration:
             logger.error(f"❌ Failed to initialize Redis integration: {e}")
             logger.warning("⚠️ Redis integration will be disabled for this session")
 
-    def publish_processing_start(self, processing_cycle: int = 0) -> bool:
+    def publish_processing_start(
+        self, processing_cycle: int = 0, additional_data: Optional[Dict[str, Any]] = None
+    ) -> bool:
         """
         Publish processing start notification.
 
         Args:
             processing_cycle: Current processing cycle number
+            additional_data: Additional data to include in the notification
 
         Returns:
             bool: True if published successfully (or disabled)
@@ -78,6 +81,10 @@ class MatchProcessorRedisIntegration:
                 "processing_cycle": processing_cycle,
                 "start_time": datetime.now().isoformat(),
             }
+
+            # Add additional data if provided
+            if additional_data:
+                processing_details.update(additional_data)
 
             return self.redis_service.handle_processing_start(processing_details)
 
@@ -200,7 +207,7 @@ class MatchProcessorRedisIntegration:
 
         return {
             "integration_enabled": True,
-            "redis_service": redis_status,
+            "redis_service_status": redis_status,
             "config": get_redis_config().to_dict(),
         }
 

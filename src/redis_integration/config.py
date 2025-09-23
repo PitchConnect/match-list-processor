@@ -56,7 +56,9 @@ class RedisConfig:
 
         # Load configuration from environment variables
         config.url = os.getenv("REDIS_URL", config.url)
-        config.enabled = os.getenv("REDIS_PUBSUB_ENABLED", "true").lower() == "true"
+        # Check both REDIS_ENABLED and REDIS_PUBSUB_ENABLED for compatibility
+        enabled_env = os.getenv("REDIS_ENABLED") or os.getenv("REDIS_PUBSUB_ENABLED", "true")
+        config.enabled = enabled_env.lower() == "true" if enabled_env else True
 
         # Connection timeouts
         config.socket_connect_timeout = int(

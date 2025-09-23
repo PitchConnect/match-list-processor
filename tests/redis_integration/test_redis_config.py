@@ -150,7 +150,7 @@ class TestRedisConfig(unittest.TestCase):
         manager = RedisConfigManager()
 
         # Should return validation result
-        is_valid = manager.validate_config()
+        is_valid = manager.is_valid()
         self.assertIsInstance(is_valid, bool)
 
     def test_redis_config_str_representation(self):
