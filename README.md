@@ -43,6 +43,7 @@ graph TD
 - **Python 3.11+** (for development)
 - **Git** for version control
 - **Network access** to FOGIS API and external services
+- **Pre-commit hooks** (for development) - see [Development Setup](#-development-setup)
 
 ### 🐳 Production Deployment
 
@@ -80,8 +81,11 @@ source .venv/bin/activate  # On Windows: .venv\Scripts\activate
 pip install -r requirements.txt
 pip install -r requirements-dev.txt
 
-# Install pre-commit hooks
+# Install pre-commit hooks (REQUIRED for development)
 pre-commit install
+
+# Verify pre-commit setup
+pre-commit run --all-files
 
 # Run comprehensive test suite
 python -m pytest tests/ --cov=src --cov-report=html
