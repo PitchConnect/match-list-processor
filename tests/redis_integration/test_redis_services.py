@@ -9,15 +9,11 @@ Date: 2025-09-22
 Issue: Redis services testing for CI/CD coverage
 """
 
-import json
 import unittest
 from datetime import datetime
 from unittest.mock import Mock, patch
 
-from src.redis_integration.services import (
-    MatchProcessorRedisService,
-    create_redis_service,
-)
+from src.redis_integration.services import MatchProcessorRedisService, create_redis_service
 
 
 class TestMatchProcessorRedisService(unittest.TestCase):
@@ -25,10 +21,7 @@ class TestMatchProcessorRedisService(unittest.TestCase):
 
     def setUp(self):
         """Set up test fixtures."""
-        self.service = MatchProcessorRedisService(
-            redis_url="redis://test:6379",
-            enabled=True
-        )
+        self.service = MatchProcessorRedisService(redis_url="redis://test:6379", enabled=True)
 
     def test_service_initialization(self):
         """Test service initialization."""
@@ -40,12 +33,12 @@ class TestMatchProcessorRedisService(unittest.TestCase):
     def test_service_initialization_disabled(self):
         """Test service initialization when disabled."""
         service = MatchProcessorRedisService(enabled=False)
-        
+
         self.assertFalse(service.enabled)
         self.assertIsNone(service.connection_manager)
         self.assertIsNone(service.publisher)
 
-    @patch('src.redis_integration.services.MatchProcessorRedisPublisher')
+    @patch("src.redis_integration.services.MatchProcessorRedisPublisher")
     def test_initialize_redis_publishing_success(self, mock_publisher_class):
         """Test successful Redis publishing initialization."""
         mock_publisher = Mock()
@@ -68,10 +61,7 @@ class TestMatchProcessorRedisService(unittest.TestCase):
 
     def test_handle_processing_start_success(self):
         """Test successful processing start handling."""
-        processing_details = {
-            "processing_cycle": 1,
-            "start_time": datetime.now().isoformat()
-        }
+        processing_details = {"processing_cycle": 1, "start_time": datetime.now().isoformat()}
 
         result = self.service.handle_processing_start(processing_details)
 
@@ -92,9 +82,7 @@ class TestMatchProcessorRedisService(unittest.TestCase):
         changes = {"new_matches": {123: matches[0]}}
         processing_details = {"processing_cycle": 1}
 
-        result = self.service.handle_match_processing_complete(
-            matches, changes, processing_details
-        )
+        result = self.service.handle_match_processing_complete(matches, changes, processing_details)
 
         # Should return True even if Redis is not connected (graceful degradation)
         self.assertTrue(result)

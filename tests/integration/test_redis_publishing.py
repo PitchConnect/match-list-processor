@@ -20,7 +20,6 @@ from unittest.mock import Mock, patch
 sys.path.append(str(Path(__file__).parent.parent.parent / "src"))
 
 from redis_integration.app_integration import MatchProcessorRedisIntegration
-
 from redis_integration.connection_manager import RedisConnectionConfig, RedisConnectionManager
 from redis_integration.message_formatter import MatchUpdateMessageFormatter
 from redis_integration.publisher import MatchProcessorRedisPublisher

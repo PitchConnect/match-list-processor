@@ -59,8 +59,7 @@ class TestMatchProcessorRedisIntegration(unittest.TestCase):
     def test_publish_processing_start_with_details(self):
         """Test processing start publishing with details."""
         result = self.integration.publish_processing_start(
-            processing_cycle=2,
-            additional_data={"test": "value"}
+            processing_cycle=2, additional_data={"test": "value"}
         )
 
         self.assertTrue(result)
@@ -94,9 +93,7 @@ class TestMatchProcessorRedisIntegration(unittest.TestCase):
         """Test match updates publishing with processing duration."""
         start_time = datetime.now()
 
-        result = self.integration.publish_match_updates(
-            [], {}, start_time, processing_cycle=2
-        )
+        result = self.integration.publish_match_updates([], {}, start_time, processing_cycle=2)
 
         self.assertTrue(result)
 

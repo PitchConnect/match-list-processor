@@ -10,9 +10,10 @@ Issue: Redis connection manager testing for CI/CD coverage
 """
 
 import unittest
-from unittest.mock import AsyncMock, Mock, patch
+from unittest.mock import Mock, patch
 
 import redis
+
 from src.redis_integration.connection_manager import (
     RedisConnectionConfig,
     RedisConnectionManager,
@@ -31,7 +32,7 @@ class TestRedisConnectionManager(unittest.TestCase):
             socket_connect_timeout=5,
             socket_timeout=5,
             max_retries=3,
-            retry_delay=1.0
+            retry_delay=1.0,
         )
         self.manager = RedisConnectionManager(self.config)
 
@@ -48,7 +49,7 @@ class TestRedisConnectionManager(unittest.TestCase):
         self.assertIsNotNone(manager.config)
         self.assertFalse(manager.is_connected)
 
-    @patch('redis.from_url')
+    @patch("redis.from_url")
     def test_connect_success(self, mock_redis_from_url):
         """Test successful Redis connection."""
         mock_connection = Mock()
@@ -64,10 +65,10 @@ class TestRedisConnectionManager(unittest.TestCase):
             decode_responses=self.config.decode_responses,
             socket_connect_timeout=self.config.socket_connect_timeout,
             socket_timeout=self.config.socket_timeout,
-            retry_on_timeout=self.config.retry_on_timeout
+            retry_on_timeout=self.config.retry_on_timeout,
         )
 
-    @patch('redis.from_url')
+    @patch("redis.from_url")
     def test_connect_failure(self, mock_redis_from_url):
         """Test Redis connection failure."""
         mock_redis_from_url.side_effect = redis.ConnectionError("Connection failed")
@@ -77,7 +78,7 @@ class TestRedisConnectionManager(unittest.TestCase):
         self.assertFalse(result)
         self.assertFalse(self.manager.is_connected)
 
-    @patch('redis.from_url')
+    @patch("redis.from_url")
     def test_connect_ping_failure(self, mock_redis_from_url):
         """Test Redis connection with ping failure."""
         mock_connection = Mock()
@@ -89,7 +90,7 @@ class TestRedisConnectionManager(unittest.TestCase):
         self.assertFalse(result)
         self.assertFalse(self.manager.is_connected)
 
-    @patch('redis.from_url')
+    @patch("redis.from_url")
     def test_ensure_connection_success(self, mock_redis_from_url):
         """Test ensure connection success."""
         mock_connection = Mock()
@@ -134,7 +135,7 @@ class TestRedisConnectionManager(unittest.TestCase):
         self.assertIsNone(self.manager.client)
         self.assertFalse(self.manager.is_connected)
 
-    @patch('redis.from_url')
+    @patch("redis.from_url")
     def test_publish_message_success(self, mock_redis_from_url):
         """Test successful message publishing."""
         mock_connection = Mock()
@@ -157,7 +158,7 @@ class TestRedisConnectionManager(unittest.TestCase):
 
         self.assertEqual(result, -1)
 
-    @patch('redis.from_url')
+    @patch("redis.from_url")
     def test_health_check_success(self, mock_redis_from_url):
         """Test successful health check."""
         mock_connection = Mock()
@@ -175,7 +176,7 @@ class TestRedisConnectionManager(unittest.TestCase):
 
         self.assertFalse(result)
 
-    @patch('redis.from_url')
+    @patch("redis.from_url")
     def test_health_check_ping_failure(self, mock_redis_from_url):
         """Test health check with ping failure."""
         mock_connection = Mock()
@@ -195,7 +196,7 @@ class TestRedisConnectionManager(unittest.TestCase):
         self.assertFalse(status["connected"])
         self.assertFalse(status["healthy"])
 
-    @patch('redis.from_url')
+    @patch("redis.from_url")
     def test_get_status_connected(self, mock_redis_from_url):
         """Test getting status when connected."""
         mock_connection = Mock()
@@ -216,7 +217,7 @@ class TestRedisConnectionManager(unittest.TestCase):
 
         self.assertIsInstance(connection, redis.Redis)
 
-    @patch('redis.from_url')
+    @patch("redis.from_url")
     def test_test_redis_connection_success(self, mock_redis_from_url):
         """Test test_redis_connection helper function success."""
         mock_connection = Mock()
@@ -227,7 +228,7 @@ class TestRedisConnectionManager(unittest.TestCase):
 
         self.assertTrue(result)
 
-    @patch('redis.from_url')
+    @patch("redis.from_url")
     def test_test_redis_connection_failure(self, mock_redis_from_url):
         """Test test_redis_connection helper function failure."""
         mock_redis_from_url.side_effect = redis.ConnectionError("Connection failed")
@@ -238,11 +239,7 @@ class TestRedisConnectionManager(unittest.TestCase):
 
     def test_redis_connection_config_creation(self):
         """Test RedisConnectionConfig creation."""
-        config = RedisConnectionConfig(
-            url="redis://test:6380",
-            socket_timeout=10,
-            max_retries=5
-        )
+        config = RedisConnectionConfig(url="redis://test:6380", socket_timeout=10, max_retries=5)
 
         self.assertEqual(config.url, "redis://test:6380")
         self.assertEqual(config.socket_timeout, 10)
@@ -250,7 +247,7 @@ class TestRedisConnectionManager(unittest.TestCase):
 
     def test_context_manager_success(self):
         """Test connection manager as context manager."""
-        with patch('redis.from_url') as mock_redis_from_url:
+        with patch("redis.from_url") as mock_redis_from_url:
             mock_connection = Mock()
             mock_connection.ping.return_value = True
             mock_redis_from_url.return_value = mock_connection
@@ -263,7 +260,7 @@ class TestRedisConnectionManager(unittest.TestCase):
 
     def test_context_manager_connection_failure(self):
         """Test context manager with connection failure."""
-        with patch('redis.from_url') as mock_redis_from_url:
+        with patch("redis.from_url") as mock_redis_from_url:
             mock_redis_from_url.side_effect = redis.ConnectionError("Connection failed")
 
             with self.manager as manager:
@@ -284,10 +281,7 @@ class TestRedisConnectionManager(unittest.TestCase):
     def test_connection_config_custom_values(self):
         """Test RedisConnectionConfig with custom values."""
         config = RedisConnectionConfig(
-            url="redis://custom:6380",
-            socket_timeout=10,
-            max_retries=5,
-            decode_responses=False
+            url="redis://custom:6380", socket_timeout=10, max_retries=5, decode_responses=False
         )
 
         self.assertEqual(config.url, "redis://custom:6380")

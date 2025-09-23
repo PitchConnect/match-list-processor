@@ -45,7 +45,7 @@ class TestRedisConfig(unittest.TestCase):
             socket_connect_timeout=10,
             socket_timeout=10,
             max_retries=5,
-            retry_delay=2.0
+            retry_delay=2.0,
         )
 
         self.assertFalse(config.enabled)
@@ -68,11 +68,14 @@ class TestRedisConfig(unittest.TestCase):
 
     def test_redis_config_from_environment(self):
         """Test Redis config from environment variables."""
-        with patch.dict(os.environ, {
-            "REDIS_ENABLED": "false",
-            "REDIS_URL": "redis://env:6380",
-            "REDIS_SOCKET_TIMEOUT": "10"
-        }):
+        with patch.dict(
+            os.environ,
+            {
+                "REDIS_ENABLED": "false",
+                "REDIS_URL": "redis://env:6380",
+                "REDIS_SOCKET_TIMEOUT": "10",
+            },
+        ):
             config = RedisConfig.from_environment()
 
             self.assertFalse(config.enabled)
@@ -124,7 +127,6 @@ class TestRedisConfig(unittest.TestCase):
     def test_redis_config_manager_reload(self):
         """Test Redis config manager reload functionality."""
         manager = RedisConfigManager()
-        original_config = manager.get_config()
 
         # Reload should not raise exception
         manager.reload_from_environment()
@@ -178,10 +180,7 @@ class TestRedisConfig(unittest.TestCase):
 
     def test_redis_config_environment_parsing(self):
         """Test Redis config environment variable parsing."""
-        with patch.dict(os.environ, {
-            "REDIS_ENABLED": "true",
-            "REDIS_MAX_RETRIES": "5"
-        }):
+        with patch.dict(os.environ, {"REDIS_ENABLED": "true", "REDIS_MAX_RETRIES": "5"}):
             config = RedisConfig.from_environment()
 
             self.assertTrue(config.enabled)
