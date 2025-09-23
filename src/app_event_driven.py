@@ -285,7 +285,8 @@ def main() -> None:
     """Main entry point for event-driven mode."""
     # Configure logging
     logging.basicConfig(
-        level=logging.INFO, format="%(asctime)s - %(name)s - %(levelname)s - %(message)s"
+        level=logging.INFO,
+        format="%(asctime)s - %(name)s - %(levelname)s - %(message)s",
     )
 
     # Create and run the event-driven processor

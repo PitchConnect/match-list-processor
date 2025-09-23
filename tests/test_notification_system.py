@@ -260,7 +260,10 @@ class TestNotificationService(unittest.TestCase):
         """Test adding stakeholder contact."""
         # Add contact for new stakeholder
         success = self.service.add_stakeholder_contact(
-            fogis_person_id="12345", channel="email", address="test@example.com", verified=True
+            fogis_person_id="12345",
+            channel="email",
+            address="test@example.com",
+            verified=True,
         )
 
         self.assertTrue(success)
@@ -370,7 +373,11 @@ class TestChangeToNotificationConverter(unittest.TestCase):
             "lag1namn": "Team A",
             "lag2namn": "Team B",
             "domaruppdraglista": [
-                {"personid": "12345", "personnamn": "Test Referee", "uppdragstyp": "Huvuddomare"}
+                {
+                    "personid": "12345",
+                    "personnamn": "Test Referee",
+                    "uppdragstyp": "Huvuddomare",
+                }
             ],
         }
 

@@ -195,7 +195,10 @@ class TestSemanticToLegacyAdapter(unittest.TestCase):
             (["coordinators"], {StakeholderType.COORDINATORS}),
             (["all"], {StakeholderType.ALL}),
             (["referees", "teams"], {StakeholderType.REFEREES, StakeholderType.TEAMS}),
-            (["unknown_stakeholder"], {StakeholderType.COORDINATORS}),  # Default mapping
+            (
+                ["unknown_stakeholder"],
+                {StakeholderType.COORDINATORS},
+            ),  # Default mapping
         ]
 
         for input_stakeholders, expected_types in test_cases:

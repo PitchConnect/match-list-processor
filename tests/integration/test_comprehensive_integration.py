@@ -29,7 +29,9 @@ class TestServiceIntegration:
 
         with (
             patch.object(
-                integration_processor, "_fetch_current_matches", return_value=current_matches
+                integration_processor,
+                "_fetch_current_matches",
+                return_value=current_matches,
             ),
             patch.object(integration_processor.change_detector, "detect_changes") as mock_detect,
             patch.object(integration_processor, "_process_changes") as mock_process,
@@ -61,7 +63,9 @@ class TestServiceIntegration:
         for scenario_name, (_prev_match, curr_match) in change_scenarios.items():
             with (
                 patch.object(
-                    integration_processor, "_fetch_current_matches", return_value=[curr_match]
+                    integration_processor,
+                    "_fetch_current_matches",
+                    return_value=[curr_match],
                 ),
                 patch.object(
                     integration_processor.change_detector, "detect_changes"
@@ -95,7 +99,9 @@ class TestServiceIntegration:
         # Test that the processor can handle basic operations
         with (
             patch.object(
-                integration_processor, "_fetch_current_matches", return_value=[sample_match_data]
+                integration_processor,
+                "_fetch_current_matches",
+                return_value=[sample_match_data],
             ),
             patch.object(integration_processor.change_detector, "detect_changes") as mock_detect,
         ):

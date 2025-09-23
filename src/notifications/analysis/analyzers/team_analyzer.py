@@ -15,7 +15,11 @@ class TeamChangeAnalyzer(FieldAnalyzer):
         return any(field in field_path.lower() for field in team_fields)
 
     def analyze_change(
-        self, field_path: str, prev_value: Any, curr_value: Any, match_context: Dict[str, Any]
+        self,
+        field_path: str,
+        prev_value: Any,
+        curr_value: Any,
+        match_context: Dict[str, Any],
     ) -> List[ChangeContext]:
         """Analyze team changes."""
         match_date = self.extract_match_date(match_context)
@@ -40,7 +44,12 @@ class TeamChangeAnalyzer(FieldAnalyzer):
                 current_value=curr_value,
                 business_impact=impact,
                 urgency=urgency,
-                affected_stakeholders=["teams", "referees", "coordinators", "spectators"],
+                affected_stakeholders=[
+                    "teams",
+                    "referees",
+                    "coordinators",
+                    "spectators",
+                ],
                 change_description=change_description,
                 technical_description=f"Team field '{field_path}' changed from '{prev_value}' to '{curr_value}'",
                 user_friendly_description=f"⚽ Team update: {change_description} for match on {self.format_date_friendly(match_date)}",

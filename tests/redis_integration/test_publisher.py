@@ -32,7 +32,10 @@ class TestPublishResult(unittest.TestCase):
     def test_publish_result_creation(self):
         """Test publish result creation."""
         result = PublishResult(
-            success=True, channel="test_channel", subscribers_notified=5, message_id="test-id"
+            success=True,
+            channel="test_channel",
+            subscribers_notified=5,
+            message_id="test-id",
         )
 
         self.assertTrue(result.success)
@@ -44,7 +47,10 @@ class TestPublishResult(unittest.TestCase):
     def test_publish_result_with_error(self):
         """Test publish result with error."""
         result = PublishResult(
-            success=False, channel="test_channel", subscribers_notified=0, error="Connection failed"
+            success=False,
+            channel="test_channel",
+            subscribers_notified=0,
+            error="Connection failed",
         )
 
         self.assertFalse(result.success)
@@ -86,7 +92,12 @@ class TestMatchProcessorRedisPublisher(unittest.TestCase):
 
         # Test data
         matches = [
-            {"matchid": 123456, "datum": "2025-09-23", "hemmalag": "Team A", "bortalag": "Team B"}
+            {
+                "matchid": 123456,
+                "datum": "2025-09-23",
+                "hemmalag": "Team A",
+                "bortalag": "Team B",
+            }
         ]
 
         changes = {
@@ -154,7 +165,11 @@ class TestMatchProcessorRedisPublisher(unittest.TestCase):
 
         # Test data
         status = "completed"
-        details = {"cycle_number": 42, "processing_duration_ms": 2500, "matches_processed": 15}
+        details = {
+            "cycle_number": 42,
+            "processing_duration_ms": 2500,
+            "matches_processed": 15,
+        }
 
         # Publish
         result = publisher.publish_processing_status(status, details)

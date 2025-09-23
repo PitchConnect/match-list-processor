@@ -127,7 +127,7 @@ class DeliveryMonitor:
                 "recipient": record.recipient,
                 "failed_at": datetime.utcnow().isoformat(),
                 "total_attempts": record.total_attempts,
-                "final_error": record.attempts[-1].error_message if record.attempts else None,
+                "final_error": (record.attempts[-1].error_message if record.attempts else None),
                 "failure_reason": failure_reason.value,
             }
 
@@ -213,7 +213,10 @@ class DeliveryMonitor:
             by_channel[channel]["total"] += 1
             if record.final_status == DeliveryStatus.DELIVERED:
                 by_channel[channel]["delivered"] += 1
-            elif record.final_status in [DeliveryStatus.FAILED, DeliveryStatus.DEAD_LETTER]:
+            elif record.final_status in [
+                DeliveryStatus.FAILED,
+                DeliveryStatus.DEAD_LETTER,
+            ]:
                 by_channel[channel]["failed"] += 1
 
         # Calculate success rates by channel

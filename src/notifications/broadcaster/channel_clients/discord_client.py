@@ -63,7 +63,10 @@ class DiscordNotificationClient:
             # Send webhook in thread pool to avoid blocking
             loop = asyncio.get_event_loop()
             await loop.run_in_executor(
-                None, self._send_webhook_sync, recipient.address or self.webhook_url, embed_data
+                None,
+                self._send_webhook_sync,
+                recipient.address or self.webhook_url,
+                embed_data,
             )
 
             return DeliveryResult(
@@ -192,7 +195,11 @@ class DiscordNotificationClient:
             changes_text = self._format_field_changes(notification.field_changes)
             if len(changes_text) <= 1024:  # Discord field value limit
                 embed["fields"].append(
-                    {"name": "📝 Detailed Changes", "value": changes_text, "inline": False}
+                    {
+                        "name": "📝 Detailed Changes",
+                        "value": changes_text,
+                        "inline": False,
+                    }
                 )
 
         return embed

@@ -22,7 +22,11 @@ class TestNotificationServiceSystemAlerts:
         admin_stakeholder.role = "Administrator"
         admin_stakeholder.name = "System Administrator"
         admin_stakeholder.contact_info = [
-            Mock(channel=NotificationChannel.EMAIL, address="admin@example.com", active=True),
+            Mock(
+                channel=NotificationChannel.EMAIL,
+                address="admin@example.com",
+                active=True,
+            ),
             Mock(channel=NotificationChannel.DISCORD, address="webhook-url", active=True),
         ]
 
@@ -164,7 +168,11 @@ class TestNotificationServiceSystemAlerts:
         admin_stakeholder.role = "Administrator"
         admin_stakeholder.name = "System Administrator"
         admin_stakeholder.contact_info = [
-            Mock(channel=NotificationChannel.EMAIL, address="admin@example.com", active=True)
+            Mock(
+                channel=NotificationChannel.EMAIL,
+                address="admin@example.com",
+                active=True,
+            )
         ]
 
         user_stakeholder = Mock()
@@ -172,7 +180,11 @@ class TestNotificationServiceSystemAlerts:
         user_stakeholder.role = "User"
         user_stakeholder.name = "Regular User"
         user_stakeholder.contact_info = [
-            Mock(channel=NotificationChannel.EMAIL, address="user@example.com", active=True)
+            Mock(
+                channel=NotificationChannel.EMAIL,
+                address="user@example.com",
+                active=True,
+            )
         ]
 
         notification_service.stakeholder_manager.get_all_stakeholders.return_value = [
@@ -195,7 +207,11 @@ class TestNotificationServiceSystemAlerts:
         user_stakeholder.role = "User"
         user_stakeholder.name = "Regular User"
         user_stakeholder.contact_info = [
-            Mock(channel=NotificationChannel.EMAIL, address="user@example.com", active=True)
+            Mock(
+                channel=NotificationChannel.EMAIL,
+                address="user@example.com",
+                active=True,
+            )
         ]
 
         notification_service.stakeholder_manager.get_all_stakeholders.return_value = [
@@ -216,7 +232,11 @@ class TestNotificationServiceSystemAlerts:
         admin_stakeholder.role = "Administrator"
         admin_stakeholder.name = "System Administrator"
         admin_stakeholder.contact_info = [
-            Mock(channel=NotificationChannel.EMAIL, address="admin@example.com", active=True),
+            Mock(
+                channel=NotificationChannel.EMAIL,
+                address="admin@example.com",
+                active=True,
+            ),
             Mock(
                 channel=NotificationChannel.DISCORD, address="webhook-url", active=False
             ),  # Disabled
@@ -238,7 +258,9 @@ class TestNotificationServiceSystemAlerts:
         """Test error handling in send_system_alert."""
         # Make _send_notifications raise an exception
         with patch.object(
-            notification_service, "_send_notifications", side_effect=Exception("Test error")
+            notification_service,
+            "_send_notifications",
+            side_effect=Exception("Test error"),
         ):
             alert_data = {
                 "alert_type": "test_alert",
@@ -286,7 +308,9 @@ class TestNotificationServiceSystemAlerts:
         }
 
         with patch.object(
-            notification_service, "_send_notifications", return_value=mock_delivery_results
+            notification_service,
+            "_send_notifications",
+            return_value=mock_delivery_results,
         ):
             alert_data = {
                 "alert_type": "test_alert",

@@ -86,7 +86,11 @@ class TestRedisPublishingIntegration(unittest.TestCase):
         # Test processing status publishing
         status_result = publisher.publish_processing_status(
             "completed",
-            {"cycle_number": 42, "processing_duration_ms": 2500, "matches_processed": 1},
+            {
+                "cycle_number": 42,
+                "processing_duration_ms": 2500,
+                "matches_processed": 1,
+            },
         )
 
         self.assertTrue(status_result.success)
@@ -294,7 +298,11 @@ class TestRedisPublishingIntegration(unittest.TestCase):
 
         # Create large dataset
         large_matches = []
-        large_changes = {"new_matches": {}, "updated_matches": {}, "cancelled_matches": {}}
+        large_changes = {
+            "new_matches": {},
+            "updated_matches": {},
+            "cancelled_matches": {},
+        }
 
         for i in range(1000):  # 1000 matches
             match = {

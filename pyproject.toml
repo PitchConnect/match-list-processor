@@ -65,6 +65,10 @@ warn_no_return = true
 warn_unreachable = true
 strict_equality = true
 
+[[tool.mypy.overrides]]
+module = ["redis", "psutil"]
+ignore_missing_imports = true
+
 [tool.coverage.run]
 source = ["src"]
 omit = [

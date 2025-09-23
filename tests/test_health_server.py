@@ -119,7 +119,9 @@ class TestHealthEndpoints:
         )
 
         with patch.object(
-            health_server.health_service, "get_health_status", return_value=mock_health_status
+            health_server.health_service,
+            "get_health_status",
+            return_value=mock_health_status,
         ):
             response = client.get("/health")
 
@@ -144,7 +146,9 @@ class TestHealthEndpoints:
         )
 
         with patch.object(
-            health_server.health_service, "get_health_status", return_value=mock_health_status
+            health_server.health_service,
+            "get_health_status",
+            return_value=mock_health_status,
         ):
             response = client.get("/health")
 
@@ -164,7 +168,9 @@ class TestHealthEndpoints:
         )
 
         with patch.object(
-            health_server.health_service, "get_health_status", return_value=mock_health_status
+            health_server.health_service,
+            "get_health_status",
+            return_value=mock_health_status,
         ):
             response = client.get("/health")
 
@@ -209,7 +215,9 @@ class TestHealthEndpoints:
         }
 
         with patch.object(
-            health_server.health_service, "check_all_dependencies", return_value=mock_dependencies
+            health_server.health_service,
+            "check_all_dependencies",
+            return_value=mock_dependencies,
         ):
             response = client.get("/health/dependencies")
 

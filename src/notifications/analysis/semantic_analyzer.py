@@ -357,7 +357,11 @@ class SemanticChangeAnalyzer:
         return actions
 
     def _create_generic_change_context(
-        self, field_path: str, prev_value: Any, curr_value: Any, match_context: Dict[str, Any]
+        self,
+        field_path: str,
+        prev_value: Any,
+        curr_value: Any,
+        match_context: Dict[str, Any],
     ) -> ChangeContext:
         """Create generic change context for unhandled fields.
 

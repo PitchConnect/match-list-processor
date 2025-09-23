@@ -24,7 +24,11 @@ class FieldAnalyzer(ABC):
 
     @abstractmethod
     def analyze_change(
-        self, field_path: str, prev_value: Any, curr_value: Any, match_context: Dict[str, Any]
+        self,
+        field_path: str,
+        prev_value: Any,
+        curr_value: Any,
+        match_context: Dict[str, Any],
     ) -> List[ChangeContext]:
         """Analyze a specific field change.
 

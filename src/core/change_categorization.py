@@ -190,7 +190,10 @@ class GranularChangeDetector:
                     match_nr=match_nr,
                     category=ChangeCategory.NEW_ASSIGNMENT,
                     priority=self._assess_priority(ChangeCategory.NEW_ASSIGNMENT, curr_match),
-                    affected_stakeholders=[StakeholderType.REFEREES, StakeholderType.COORDINATORS],
+                    affected_stakeholders=[
+                        StakeholderType.REFEREES,
+                        StakeholderType.COORDINATORS,
+                    ],
                     field_name="domaruppdraglista",
                     previous_value=None,
                     current_value=curr_referees,
@@ -207,7 +210,10 @@ class GranularChangeDetector:
                     match_nr=match_nr,
                     category=ChangeCategory.REFEREE_CHANGE,
                     priority=self._assess_priority(ChangeCategory.REFEREE_CHANGE, curr_match),
-                    affected_stakeholders=[StakeholderType.REFEREES, StakeholderType.COORDINATORS],
+                    affected_stakeholders=[
+                        StakeholderType.REFEREES,
+                        StakeholderType.COORDINATORS,
+                    ],
                     field_name="domaruppdraglista",
                     previous_value=prev_referees,
                     current_value=curr_referees,

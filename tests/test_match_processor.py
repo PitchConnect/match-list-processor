@@ -136,7 +136,10 @@ class TestMatchProcessor:
 
         # Mock avatar service to return error
         mock_avatar_service = Mock()
-        mock_avatar_service.create_avatar.return_value = (None, "Avatar creation failed")
+        mock_avatar_service.create_avatar.return_value = (
+            None,
+            "Avatar creation failed",
+        )
 
         processor = MatchProcessor(
             mock_avatar_service, mock_storage_service, mock_description_generator
@@ -204,7 +207,10 @@ class TestMatchProcessor:
             )
 
             result = processor.process_match(
-                sample_match_data, 12345, is_new=False, previous_match_data=previous_match
+                sample_match_data,
+                12345,
+                is_new=False,
+                previous_match_data=previous_match,
             )
 
             assert result is not None

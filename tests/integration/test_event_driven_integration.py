@@ -78,7 +78,9 @@ class TestEventDrivenIntegration(unittest.TestCase):
         # Mock the unified processor to avoid actual API calls
         with patch.object(webhook_service.unified_processor, "run_processing_cycle") as mock_cycle:
             mock_result = type(
-                "MockResult", (), {"changes_detected": True, "summary": "Integration test changes"}
+                "MockResult",
+                (),
+                {"changes_detected": True, "summary": "Integration test changes"},
             )()
             mock_cycle.return_value = mock_result
 
@@ -155,7 +157,8 @@ class TestEventDrivenIntegration(unittest.TestCase):
 
         # Verify metrics were updated
         self.assertGreaterEqual(
-            final_metrics["total_processing_count"], initial_metrics["total_processing_count"]
+            final_metrics["total_processing_count"],
+            initial_metrics["total_processing_count"],
         )
 
     def test_concurrent_processing_protection(self):

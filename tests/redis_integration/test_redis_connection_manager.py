@@ -281,7 +281,10 @@ class TestRedisConnectionManager(unittest.TestCase):
     def test_connection_config_custom_values(self):
         """Test RedisConnectionConfig with custom values."""
         config = RedisConnectionConfig(
-            url="redis://custom:6380", socket_timeout=10, max_retries=5, decode_responses=False
+            url="redis://custom:6380",
+            socket_timeout=10,
+            max_retries=5,
+            decode_responses=False,
         )
 
         self.assertEqual(config.url, "redis://custom:6380")

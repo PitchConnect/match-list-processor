@@ -27,7 +27,7 @@ class ContactInfo:
             "verified": self.verified,
             "active": self.active,
             "created_at": self.created_at.isoformat(),
-            "last_verified": self.last_verified.isoformat() if self.last_verified else None,
+            "last_verified": (self.last_verified.isoformat() if self.last_verified else None),
         }
 
     @classmethod

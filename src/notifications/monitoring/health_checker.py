@@ -151,7 +151,7 @@ class NotificationHealthChecker:
         stats = {}
 
         try:
-            import psutil  # type: ignore
+            import psutil
 
             # Check memory usage
             memory = psutil.virtual_memory()
@@ -200,7 +200,10 @@ class NotificationHealthChecker:
                 elif channel.lower() == "webhook":
                     results[channel] = self._test_webhook_connectivity(config)
                 else:
-                    results[channel] = {"status": "unknown", "message": "Unknown channel type"}
+                    results[channel] = {
+                        "status": "unknown",
+                        "message": "Unknown channel type",
+                    }
             except Exception as e:
                 logger.error(f"Connectivity test failed for {channel}: {e}")
                 results[channel] = {"status": "error", "message": str(e)}
@@ -248,7 +251,10 @@ class NotificationHealthChecker:
                 return {"status": "error", "message": "Missing webhook_url"}
 
             # TODO: Implement actual Discord webhook test
-            return {"status": "ok", "message": "Discord webhook configuration appears valid"}
+            return {
+                "status": "ok",
+                "message": "Discord webhook configuration appears valid",
+            }
 
         except Exception as e:
             return {"status": "error", "message": str(e)}

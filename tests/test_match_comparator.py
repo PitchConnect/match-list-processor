@@ -111,7 +111,11 @@ class TestMatchComparator:
         """Test match modification detection with different referees."""
         modified_match = sample_match_data.copy()
         modified_match["domaruppdraglista"] = [
-            {"domarid": 9999, "personnamn": "New Referee", "domarrollnamn": "Huvuddomare"},
+            {
+                "domarid": 9999,
+                "personnamn": "New Referee",
+                "domarrollnamn": "Huvuddomare",
+            },
             sample_match_data["domaruppdraglista"][1],
         ]
 

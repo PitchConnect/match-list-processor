@@ -220,7 +220,7 @@ class TestNotificationAnalyticsService(unittest.TestCase):
         for i in range(10):
             result = DeliveryResult(
                 recipient_id=f"test-{i}",
-                channel=NotificationChannel.EMAIL if i < 7 else NotificationChannel.DISCORD,
+                channel=(NotificationChannel.EMAIL if i < 7 else NotificationChannel.DISCORD),
                 status=DeliveryStatus.DELIVERED if i < 8 else DeliveryStatus.FAILED,
                 message="Test",
             )

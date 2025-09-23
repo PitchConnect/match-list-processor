@@ -252,7 +252,10 @@ class TestMilestone1Integration:
         # Should have urgent or immediate urgency for today's match
         time_changes = [c for c in analysis.field_changes if "Time" in c.field_display_name]
         assert len(time_changes) > 0
-        assert time_changes[0].urgency in [ChangeUrgency.IMMEDIATE, ChangeUrgency.URGENT]
+        assert time_changes[0].urgency in [
+            ChangeUrgency.IMMEDIATE,
+            ChangeUrgency.URGENT,
+        ]
 
     def test_stakeholder_impact_analysis(self):
         """Test stakeholder impact analysis across change types."""
@@ -275,7 +278,13 @@ class TestMilestone1Integration:
         assert len(venue_changes) > 0
 
         venue_change = venue_changes[0]
-        expected_stakeholders = ["teams", "referees", "coordinators", "venue", "spectators"]
+        expected_stakeholders = [
+            "teams",
+            "referees",
+            "coordinators",
+            "venue",
+            "spectators",
+        ]
 
         for stakeholder in expected_stakeholders:
             assert stakeholder in venue_change.affected_stakeholders

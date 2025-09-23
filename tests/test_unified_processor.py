@@ -66,7 +66,9 @@ class TestUnifiedMatchProcessor(unittest.TestCase):
 
         with (
             patch.object(
-                self.processor.change_detector, "detect_changes", return_value=mock_changes
+                self.processor.change_detector,
+                "detect_changes",
+                return_value=mock_changes,
             ),
             patch.object(self.processor.change_detector, "save_current_matches"),
         ):

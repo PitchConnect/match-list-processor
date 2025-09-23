@@ -220,7 +220,8 @@ class TestMatchUpdateMessageFormatter(unittest.TestCase):
 
         self.assertFalse(validation.is_valid)
         self.assertIn(
-            "Invalid message type: invalid_type, expected 'match_updates'", validation.errors
+            "Invalid message type: invalid_type, expected 'match_updates'",
+            validation.errors,
         )
 
     def test_validate_match_update_message_warnings(self):

@@ -17,7 +17,7 @@ from datetime import datetime
 from typing import Any, Dict, Optional
 
 try:
-    import redis  # type: ignore[import-untyped]
+    import redis
 
     REDIS_AVAILABLE = True
 except ImportError:

@@ -172,7 +172,7 @@ class NotificationBatch:
             "batch_id": self.batch_id,
             "notifications": [n.to_dict() for n in self.notifications],
             "created_at": self.created_at.isoformat(),
-            "processed_at": self.processed_at.isoformat() if self.processed_at else None,
+            "processed_at": (self.processed_at.isoformat() if self.processed_at else None),
             "total_recipients": self.total_recipients,
             "successful_deliveries": self.successful_deliveries,
             "failed_deliveries": self.failed_deliveries,

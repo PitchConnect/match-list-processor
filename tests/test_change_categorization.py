@@ -155,7 +155,10 @@ class TestCategorizedChanges:
             critical_changes=0,
             high_priority_changes=2,
             affected_stakeholder_types={StakeholderType.REFEREES, StakeholderType.ALL},
-            change_categories={ChangeCategory.REFEREE_CHANGE, ChangeCategory.TIME_CHANGE},
+            change_categories={
+                ChangeCategory.REFEREE_CHANGE,
+                ChangeCategory.TIME_CHANGE,
+            },
         )
 
         referee_changes = categorized.get_changes_by_category(ChangeCategory.REFEREE_CHANGE)
@@ -182,7 +185,11 @@ class TestGranularChangeDetector:
             "matchid": "123456",
             "matchnr": "001",
             "domaruppdraglista": [
-                {"domareid": "ref1", "personnamn": "John Doe", "domarrollnamn": "Domare"}
+                {
+                    "domareid": "ref1",
+                    "personnamn": "John Doe",
+                    "domarrollnamn": "Domare",
+                }
             ],
         }
 
@@ -210,9 +217,17 @@ class TestGranularChangeDetector:
 
     def test_categorize_venue_change(self):
         """Test categorizing venue changes."""
-        prev_match = {"matchid": "123456", "matchnr": "001", "anlaggningnamn": "Old Stadium"}
+        prev_match = {
+            "matchid": "123456",
+            "matchnr": "001",
+            "anlaggningnamn": "Old Stadium",
+        }
 
-        curr_match = {"matchid": "123456", "matchnr": "001", "anlaggningnamn": "New Stadium"}
+        curr_match = {
+            "matchid": "123456",
+            "matchnr": "001",
+            "anlaggningnamn": "New Stadium",
+        }
 
         changes = self.detector.categorize_changes(prev_match, curr_match)
 
@@ -277,7 +292,11 @@ class TestGranularChangeDetector:
             "avsparkstid": "15:00",
             "anlaggningnamn": "New Stadium",
             "domaruppdraglista": [
-                {"domareid": "ref1", "personnamn": "John Doe", "domarrollnamn": "Domare"}
+                {
+                    "domareid": "ref1",
+                    "personnamn": "John Doe",
+                    "domarrollnamn": "Domare",
+                }
             ],
         }
 

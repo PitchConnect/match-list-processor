@@ -50,7 +50,7 @@ class DeliveryAttempt:
             "status": self.status.value,
             "response_time_ms": self.response_time_ms,
             "error_message": self.error_message,
-            "failure_reason": self.failure_reason.value if self.failure_reason else None,
+            "failure_reason": (self.failure_reason.value if self.failure_reason else None),
             "retry_after": self.retry_after.isoformat() if self.retry_after else None,
         }
 
@@ -117,9 +117,9 @@ class NotificationDeliveryRecord:
             "final_status": self.final_status.value,
             "attempts": [attempt.to_dict() for attempt in self.attempts],
             "total_attempts": self.total_attempts,
-            "first_attempt": self.first_attempt.isoformat() if self.first_attempt else None,
-            "last_attempt": self.last_attempt.isoformat() if self.last_attempt else None,
-            "delivered_at": self.delivered_at.isoformat() if self.delivered_at else None,
+            "first_attempt": (self.first_attempt.isoformat() if self.first_attempt else None),
+            "last_attempt": (self.last_attempt.isoformat() if self.last_attempt else None),
+            "delivered_at": (self.delivered_at.isoformat() if self.delivered_at else None),
             "total_delivery_time_ms": self.total_delivery_time_ms,
         }
 

@@ -126,10 +126,14 @@ class TestAppPersistentFocusedCoverage:
             # Mock successful data loading and processing
             with (
                 patch.object(
-                    app, "_load_previous_matches", return_value={"123": {"matchid": "123"}}
+                    app,
+                    "_load_previous_matches",
+                    return_value={"123": {"matchid": "123"}},
                 ),
                 patch.object(
-                    app, "_fetch_current_matches", return_value={"123": {"matchid": "123"}}
+                    app,
+                    "_fetch_current_matches",
+                    return_value={"123": {"matchid": "123"}},
                 ),
                 patch.object(app, "_process_match_changes") as mock_process_changes,
                 patch.object(app, "_save_current_matches") as mock_save,

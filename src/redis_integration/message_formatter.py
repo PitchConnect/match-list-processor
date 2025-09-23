@@ -35,7 +35,9 @@ class MatchUpdateMessageFormatter:
 
     @staticmethod
     def format_match_updates(
-        matches: List[Dict[str, Any]], changes: Dict[str, Any], source: str = "match-list-processor"
+        matches: List[Dict[str, Any]],
+        changes: Dict[str, Any],
+        source: str = "match-list-processor",
     ) -> Dict[str, Any]:
         """
         Format match updates message according to FOGIS Redis schema.
@@ -126,7 +128,14 @@ class MatchUpdateMessageFormatter:
         warnings = []
 
         # Required top-level fields
-        required_fields = ["message_id", "timestamp", "source", "version", "type", "payload"]
+        required_fields = [
+            "message_id",
+            "timestamp",
+            "source",
+            "version",
+            "type",
+            "payload",
+        ]
         for field in required_fields:
             if field not in message:
                 errors.append(f"Missing required field: {field}")
@@ -371,7 +380,8 @@ if __name__ == "__main__":
 
     # Test processing status message
     status_json = create_processing_status_message(
-        "completed", {"cycle_number": 42, "processing_duration_ms": 2500, "matches_processed": 15}
+        "completed",
+        {"cycle_number": 42, "processing_duration_ms": 2500, "matches_processed": 15},
     )
 
     logger.info("✅ Processing status message formatting test successful")

@@ -200,7 +200,9 @@ class PerformanceBenchmarks(unittest.TestCase):
         # Validate against threshold
         threshold = self.performance_thresholds["memory_usage_mb"]
         self.assertLess(
-            final_mem, threshold, f"Memory usage too high: {final_mem:.1f}MB > {threshold}MB"
+            final_mem,
+            threshold,
+            f"Memory usage too high: {final_mem:.1f}MB > {threshold}MB",
         )
 
         logger.info(
@@ -253,7 +255,9 @@ class PerformanceBenchmarks(unittest.TestCase):
             self.performance_thresholds["processing_cycle_empty"] * 2
         )  # Allow 2x slower for concurrent
         self.assertLess(
-            max_time, threshold, f"Concurrent processing too slow: {max_time:.3f}s > {threshold}s"
+            max_time,
+            threshold,
+            f"Concurrent processing too slow: {max_time:.3f}s > {threshold}s",
         )
 
         logger.info(
@@ -316,7 +320,9 @@ class PerformanceBenchmarks(unittest.TestCase):
         # Validate against threshold (should be fast)
         threshold = 3.0  # 3 seconds for full app startup
         self.assertLess(
-            startup_time, threshold, f"App startup too slow: {startup_time:.3f}s > {threshold}s"
+            startup_time,
+            threshold,
+            f"App startup too slow: {startup_time:.3f}s > {threshold}s",
         )
 
         logger.info(f"✅ App startup: {startup_time:.3f}s (threshold: {threshold}s)")
@@ -337,9 +343,15 @@ class PerformanceBenchmarks(unittest.TestCase):
         required_metrics = ["processor_initialization"]
 
         for metric in required_metrics:
-            self.assertIn(metric, self.performance_results, f"Missing performance metric: {metric}")
+            self.assertIn(
+                metric,
+                self.performance_results,
+                f"Missing performance metric: {metric}",
+            )
             self.assertGreater(
-                self.performance_results[metric], 0, f"Invalid performance metric value: {metric}"
+                self.performance_results[metric],
+                0,
+                f"Invalid performance metric value: {metric}",
             )
 
         logger.info("✅ Performance regression detection validated")

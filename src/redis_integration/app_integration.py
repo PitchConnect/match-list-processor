@@ -61,7 +61,9 @@ class MatchProcessorRedisIntegration:
             logger.warning("⚠️ Redis integration will be disabled for this session")
 
     def publish_processing_start(
-        self, processing_cycle: int = 0, additional_data: Optional[Dict[str, Any]] = None
+        self,
+        processing_cycle: int = 0,
+        additional_data: Optional[Dict[str, Any]] = None,
     ) -> bool:
         """
         Publish processing start notification.
@@ -125,7 +127,9 @@ class MatchProcessorRedisIntegration:
             processing_details = {
                 "processing_cycle": processing_cycle,
                 "processing_duration_ms": processing_duration_ms,
-                "start_time": processing_start_time.isoformat() if processing_start_time else None,
+                "start_time": (
+                    processing_start_time.isoformat() if processing_start_time else None
+                ),
                 "end_time": datetime.now().isoformat(),
             }
 
@@ -171,7 +175,9 @@ class MatchProcessorRedisIntegration:
             processing_details = {
                 "processing_cycle": processing_cycle,
                 "processing_duration_ms": processing_duration_ms,
-                "start_time": processing_start_time.isoformat() if processing_start_time else None,
+                "start_time": (
+                    processing_start_time.isoformat() if processing_start_time else None
+                ),
             }
 
             return self.redis_service.handle_processing_error(error, processing_details)
@@ -230,7 +236,8 @@ def create_redis_integration() -> MatchProcessorRedisIntegration:
 
 
 def add_redis_integration_to_processor(
-    processor_instance: Any, redis_integration: Optional[MatchProcessorRedisIntegration] = None
+    processor_instance: Any,
+    redis_integration: Optional[MatchProcessorRedisIntegration] = None,
 ) -> None:
     """
     Add Redis integration to existing match processor instance.
@@ -271,7 +278,10 @@ def add_redis_integration_to_processor(
                 and hasattr(self, "_changes")
             ):
                 self.redis_integration.publish_match_updates(
-                    self._all_matches, self._changes, processing_start_time, self._processing_cycle
+                    self._all_matches,
+                    self._changes,
+                    processing_start_time,
+                    self._processing_cycle,
                 )
 
             return result

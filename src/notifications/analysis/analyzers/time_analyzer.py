@@ -16,7 +16,11 @@ class TimeChangeAnalyzer(FieldAnalyzer):
         return any(field in field_path.lower() for field in time_fields)
 
     def analyze_change(
-        self, field_path: str, prev_value: Any, curr_value: Any, match_context: Dict[str, Any]
+        self,
+        field_path: str,
+        prev_value: Any,
+        curr_value: Any,
+        match_context: Dict[str, Any],
     ) -> List[ChangeContext]:
         """Analyze time/date changes."""
         changes = []

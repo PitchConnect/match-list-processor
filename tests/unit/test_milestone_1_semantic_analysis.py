@@ -171,7 +171,10 @@ class TestSemanticChangeAnalyzer:
         # Should have immediate urgency for today's match
         time_changes = [c for c in analysis.field_changes if "Time" in c.field_display_name]
         assert len(time_changes) >= 1
-        assert time_changes[0].urgency in [ChangeUrgency.IMMEDIATE, ChangeUrgency.URGENT]
+        assert time_changes[0].urgency in [
+            ChangeUrgency.IMMEDIATE,
+            ChangeUrgency.URGENT,
+        ]
 
     def test_stakeholder_impact_mapping(self):
         """Test stakeholder impact mapping."""

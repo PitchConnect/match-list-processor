@@ -92,7 +92,10 @@ class TestMainEntryPoint:
         mock_oneshot_main.assert_called_once()
 
     @patch("src.main.logger")
-    @patch("src.app_persistent.main", side_effect=ImportError("Test persistent import error"))
+    @patch(
+        "src.app_persistent.main",
+        side_effect=ImportError("Test persistent import error"),
+    )
     @patch("src.app.main")
     @patch("src.app_unified.main", side_effect=ImportError("Test unified import error"))
     def test_persistent_import_error_falls_back_to_oneshot(

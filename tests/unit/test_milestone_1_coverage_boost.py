@@ -211,13 +211,19 @@ class TestMilestone1CoverageBoost:
         referee_analyzer = RefereeAssignmentAnalyzer()
 
         changes = referee_analyzer.analyze_change(
-            "domaruppdraglista", None, [], {"matchid": "test"}  # Empty previous  # Empty current
+            "domaruppdraglista",
+            None,
+            [],
+            {"matchid": "test"},  # Empty previous  # Empty current
         )
         assert isinstance(changes, list)
 
         # Test with malformed referee data
         changes = referee_analyzer.analyze_change(
-            "domaruppdraglista", "invalid_data", {"invalid": "structure"}, {"matchid": "test"}
+            "domaruppdraglista",
+            "invalid_data",
+            {"invalid": "structure"},
+            {"matchid": "test"},
         )
         assert isinstance(changes, list)
 
@@ -234,7 +240,10 @@ class TestMilestone1CoverageBoost:
         venue_analyzer = VenueChangeAnalyzer()
 
         changes = venue_analyzer.analyze_change(
-            "arena", "Old Stadium", "New Stadium", {"matchid": "test", "speldatum": "2024-01-15"}
+            "arena",
+            "Old Stadium",
+            "New Stadium",
+            {"matchid": "test", "speldatum": "2024-01-15"},
         )
         assert len(changes) == 1
         assert "Old Stadium" in changes[0].change_description
@@ -244,7 +253,10 @@ class TestMilestone1CoverageBoost:
         team_analyzer = TeamChangeAnalyzer()
 
         changes = team_analyzer.analyze_change(
-            "hemmalag", "Team A", "Team B", {"matchid": "test", "speldatum": "2024-01-15"}
+            "hemmalag",
+            "Team A",
+            "Team B",
+            {"matchid": "test", "speldatum": "2024-01-15"},
         )
         assert len(changes) == 1
         assert changes[0].field_display_name == "Home Team"
@@ -253,7 +265,10 @@ class TestMilestone1CoverageBoost:
         status_analyzer = StatusChangeAnalyzer()
 
         changes = status_analyzer.analyze_change(
-            "status", "scheduled", "cancelled", {"matchid": "test", "speldatum": "2024-01-15"}
+            "status",
+            "scheduled",
+            "cancelled",
+            {"matchid": "test", "speldatum": "2024-01-15"},
         )
         assert len(changes) == 1
         assert changes[0].business_impact == ChangeImpact.CRITICAL

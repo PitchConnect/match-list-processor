@@ -39,7 +39,9 @@ class TestUnifiedProcessorCore:
         # Mock change detection
         with (
             patch.object(
-                self.processor, "_fetch_current_matches", return_value=[sample_match_data]
+                self.processor,
+                "_fetch_current_matches",
+                return_value=[sample_match_data],
             ),
             patch.object(self.processor.change_detector, "detect_changes") as mock_detect,
             patch.object(self.processor, "_process_changes"),
@@ -65,7 +67,9 @@ class TestUnifiedProcessorCore:
         # Mock no changes detected
         with (
             patch.object(
-                self.processor, "_fetch_current_matches", return_value=[sample_match_data]
+                self.processor,
+                "_fetch_current_matches",
+                return_value=[sample_match_data],
             ),
             patch.object(self.processor.change_detector, "detect_changes") as mock_detect,
         ):
@@ -102,7 +106,9 @@ class TestUnifiedProcessorCore:
         # Mock change detection failure
         with (
             patch.object(
-                self.processor, "_fetch_current_matches", return_value=[sample_match_data]
+                self.processor,
+                "_fetch_current_matches",
+                return_value=[sample_match_data],
             ),
             patch.object(
                 self.processor.change_detector,
@@ -129,7 +135,9 @@ class TestUnifiedProcessorCore:
 
         # Test loading state
         with patch.object(
-            self.processor.change_detector, "load_previous_matches", return_value=matches
+            self.processor.change_detector,
+            "load_previous_matches",
+            return_value=matches,
         ) as mock_load:
             loaded_matches = self.processor.change_detector.load_previous_matches()
             assert loaded_matches == matches
@@ -153,7 +161,9 @@ class TestUnifiedProcessorBasic:
         """Test basic processing functionality."""
         with (
             patch.object(
-                self.processor, "_fetch_current_matches", return_value=[sample_match_data]
+                self.processor,
+                "_fetch_current_matches",
+                return_value=[sample_match_data],
             ),
             patch.object(self.processor.change_detector, "detect_changes") as mock_detect,
         ):
@@ -215,7 +225,9 @@ class TestUnifiedProcessorPerformance:
         """Test change detection performance with large dataset."""
         with (
             patch.object(
-                self.processor, "_fetch_current_matches", return_value=large_match_dataset
+                self.processor,
+                "_fetch_current_matches",
+                return_value=large_match_dataset,
             ),
             patch.object(self.processor.change_detector, "detect_changes") as mock_detect,
         ):
@@ -249,7 +261,9 @@ class TestUnifiedProcessorPerformance:
         for _ in range(5):
             with (
                 patch.object(
-                    self.processor, "_fetch_current_matches", return_value=[sample_match_data]
+                    self.processor,
+                    "_fetch_current_matches",
+                    return_value=[sample_match_data],
                 ),
                 patch.object(self.processor.change_detector, "detect_changes") as mock_detect,
             ):
@@ -284,7 +298,9 @@ class TestUnifiedProcessorErrorHandling:
     def test_network_timeout_handling(self):
         """Test handling of network timeouts."""
         with patch.object(
-            self.processor, "_fetch_current_matches", side_effect=TimeoutError("Network timeout")
+            self.processor,
+            "_fetch_current_matches",
+            side_effect=TimeoutError("Network timeout"),
         ):
             result = self.processor.run_processing_cycle()
 
@@ -295,7 +311,9 @@ class TestUnifiedProcessorErrorHandling:
     def test_json_parsing_error_handling(self):
         """Test handling of JSON parsing errors."""
         with patch.object(
-            self.processor, "_fetch_current_matches", side_effect=ValueError("Invalid JSON")
+            self.processor,
+            "_fetch_current_matches",
+            side_effect=ValueError("Invalid JSON"),
         ):
             result = self.processor.run_processing_cycle()
 
@@ -322,10 +340,14 @@ class TestUnifiedProcessorErrorHandling:
         """Test that multiple errors are properly accumulated."""
         with (
             patch.object(
-                self.processor, "_fetch_current_matches", return_value=[sample_match_data]
+                self.processor,
+                "_fetch_current_matches",
+                return_value=[sample_match_data],
             ),
             patch.object(
-                self.processor.change_detector, "detect_changes", side_effect=Exception("Error 1")
+                self.processor.change_detector,
+                "detect_changes",
+                side_effect=Exception("Error 1"),
             ),
         ):
             result = self.processor.run_processing_cycle()
@@ -412,7 +434,9 @@ class TestUnifiedProcessorNotificationIntegration:
         """Test successful notification sending."""
         with (
             patch.object(
-                self.processor, "_fetch_current_matches", return_value=[sample_match_data]
+                self.processor,
+                "_fetch_current_matches",
+                return_value=[sample_match_data],
             ),
             patch.object(self.processor.change_detector, "detect_changes") as mock_detect,
         ):
@@ -456,14 +480,21 @@ class TestUnifiedProcessorAdditionalCoverage:
         """Test string representation of unified processor."""
         with (
             patch(
-                "src.core.unified_processor.MatchDataManager", return_value=self.mock_data_manager
+                "src.core.unified_processor.MatchDataManager",
+                return_value=self.mock_data_manager,
             ),
             patch(
                 "src.core.unified_processor.DockerNetworkApiClient",
                 return_value=self.mock_api_client,
             ),
-            patch("src.core.unified_processor.MatchComparator", return_value=self.mock_comparator),
-            patch("src.core.unified_processor.MatchProcessor", return_value=self.mock_processor),
+            patch(
+                "src.core.unified_processor.MatchComparator",
+                return_value=self.mock_comparator,
+            ),
+            patch(
+                "src.core.unified_processor.MatchProcessor",
+                return_value=self.mock_processor,
+            ),
             patch(
                 "src.core.unified_processor.NotificationService",
                 return_value=self.mock_notification_service,
@@ -482,14 +513,21 @@ class TestUnifiedProcessorAdditionalCoverage:
         """Test error handling paths in unified processor."""
         with (
             patch(
-                "src.core.unified_processor.MatchDataManager", return_value=self.mock_data_manager
+                "src.core.unified_processor.MatchDataManager",
+                return_value=self.mock_data_manager,
             ),
             patch(
                 "src.core.unified_processor.DockerNetworkApiClient",
                 return_value=self.mock_api_client,
             ),
-            patch("src.core.unified_processor.MatchComparator", return_value=self.mock_comparator),
-            patch("src.core.unified_processor.MatchProcessor", return_value=self.mock_processor),
+            patch(
+                "src.core.unified_processor.MatchComparator",
+                return_value=self.mock_comparator,
+            ),
+            patch(
+                "src.core.unified_processor.MatchProcessor",
+                return_value=self.mock_processor,
+            ),
             patch(
                 "src.core.unified_processor.NotificationService",
                 return_value=self.mock_notification_service,
@@ -512,14 +550,21 @@ class TestUnifiedProcessorAdditionalCoverage:
         """Test notification error handling in unified processor."""
         with (
             patch(
-                "src.core.unified_processor.MatchDataManager", return_value=self.mock_data_manager
+                "src.core.unified_processor.MatchDataManager",
+                return_value=self.mock_data_manager,
             ),
             patch(
                 "src.core.unified_processor.DockerNetworkApiClient",
                 return_value=self.mock_api_client,
             ),
-            patch("src.core.unified_processor.MatchComparator", return_value=self.mock_comparator),
-            patch("src.core.unified_processor.MatchProcessor", return_value=self.mock_processor),
+            patch(
+                "src.core.unified_processor.MatchComparator",
+                return_value=self.mock_comparator,
+            ),
+            patch(
+                "src.core.unified_processor.MatchProcessor",
+                return_value=self.mock_processor,
+            ),
             patch(
                 "src.core.unified_processor.NotificationService",
                 return_value=self.mock_notification_service,
@@ -552,14 +597,21 @@ class TestUnifiedProcessorAdditionalCoverage:
         """Test edge cases in unified processor."""
         with (
             patch(
-                "src.core.unified_processor.MatchDataManager", return_value=self.mock_data_manager
+                "src.core.unified_processor.MatchDataManager",
+                return_value=self.mock_data_manager,
             ),
             patch(
                 "src.core.unified_processor.DockerNetworkApiClient",
                 return_value=self.mock_api_client,
             ),
-            patch("src.core.unified_processor.MatchComparator", return_value=self.mock_comparator),
-            patch("src.core.unified_processor.MatchProcessor", return_value=self.mock_processor),
+            patch(
+                "src.core.unified_processor.MatchComparator",
+                return_value=self.mock_comparator,
+            ),
+            patch(
+                "src.core.unified_processor.MatchProcessor",
+                return_value=self.mock_processor,
+            ),
             patch(
                 "src.core.unified_processor.NotificationService",
                 return_value=self.mock_notification_service,
@@ -585,14 +637,21 @@ class TestUnifiedProcessorAdditionalCoverage:
         """Test unified processor with large dataset."""
         with (
             patch(
-                "src.core.unified_processor.MatchDataManager", return_value=self.mock_data_manager
+                "src.core.unified_processor.MatchDataManager",
+                return_value=self.mock_data_manager,
             ),
             patch(
                 "src.core.unified_processor.DockerNetworkApiClient",
                 return_value=self.mock_api_client,
             ),
-            patch("src.core.unified_processor.MatchComparator", return_value=self.mock_comparator),
-            patch("src.core.unified_processor.MatchProcessor", return_value=self.mock_processor),
+            patch(
+                "src.core.unified_processor.MatchComparator",
+                return_value=self.mock_comparator,
+            ),
+            patch(
+                "src.core.unified_processor.MatchProcessor",
+                return_value=self.mock_processor,
+            ),
             patch(
                 "src.core.unified_processor.NotificationService",
                 return_value=self.mock_notification_service,
@@ -653,7 +712,9 @@ class TestUnifiedProcessorDownstreamServices:
         """Test successful downstream service triggering."""
         with (
             patch.object(
-                self.processor, "_fetch_current_matches", return_value=[sample_match_data]
+                self.processor,
+                "_fetch_current_matches",
+                return_value=[sample_match_data],
             ),
             patch.object(self.processor.change_detector, "detect_changes") as mock_detect,
             patch.object(self.processor.phonebook_service, "sync_contacts") as mock_sync,
@@ -675,7 +736,9 @@ class TestUnifiedProcessorDownstreamServices:
         """Test downstream service triggering failure."""
         with (
             patch.object(
-                self.processor, "_fetch_current_matches", return_value=[sample_match_data]
+                self.processor,
+                "_fetch_current_matches",
+                return_value=[sample_match_data],
             ),
             patch.object(self.processor.change_detector, "detect_changes") as mock_detect,
             patch.object(self.processor.phonebook_service, "sync_contacts") as mock_sync,

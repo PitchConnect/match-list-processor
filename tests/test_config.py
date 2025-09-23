@@ -31,7 +31,11 @@ class TestSettings:
         """Test that environment variables override defaults."""
         with patch.dict(
             os.environ,
-            {"DATA_FOLDER": "/custom/data", "MIN_REFEREES_FOR_WHATSAPP": "3", "LOG_LEVEL": "DEBUG"},
+            {
+                "DATA_FOLDER": "/custom/data",
+                "MIN_REFEREES_FOR_WHATSAPP": "3",
+                "LOG_LEVEL": "DEBUG",
+            },
         ):
             settings = Settings()
 

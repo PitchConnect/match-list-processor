@@ -15,7 +15,11 @@ class StatusChangeAnalyzer(FieldAnalyzer):
         return any(field in field_path.lower() for field in status_fields)
 
     def analyze_change(
-        self, field_path: str, prev_value: Any, curr_value: Any, match_context: Dict[str, Any]
+        self,
+        field_path: str,
+        prev_value: Any,
+        curr_value: Any,
+        match_context: Dict[str, Any],
     ) -> List[ChangeContext]:
         """Analyze status changes."""
         home_team, away_team = self.extract_team_names(match_context)

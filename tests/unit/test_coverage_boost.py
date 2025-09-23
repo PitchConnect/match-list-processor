@@ -130,7 +130,9 @@ class TestMatchProcessor:
         self.mock_description_generator = Mock(return_value="Test description")
 
         self.processor = MatchProcessor(
-            self.mock_avatar_service, self.mock_storage_service, self.mock_description_generator
+            self.mock_avatar_service,
+            self.mock_storage_service,
+            self.mock_description_generator,
         )
 
     def test_processor_initialization(self):

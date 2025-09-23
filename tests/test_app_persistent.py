@@ -37,13 +37,16 @@ class TestPersistentMatchListProcessorApp:
                 return_value=mock_services["phonebook_service"],
             ),
             patch(
-                "src.app_persistent.MatchDataManager", return_value=mock_services["data_manager"]
+                "src.app_persistent.MatchDataManager",
+                return_value=mock_services["data_manager"],
             ),
             patch(
-                "src.app_persistent.MatchComparator", return_value=mock_services["match_comparator"]
+                "src.app_persistent.MatchComparator",
+                return_value=mock_services["match_comparator"],
             ),
             patch(
-                "src.app_persistent.MatchProcessor", return_value=mock_services["match_processor"]
+                "src.app_persistent.MatchProcessor",
+                return_value=mock_services["match_processor"],
             ),
             patch(
                 "src.app_persistent.WhatsAppAvatarService",

@@ -254,7 +254,10 @@ class UnifiedMatchProcessor:
                 if MatchComparator.is_match_modified(previous_match, current_match):
                     logger.info(f"Processing updated match {match_id}")
                     result = self.match_processor.process_match(
-                        current_match, match_id, is_new=False, previous_match_data=previous_match
+                        current_match,
+                        match_id,
+                        is_new=False,
+                        previous_match_data=previous_match,
                     )
                     if result and result.get("success"):
                         logger.info(f"Successfully processed updated match {match_id}")
@@ -330,7 +333,11 @@ class UnifiedMatchProcessor:
             else:
                 # Fallback for basic change detection
                 logger.info("Using fallback notification processing for basic changes")
-                notification_results = {"enabled": True, "notifications_sent": 0, "fallback": True}
+                notification_results = {
+                    "enabled": True,
+                    "notifications_sent": 0,
+                    "fallback": True,
+                }
 
             logger.info(
                 f"Notification processing completed: {notification_results.get('notifications_sent', 0)} notifications sent"

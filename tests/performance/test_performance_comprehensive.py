@@ -30,7 +30,9 @@ class TestProcessingPerformance:
 
         with (
             patch.object(
-                self.processor, "_fetch_current_matches", return_value=[sample_match_data]
+                self.processor,
+                "_fetch_current_matches",
+                return_value=[sample_match_data],
             ),
             patch.object(self.processor.change_detector, "detect_changes") as mock_detect,
             patch.object(self.processor, "_process_changes"),
@@ -60,7 +62,9 @@ class TestProcessingPerformance:
 
         with (
             patch.object(
-                self.processor, "_fetch_current_matches", return_value=[sample_match_data]
+                self.processor,
+                "_fetch_current_matches",
+                return_value=[sample_match_data],
             ),
             patch.object(self.processor.change_detector, "detect_changes") as mock_detect,
         ):
@@ -187,7 +191,9 @@ class TestMemoryPerformance:
         for i in range(20):
             with (
                 patch.object(
-                    self.processor, "_fetch_current_matches", return_value=[sample_match_data]
+                    self.processor,
+                    "_fetch_current_matches",
+                    return_value=[sample_match_data],
                 ),
                 patch.object(self.processor.change_detector, "detect_changes") as mock_detect,
             ):
@@ -220,7 +226,9 @@ class TestMemoryPerformance:
 
         with (
             patch.object(
-                self.processor, "_fetch_current_matches", return_value=large_match_dataset
+                self.processor,
+                "_fetch_current_matches",
+                return_value=large_match_dataset,
             ),
             patch.object(self.processor.change_detector, "detect_changes") as mock_detect,
         ):
@@ -264,7 +272,9 @@ class TestConcurrencyPerformance:
         def process_matches():
             with (
                 patch.object(
-                    self.processor, "_fetch_current_matches", return_value=[sample_match_data]
+                    self.processor,
+                    "_fetch_current_matches",
+                    return_value=[sample_match_data],
                 ),
                 patch.object(self.processor.change_detector, "detect_changes") as mock_detect,
             ):

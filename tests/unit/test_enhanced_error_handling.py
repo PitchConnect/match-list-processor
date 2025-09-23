@@ -338,7 +338,10 @@ class TestIntegrationErrorHandling:
             if call_count < 3:
                 error = requests.exceptions.ConnectionError("Test connection error")
                 log_error_context(
-                    logger, error, context={"attempt": call_count}, operation="test_operation"
+                    logger,
+                    error,
+                    context={"attempt": call_count},
+                    operation="test_operation",
                 )
                 raise error
 

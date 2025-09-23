@@ -124,7 +124,11 @@ class TestStrategic90PercentFinal:
                 "matchtime": "19:00",
             },
             field_changes=[
-                {"field": "referee1", "old_value": "Old Referee", "new_value": "New Referee"}
+                {
+                    "field": "referee1",
+                    "old_value": "Old Referee",
+                    "new_value": "New Referee",
+                }
             ],
         )
 

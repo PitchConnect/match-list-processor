@@ -14,7 +14,11 @@ class RefereeAssignmentAnalyzer(FieldAnalyzer):
         return "domaruppdrag" in field_path.lower() or "referee" in field_path.lower()
 
     def analyze_change(
-        self, field_path: str, prev_value: Any, curr_value: Any, match_context: Dict[str, Any]
+        self,
+        field_path: str,
+        prev_value: Any,
+        curr_value: Any,
+        match_context: Dict[str, Any],
     ) -> List[ChangeContext]:
         """Analyze referee assignment changes."""
         changes = []

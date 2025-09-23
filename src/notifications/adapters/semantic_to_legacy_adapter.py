@@ -236,7 +236,9 @@ class SemanticToLegacyAdapter:
         return categories
 
     def _preserve_semantic_metadata(
-        self, categorized_changes: CategorizedChanges, semantic_analysis: SemanticChangeAnalysis
+        self,
+        categorized_changes: CategorizedChanges,
+        semantic_analysis: SemanticChangeAnalysis,
     ) -> None:
         """
         Preserve semantic analysis metadata in the legacy format.

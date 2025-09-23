@@ -198,7 +198,10 @@ class TestEmailClientCoverage:
 
             # Send email
             client._send_email_sync(
-                "recipient@example.com", "Test Subject", "<html>Test HTML</html>", "Test Text"
+                "recipient@example.com",
+                "Test Subject",
+                "<html>Test HTML</html>",
+                "Test Text",
             )
 
             # Verify SMTP operations
@@ -212,7 +215,12 @@ class TestEmailClientCoverage:
 
     def test_send_email_sync_without_tls_and_auth(self):
         """Test synchronous email sending without TLS and authentication."""
-        config = {"smtp_server": "localhost", "smtp_port": 25, "use_tls": False, "enabled": True}
+        config = {
+            "smtp_server": "localhost",
+            "smtp_port": 25,
+            "use_tls": False,
+            "enabled": True,
+        }
         client = EmailNotificationClient(config)
 
         # Mock SMTP server
@@ -224,7 +232,10 @@ class TestEmailClientCoverage:
 
             # Send email
             client._send_email_sync(
-                "recipient@example.com", "Test Subject", "<html>Test HTML</html>", "Test Text"
+                "recipient@example.com",
+                "Test Subject",
+                "<html>Test HTML</html>",
+                "Test Text",
             )
 
             # Verify SMTP operations (no TLS, no auth)
@@ -384,7 +395,10 @@ class TestDiscordClientCoverage:
     @pytest.mark.asyncio
     async def test_send_notification_success(self):
         """Test successful discord notification sending."""
-        config = {"webhook_url": "https://discord.com/api/webhooks/123/abc", "enabled": True}
+        config = {
+            "webhook_url": "https://discord.com/api/webhooks/123/abc",
+            "enabled": True,
+        }
         client = DiscordNotificationClient(config)
 
         # Mock urllib request
@@ -416,7 +430,10 @@ class TestDiscordClientCoverage:
     @pytest.mark.asyncio
     async def test_send_notification_http_error(self):
         """Test discord notification sending with HTTP error."""
-        config = {"webhook_url": "https://discord.com/api/webhooks/123/abc", "enabled": True}
+        config = {
+            "webhook_url": "https://discord.com/api/webhooks/123/abc",
+            "enabled": True,
+        }
         client = DiscordNotificationClient(config)
 
         # Mock HTTP request with error
@@ -432,7 +449,11 @@ class TestDiscordClientCoverage:
             from urllib.error import HTTPError
 
             mock_urlopen.side_effect = HTTPError(
-                url="https://discord.com/webhook", code=400, msg="Bad Request", hdrs=None, fp=None
+                url="https://discord.com/webhook",
+                code=400,
+                msg="Bad Request",
+                hdrs=None,
+                fp=None,
             )
 
             notification = ChangeNotification(change_summary="Test change")

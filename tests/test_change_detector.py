@@ -242,7 +242,11 @@ class TestGranularChangeDetector(unittest.TestCase):
                 "matchid": "123",
                 "matchnr": 1,
                 "domaruppdraglista": [
-                    {"personid": 456, "personnamn": "Test Referee", "uppdragstyp": "Huvuddomare"}
+                    {
+                        "personid": 456,
+                        "personnamn": "Test Referee",
+                        "uppdragstyp": "Huvuddomare",
+                    }
                 ],
                 "speldatum": "2025-09-01",
                 "avsparkstid": "14:00",
@@ -273,10 +277,12 @@ class TestGranularChangeDetector(unittest.TestCase):
 
         # Verify stakeholder types are identified
         self.assertIn(
-            StakeholderType.REFEREES, changes.categorized_changes.affected_stakeholder_types
+            StakeholderType.REFEREES,
+            changes.categorized_changes.affected_stakeholder_types,
         )
         self.assertIn(
-            StakeholderType.COORDINATORS, changes.categorized_changes.affected_stakeholder_types
+            StakeholderType.COORDINATORS,
+            changes.categorized_changes.affected_stakeholder_types,
         )
 
         # Verify change categories are identified

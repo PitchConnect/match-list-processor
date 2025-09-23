@@ -196,7 +196,11 @@ class TestUltimate90PercentPush:
             {"RUN_MODE": "oneshot", "DEBUG": "true", "LOG_LEVEL": "DEBUG"},
             {"RUN_MODE": "service", "DEBUG": "false", "LOG_LEVEL": "INFO"},
             {"HEALTH_PORT": "8080", "API_TIMEOUT": "30", "RETRY_ATTEMPTS": "3"},
-            {"EMAIL_ENABLED": "true", "DISCORD_ENABLED": "false", "WEBHOOK_ENABLED": "true"},
+            {
+                "EMAIL_ENABLED": "true",
+                "DISCORD_ENABLED": "false",
+                "WEBHOOK_ENABLED": "true",
+            },
         ]
 
         for env_config in env_combinations:

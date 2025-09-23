@@ -72,7 +72,12 @@ class EmailNotificationClient:
             # Send email in thread pool to avoid blocking
             loop = asyncio.get_event_loop()
             await loop.run_in_executor(
-                None, self._send_email_sync, recipient.address, subject, html_body, text_body
+                None,
+                self._send_email_sync,
+                recipient.address,
+                subject,
+                html_body,
+                text_body,
             )
 
             return DeliveryResult(

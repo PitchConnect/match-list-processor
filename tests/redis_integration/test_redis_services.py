@@ -61,7 +61,10 @@ class TestMatchProcessorRedisService(unittest.TestCase):
 
     def test_handle_processing_start_success(self):
         """Test successful processing start handling."""
-        processing_details = {"processing_cycle": 1, "start_time": datetime.now().isoformat()}
+        processing_details = {
+            "processing_cycle": 1,
+            "start_time": datetime.now().isoformat(),
+        }
 
         result = self.service.handle_processing_start(processing_details)
 

@@ -153,7 +153,11 @@ def get_logging_config(
         "handlers": {},
         "loggers": {
             "": {"level": log_level, "handlers": [], "propagate": False},  # Root logger
-            "src": {"level": log_level, "handlers": [], "propagate": False},  # Application logger
+            "src": {
+                "level": log_level,
+                "handlers": [],
+                "propagate": False,
+            },  # Application logger
             "requests": {  # Reduce requests library verbosity
                 "level": "WARNING",
                 "handlers": [],
@@ -235,9 +239,17 @@ def configure_logging(
 
     # Parse boolean environment variables
     if enable_console is None:
-        enable_console = os.getenv("LOG_ENABLE_CONSOLE", "true").lower() in ("true", "1", "yes")
+        enable_console = os.getenv("LOG_ENABLE_CONSOLE", "true").lower() in (
+            "true",
+            "1",
+            "yes",
+        )
     if enable_file is None:
-        enable_file = os.getenv("LOG_ENABLE_FILE", "false").lower() in ("true", "1", "yes")
+        enable_file = os.getenv("LOG_ENABLE_FILE", "false").lower() in (
+            "true",
+            "1",
+            "yes",
+        )
     if enable_structured is None:
         enable_structured = os.getenv("LOG_ENABLE_STRUCTURED", "true").lower() in (
             "true",

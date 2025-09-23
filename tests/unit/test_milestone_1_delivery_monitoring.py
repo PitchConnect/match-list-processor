@@ -285,7 +285,10 @@ class TestDeliveryMonitor:
 
         # Add old dead letter item
         self.monitor.dead_letter_queue.append(
-            {"notification_id": "old_dead", "failed_at": (now - timedelta(days=35)).isoformat()}
+            {
+                "notification_id": "old_dead",
+                "failed_at": (now - timedelta(days=35)).isoformat(),
+            }
         )
 
         cleared_count = self.monitor.clear_old_records(days_to_keep=30)

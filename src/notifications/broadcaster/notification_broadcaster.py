@@ -107,7 +107,10 @@ class NotificationBroadcaster:
         return grouped
 
     async def _send_to_channel(
-        self, notification: ChangeNotification, channel: NotificationChannel, recipients: List
+        self,
+        notification: ChangeNotification,
+        channel: NotificationChannel,
+        recipients: List,
     ) -> Dict[str, DeliveryResult]:
         """Send notification to all recipients on a specific channel.
 

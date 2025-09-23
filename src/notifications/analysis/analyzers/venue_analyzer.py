@@ -15,7 +15,11 @@ class VenueChangeAnalyzer(FieldAnalyzer):
         return any(field in field_path.lower() for field in venue_fields)
 
     def analyze_change(
-        self, field_path: str, prev_value: Any, curr_value: Any, match_context: Dict[str, Any]
+        self,
+        field_path: str,
+        prev_value: Any,
+        curr_value: Any,
+        match_context: Dict[str, Any],
     ) -> List[ChangeContext]:
         """Analyze venue changes."""
         home_team, away_team = self.extract_team_names(match_context)
@@ -43,7 +47,13 @@ class VenueChangeAnalyzer(FieldAnalyzer):
                 current_value=curr_value,
                 business_impact=impact,
                 urgency=urgency,
-                affected_stakeholders=["teams", "referees", "coordinators", "venue", "spectators"],
+                affected_stakeholders=[
+                    "teams",
+                    "referees",
+                    "coordinators",
+                    "venue",
+                    "spectators",
+                ],
                 change_description=change_description,
                 technical_description=f"Venue field '{field_path}' changed from '{prev_value}' to '{curr_value}'",
                 user_friendly_description=f"📍 Venue update for {home_team} vs {away_team} on {self.format_date_friendly(match_date)}: {change_description}",

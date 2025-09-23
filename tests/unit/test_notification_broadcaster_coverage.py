@@ -46,7 +46,9 @@ class TestNotificationBroadcasterCoverage:
 
         # Create notification without recipients
         notification = ChangeNotification(
-            change_summary="Test change", change_category="referee_change", recipients=[]
+            change_summary="Test change",
+            change_category="referee_change",
+            recipients=[],
         )
 
         # Broadcast notification
@@ -78,7 +80,9 @@ class TestNotificationBroadcasterCoverage:
             address="test@example.com",
         )
         notification = ChangeNotification(
-            change_summary="Test change", change_category="referee_change", recipients=[recipient]
+            change_summary="Test change",
+            change_category="referee_change",
+            recipients=[recipient],
         )
 
         # Broadcast notification
@@ -118,7 +122,9 @@ class TestNotificationBroadcasterCoverage:
             address="https://discord.com/api/webhooks/123/abc",
         )
         notification = ChangeNotification(
-            change_summary="Test change", change_category="time_change", recipients=[recipient]
+            change_summary="Test change",
+            change_category="time_change",
+            recipients=[recipient],
         )
 
         # Broadcast notification
@@ -155,7 +161,9 @@ class TestNotificationBroadcasterCoverage:
             address="https://example.com/webhook",
         )
         notification = ChangeNotification(
-            change_summary="Test change", change_category="venue_change", recipients=[recipient]
+            change_summary="Test change",
+            change_category="venue_change",
+            recipients=[recipient],
         )
 
         # Broadcast notification
@@ -262,7 +270,9 @@ class TestNotificationBroadcasterCoverage:
             address="error@example.com",
         )
         notification = ChangeNotification(
-            change_summary="Error test", change_category="error_test", recipients=[recipient]
+            change_summary="Error test",
+            change_category="error_test",
+            recipients=[recipient],
         )
 
         # Broadcast notification
@@ -293,7 +303,9 @@ class TestNotificationBroadcasterCoverage:
             address="+1234567890",
         )
         notification = ChangeNotification(
-            change_summary="SMS test", change_category="sms_test", recipients=[recipient]
+            change_summary="SMS test",
+            change_category="sms_test",
+            recipients=[recipient],
         )
 
         # Broadcast notification

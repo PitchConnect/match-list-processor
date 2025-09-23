@@ -425,7 +425,11 @@ def multiple_stakeholders():
             ],
             "preferences": {
                 "enabled_channels": ["email", "discord"],
-                "enabled_change_types": ["new_assignment", "time_change", "venue_change"],
+                "enabled_change_types": [
+                    "new_assignment",
+                    "time_change",
+                    "venue_change",
+                ],
                 "minimum_priority": "low",
             },
         },

@@ -133,7 +133,9 @@ class MatchProcessorRedisService:
                 ),
                 "matches_processed": len(matches),
                 "changes_detected": changes.get("has_changes", False),
-                "start_time": processing_details.get("start_time") if processing_details else None,
+                "start_time": (
+                    processing_details.get("start_time") if processing_details else None
+                ),
                 "end_time": (
                     processing_details.get("end_time")
                     if processing_details
@@ -229,7 +231,9 @@ class MatchProcessorRedisService:
                 ),
                 "matches_processed": 0,
                 "errors": [str(error)],
-                "start_time": processing_details.get("start_time") if processing_details else None,
+                "start_time": (
+                    processing_details.get("start_time") if processing_details else None
+                ),
                 "end_time": datetime.now().isoformat(),
                 "redis_publishing": {
                     "system_alert": {
@@ -340,7 +344,7 @@ class MatchProcessorRedisService:
 
         return {
             "enabled": True,
-            "status": "connected" if stats.get("is_connected", False) else "disconnected",
+            "status": ("connected" if stats.get("is_connected", False) else "disconnected"),
             "redis_url": self.redis_url,
             "publishing_stats": stats.get("publishing_stats", {}),
             "connection_status": stats.get("connection_status", {}),

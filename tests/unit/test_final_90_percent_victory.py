@@ -255,7 +255,11 @@ class TestFinal90PercentVictory:
             {"enabled": True, "converter": {"enabled": True}},
             {"enabled": True, "broadcaster": {"enabled": True}},
             {"enabled": True, "analytics": {"enabled": True}},
-            {"enabled": True, "converter": {"enabled": True}, "broadcaster": {"enabled": True}},
+            {
+                "enabled": True,
+                "converter": {"enabled": True},
+                "broadcaster": {"enabled": True},
+            },
             {"enabled": True, "all_enabled": True},
             {},
             {"unknown_config": "value"},
@@ -420,10 +424,19 @@ class TestFinal90PercentVictory:
         # Test various modules with error conditions
         modules_and_classes = [
             ("src.notifications.notification_service", "NotificationService"),
-            ("src.notifications.analytics.analytics_service", "NotificationAnalyticsService"),
+            (
+                "src.notifications.analytics.analytics_service",
+                "NotificationAnalyticsService",
+            ),
             ("src.notifications.templates.email_templates", "EmailTemplateEngine"),
-            ("src.notifications.stakeholders.stakeholder_manager", "StakeholderManager"),
-            ("src.notifications.stakeholders.stakeholder_resolver", "StakeholderResolver"),
+            (
+                "src.notifications.stakeholders.stakeholder_manager",
+                "StakeholderManager",
+            ),
+            (
+                "src.notifications.stakeholders.stakeholder_resolver",
+                "StakeholderResolver",
+            ),
         ]
 
         for module_name, class_name in modules_and_classes:

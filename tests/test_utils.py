@@ -38,7 +38,12 @@ class TestFileUtils:
         match_data = {
             "domaruppdraglista": [
                 {"domarid": 1, "domarrollnamn": "Huvuddomare"},
-                {"domarid": 2, "personnamn": "", "namn": "", "domarrollnamn": "Assistent"},
+                {
+                    "domarid": 2,
+                    "personnamn": "",
+                    "namn": "",
+                    "domarrollnamn": "Assistent",
+                },
             ]
         }
         names = extract_referee_names(match_data)

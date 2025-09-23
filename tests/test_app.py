@@ -24,7 +24,11 @@ class TestMatchListProcessorApp:
     @patch("src.app.MatchListProcessorApp._fetch_current_matches")
     @patch("src.app.MatchListProcessorApp._load_previous_matches")
     def test_run_success(
-        self, mock_load_previous, mock_fetch_current, mock_process_changes, mock_save_current
+        self,
+        mock_load_previous,
+        mock_fetch_current,
+        mock_process_changes,
+        mock_save_current,
     ):
         """Test successful application run."""
         # Setup mocks
@@ -112,7 +116,11 @@ class TestMatchListProcessorApp:
     @patch("src.app.MatchListProcessorApp._process_removed_matches")
     @patch("src.app.MatchListProcessorApp._process_new_matches")
     def test_process_match_changes(
-        self, mock_process_new, mock_process_removed, mock_process_modified, sample_match_data
+        self,
+        mock_process_new,
+        mock_process_removed,
+        mock_process_modified,
+        sample_match_data,
     ):
         """Test processing match changes."""
         previous = {}

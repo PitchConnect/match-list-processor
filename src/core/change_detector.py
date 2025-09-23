@@ -84,7 +84,9 @@ class GranularChangeDetector:
 
         # Perform granular categorization for updated matches
         categorized_changes = self._categorize_updated_matches(
-            changes.get("changed_match_details", []), prev_matches_dict, curr_matches_dict
+            changes.get("changed_match_details", []),
+            prev_matches_dict,
+            curr_matches_dict,
         )
 
         # Also categorize new matches as NEW_ASSIGNMENT changes
@@ -432,7 +434,9 @@ class GranularChangeDetector:
         )
 
     def _categorize_new_matches(
-        self, new_match_details: List[Dict[str, Any]], curr_matches_dict: Dict[str, Dict[str, Any]]
+        self,
+        new_match_details: List[Dict[str, Any]],
+        curr_matches_dict: Dict[str, Dict[str, Any]],
     ) -> CategorizedChanges:
         """Categorize new matches as NEW_ASSIGNMENT changes.
 

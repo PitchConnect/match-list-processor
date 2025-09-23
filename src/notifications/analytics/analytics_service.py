@@ -196,7 +196,7 @@ class NotificationAnalyticsService:
             "delivery_rate": (
                 round(successful / total_deliveries, 3) if total_deliveries > 0 else 0.0
             ),
-            "failure_rate": round(failed / total_deliveries, 3) if total_deliveries > 0 else 0.0,
+            "failure_rate": (round(failed / total_deliveries, 3) if total_deliveries > 0 else 0.0),
             "channels": self._get_channel_breakdown(),
         }
 

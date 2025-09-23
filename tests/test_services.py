@@ -165,7 +165,10 @@ class TestGoogleDriveStorageService:
         """Test file upload failure."""
         mock_response = Mock()
         mock_response.status_code = 200
-        mock_response.json.return_value = {"status": "error", "message": "Upload failed"}
+        mock_response.json.return_value = {
+            "status": "error",
+            "message": "Upload failed",
+        }
         mock_post.return_value = mock_response
 
         service = GoogleDriveStorageService()

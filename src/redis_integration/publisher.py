@@ -332,7 +332,9 @@ class MatchProcessorRedisPublisher:
 
 
 # Convenience functions for external use
-def create_redis_publisher(redis_url: Optional[str] = None) -> MatchProcessorRedisPublisher:
+def create_redis_publisher(
+    redis_url: Optional[str] = None,
+) -> MatchProcessorRedisPublisher:
     """
     Create Redis publisher with optional custom URL.
 

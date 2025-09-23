@@ -250,7 +250,12 @@ class TestMonitoringNotificationIntegration:
             mock_get.return_value = mock_response
 
             # Simulate 20 second response time
-            mock_time.side_effect = [1000, 1020, 1020, 1020]  # Extra calls for cooldown check
+            mock_time.side_effect = [
+                1000,
+                1020,
+                1020,
+                1020,
+            ]  # Extra calls for cooldown check
 
             result = client.fetch_matches_list()
             assert result == []
