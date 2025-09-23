@@ -211,11 +211,11 @@ class TestRedisConnectionManager(unittest.TestCase):
 
     def test_create_redis_connection_function(self):
         """Test create_redis_connection helper function."""
-        config = RedisConnectionConfig(url="redis://test:6379")
+        redis_url = "redis://test:6379"
 
-        connection = create_redis_connection(config)
+        connection = create_redis_connection(redis_url)
 
-        self.assertIsInstance(connection, redis.Redis)
+        self.assertIsInstance(connection, RedisConnectionManager)
 
     @patch("redis.from_url")
     def test_test_redis_connection_success(self, mock_redis_from_url):

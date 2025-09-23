@@ -84,6 +84,7 @@ class RedisConnectionManager:
                 decode_responses=self.config.decode_responses,
                 socket_connect_timeout=self.config.socket_connect_timeout,
                 socket_timeout=self.config.socket_timeout,
+                retry_on_timeout=self.config.retry_on_timeout,
             )
 
             # Test connection
@@ -101,6 +102,7 @@ class RedisConnectionManager:
             self.is_connected = False
             self.last_error = str(e)
             self.connection_attempts += 1
+            self.client = None  # Reset client on connection failure
 
             logger.warning(f"⚠️ Redis connection failed (attempt {self.connection_attempts}): {e}")
             return False
