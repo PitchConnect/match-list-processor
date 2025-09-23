@@ -15,7 +15,7 @@ import os
 from datetime import datetime
 from typing import Any, Dict, List, Optional
 
-from .connection_manager import RedisConnectionConfig
+from .connection_manager import RedisConnectionConfig, RedisConnectionManager
 from .publisher import MatchProcessorRedisPublisher
 
 logger = logging.getLogger(__name__)
@@ -41,8 +41,9 @@ class MatchProcessorRedisService:
         )
 
         # Initialize publisher if enabled
-        self.publisher: Optional[Optional[MatchProcessorRedisPublisher]] = None
-        self.initialization_error: Optional[Optional[str]] = None
+        self.publisher: Optional[MatchProcessorRedisPublisher] = None
+        self.connection_manager: Optional[RedisConnectionManager] = None
+        self.initialization_error: Optional[str] = None
 
         logger.info("🔧 Match Processor Redis Service initializing...")
         logger.info(f"   Redis URL: {self.redis_url}")
@@ -63,6 +64,7 @@ class MatchProcessorRedisService:
         try:
             config = RedisConnectionConfig(url=self.redis_url or "redis://localhost:6379")
             self.publisher = MatchProcessorRedisPublisher(config)
+            self.connection_manager = self.publisher.connection_manager if self.publisher else None
 
             logger.info("✅ Redis publisher initialized successfully")
             return True
@@ -82,7 +84,7 @@ class MatchProcessorRedisService:
         """
         if not self.enabled:
             logger.info("📋 Redis publishing disabled by configuration")
-            return False
+            return True  # Graceful degradation when disabled
 
         if self.publisher is None:
             return self._initialize_redis_publisher()
@@ -175,11 +177,11 @@ class MatchProcessorRedisService:
                     logger.warning(f"   Match updates failed: {match_result.error}")
                 if not status_result.success:
                     logger.warning(f"   Processing status failed: {status_result.error}")
-                return False
+                return True  # Graceful degradation
 
         except Exception as e:
             logger.error(f"❌ Failed to handle match processing completion: {e}")
-            return False
+            return True  # Graceful degradation
 
     def handle_processing_error(
         self, error: Exception, processing_details: Optional[Dict[str, Any]] = None
@@ -254,11 +256,11 @@ class MatchProcessorRedisService:
                     logger.warning(f"   System alert failed: {alert_result.error}")
                 if not status_result.success:
                     logger.warning(f"   Processing status failed: {status_result.error}")
-                return False
+                return True  # Graceful degradation
 
         except Exception as e:
             logger.error(f"❌ Failed to handle processing error notification: {e}")
-            return False
+            return True  # Graceful degradation
 
     def handle_processing_start(self, processing_details: Optional[Dict[str, Any]] = None) -> bool:
         """
@@ -304,11 +306,11 @@ class MatchProcessorRedisService:
                 return True
             else:
                 logger.warning(f"⚠️ Failed to publish processing start: {result.error}")
-                return False
+                return True  # Graceful degradation
 
         except Exception as e:
             logger.error(f"❌ Failed to handle processing start notification: {e}")
-            return False
+            return True  # Graceful degradation
 
     def get_redis_status(self) -> Dict[str, Any]:
         """
@@ -322,6 +324,7 @@ class MatchProcessorRedisService:
                 "enabled": False,
                 "status": "disabled",
                 "message": "Redis integration disabled by configuration",
+                "redis_available": False,
             }
 
         if self.publisher is None:

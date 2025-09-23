@@ -218,6 +218,36 @@ class RedisConnectionManager:
                 self.client = None
                 self.is_connected = False
 
+    def get_status(self) -> Dict[str, Any]:
+        """
+        Get connection status information.
+
+        Returns:
+            Dict[str, Any]: Status information including connection state and health
+        """
+        status = self.get_connection_status()
+        return {
+            "connected": status["is_connected"],
+            "healthy": status["is_connected"] and self._health_check(),
+            "redis_available": status["redis_available"],
+            "connection_attempts": status["connection_attempts"],
+            "last_error": status["last_error"],
+            "config": {
+                "url": status["config"]["url"],
+                "timeout": status["config"]["socket_timeout"],
+                "max_retries": status["config"]["max_retries"],
+            },
+        }
+
+    def __enter__(self) -> "RedisConnectionManager":
+        """Context manager entry."""
+        self.ensure_connection()
+        return self
+
+    def __exit__(self, exc_type: Any, exc_val: Any, exc_tb: Any) -> None:
+        """Context manager exit."""
+        self.close()
+
 
 # Convenience functions for external use
 def create_redis_connection(redis_url: Optional[str] = None) -> RedisConnectionManager:

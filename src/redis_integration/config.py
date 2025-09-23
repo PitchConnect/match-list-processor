@@ -201,6 +201,17 @@ class RedisConfigManager:
         """
         return self.config
 
+    def update_config(self, new_config: RedisConfig) -> None:
+        """
+        Update the Redis configuration.
+
+        Args:
+            new_config: New Redis configuration to apply
+        """
+        self.config = new_config
+        self._validation_result = None  # Reset validation cache
+        logger.info("✅ Redis configuration updated")
+
     def validate_config(self) -> Dict[str, Any]:
         """
         Validate current Redis configuration.
