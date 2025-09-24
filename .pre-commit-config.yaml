@@ -49,3 +49,13 @@ repos:
       - id: bandit
         args: [-r, src/, --skip, B101]
         pass_filenames: false
+
+  # Test coverage validation
+  - repo: local
+    hooks:
+      - id: coverage-check
+        name: Test Coverage Check
+        entry: python3 -m pytest --cov=src --cov-fail-under=84 --cov-report=term-missing -q
+        language: system
+        pass_filenames: false
+        stages: [commit]

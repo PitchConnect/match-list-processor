@@ -52,6 +52,11 @@ def main():
         ("python3 -m flake8 src/ tests/", "Flake8 linting check"),
         ("python3 -m mypy src/", "MyPy type checking"),
         ("python3 -m bandit -r src/", "Bandit security check"),
+        # Test coverage validation (CRITICAL - matches CI/CD requirement)
+        (
+            "python3 -m pytest --cov=src --cov-fail-under=84 --cov-report=term-missing -q",
+            "Test coverage validation (84% required)",
+        ),
         # Test execution
         ("python3 -m pytest tests/redis_integration/ -v", "Redis integration tests"),
         # Import validation

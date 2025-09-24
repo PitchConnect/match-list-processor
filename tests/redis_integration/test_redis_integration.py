@@ -17,7 +17,10 @@ sys.path.insert(0, os.path.join(os.path.dirname(__file__), "../../src"))
 from redis_integration import (  # noqa: E402
     MatchProcessorRedisPublisher,
     MatchProcessorRedisService,
+    MatchUpdateMessageFormatter,
+    ProcessingStatusMessageFormatter,
     RedisConfig,
+    RedisConnectionManager,
     add_redis_integration_to_processor,
 )
 
@@ -172,6 +175,158 @@ class TestAppIntegration(unittest.TestCase):
 
         # Should still add redis_integration but warn about missing method
         self.assertTrue(hasattr(processor, "redis_integration"))
+
+    def test_enhanced_processing_with_result(self):
+        """Test enhanced processing method with result object."""
+        from redis_integration.app_integration import create_redis_service
+
+        # Test create_redis_service function
+        service = create_redis_service()
+        self.assertIsNotNone(service)
+
+        # Create mock processor with result object
+        processor = Mock()
+        result_mock = Mock()
+        result_mock.matches = [{"id": 1, "team1": "A", "team2": "B"}]
+        result_mock.changes = {"summary": {"new_matches": 1}}
+        processor._process_matches_sync = Mock(return_value=result_mock)
+
+        add_redis_integration_to_processor(processor)
+
+        # Test enhanced processing
+        enhanced_result = processor._process_matches_sync()
+        self.assertEqual(enhanced_result, result_mock)
+
+    def test_enhanced_processing_with_exception(self):
+        """Test enhanced processing method with exception handling."""
+        processor = Mock()
+        processor._process_matches_sync = Mock(side_effect=Exception("Test error"))
+
+        add_redis_integration_to_processor(processor)
+
+        # Test that exception is re-raised after Redis handling
+        with self.assertRaises(Exception):
+            processor._process_matches_sync()
+
+
+class TestRedisConnectionManager(unittest.TestCase):
+    """Test Redis connection manager functionality."""
+
+    @patch("redis_integration.connection_manager.redis")
+    def test_connection_manager_initialization(self, mock_redis):
+        """Test connection manager initialization."""
+        manager = RedisConnectionManager()
+        self.assertIsNotNone(manager.config)
+
+    @patch("redis_integration.connection_manager.redis")
+    def test_get_client_success(self, mock_redis):
+        """Test successful client connection."""
+        mock_client = Mock()
+        mock_redis.from_url.return_value = mock_client
+
+        manager = RedisConnectionManager()
+        client = manager.get_client()
+
+        self.assertEqual(client, mock_client)
+        mock_client.ping.assert_called_once()
+
+    @patch("redis_integration.connection_manager.redis")
+    def test_get_client_failure(self, mock_redis):
+        """Test client connection failure."""
+        mock_redis.from_url.side_effect = Exception("Connection failed")
+
+        manager = RedisConnectionManager()
+        client = manager.get_client()
+
+        self.assertIsNone(client)
+
+    @patch("redis_integration.connection_manager.redis")
+    def test_is_connected_true(self, mock_redis):
+        """Test is_connected returns True when connected."""
+        mock_client = Mock()
+        mock_redis.from_url.return_value = mock_client
+
+        manager = RedisConnectionManager()
+        manager.config.enabled = True  # Ensure enabled
+        manager.get_client()  # Initialize connection
+
+        self.assertTrue(manager.is_connected())
+
+    @patch("redis_integration.connection_manager.redis")
+    def test_is_connected_false(self, mock_redis):
+        """Test is_connected returns False when not connected."""
+        manager = RedisConnectionManager()
+        manager.config.enabled = False
+
+        self.assertFalse(manager.is_connected())
+
+    @patch("redis_integration.connection_manager.redis")
+    def test_close_connection(self, mock_redis):
+        """Test closing connection."""
+        mock_client = Mock()
+        mock_redis.from_url.return_value = mock_client
+
+        manager = RedisConnectionManager()
+        manager.get_client()  # Initialize connection
+        manager.close()
+
+        mock_client.close.assert_called_once()
+
+
+class TestMessageFormatters(unittest.TestCase):
+    """Test message formatting functionality."""
+
+    def test_match_update_message_format(self):
+        """Test match update message formatting."""
+        matches = [{"id": 1, "team1": "A", "team2": "B"}]
+        changes = {"summary": {"new_matches": 1}}
+        metadata = {"source": "test"}
+
+        message = MatchUpdateMessageFormatter.format_match_updates(matches, changes, metadata)
+
+        self.assertIsInstance(message, str)
+        # Verify it's valid JSON
+        import json
+
+        parsed = json.loads(message)
+        self.assertEqual(parsed["type"], "match_updates")
+        self.assertEqual(parsed["source"], "match-list-processor")
+        self.assertEqual(len(parsed["payload"]["matches"]), 1)
+
+    def test_processing_status_message_format(self):
+        """Test processing status message formatting."""
+        status = "completed"
+        details = {"matches_processed": 5}
+
+        message = ProcessingStatusMessageFormatter.format_processing_status(status, details)
+
+        self.assertIsInstance(message, str)
+        # Verify it's valid JSON
+        import json
+
+        parsed = json.loads(message)
+        self.assertEqual(parsed["type"], "processing_status")
+        self.assertEqual(parsed["payload"]["status"], "completed")
+
+    def test_system_alert_message_format(self):
+        """Test system alert message formatting."""
+        alert_type = "error"
+        message_text = "Test alert"
+        severity = "high"
+        details = {"error_code": 500}
+
+        message = ProcessingStatusMessageFormatter.format_system_alert(
+            alert_type, message_text, severity, details
+        )
+
+        self.assertIsInstance(message, str)
+        # Verify it's valid JSON
+        import json
+
+        parsed = json.loads(message)
+        self.assertEqual(parsed["type"], "system_alert")
+        self.assertEqual(parsed["payload"]["alert_type"], "error")
+        self.assertEqual(parsed["payload"]["severity"], "high")
 
 
 if __name__ == "__main__":
