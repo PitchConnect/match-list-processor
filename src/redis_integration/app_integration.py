@@ -27,7 +27,7 @@ def add_redis_integration_to_processor(processor: Any) -> None:
     if hasattr(processor, "_process_matches_sync"):
         processor._original_process_matches_sync = processor._process_matches_sync
 
-        def enhanced_process_matches_sync():
+        def enhanced_process_matches_sync() -> Any:
             """Enhanced processing method with Redis integration."""
             try:
                 # Publish processing start

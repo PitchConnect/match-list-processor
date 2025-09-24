@@ -6,7 +6,7 @@ High-level Redis service for match processor integration.
 """
 
 import logging
-from typing import Dict, List
+from typing import Dict, List, Optional
 
 from .publisher import MatchProcessorRedisPublisher
 
@@ -16,11 +16,11 @@ logger = logging.getLogger(__name__)
 class MatchProcessorRedisService:
     """High-level Redis service for match processor."""
 
-    def __init__(self):
+    def __init__(self) -> None:
         """Initialize Redis service."""
         self.publisher = MatchProcessorRedisPublisher()
 
-    def handle_processing_start(self, details: Dict = None) -> bool:
+    def handle_processing_start(self, details: Optional[Dict] = None) -> bool:
         """
         Handle processing start event.
 
@@ -34,7 +34,7 @@ class MatchProcessorRedisService:
         return result.success
 
     def handle_match_processing_complete(
-        self, matches: List[Dict], changes: Dict, details: Dict = None
+        self, matches: List[Dict], changes: Dict, details: Optional[Dict] = None
     ) -> bool:
         """
         Handle match processing completion.
@@ -61,7 +61,7 @@ class MatchProcessorRedisService:
 
         return match_result.success and status_result.success
 
-    def handle_processing_error(self, error: Exception, details: Dict = None) -> bool:
+    def handle_processing_error(self, error: Exception, details: Optional[Dict] = None) -> bool:
         """
         Handle processing error.
 

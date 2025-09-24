@@ -8,14 +8,16 @@ Provides message formatting utilities for Redis pub/sub integration.
 import json
 import uuid
 from datetime import datetime
-from typing import Any, Dict, List
+from typing import Dict, List, Optional
 
 
 class MatchUpdateMessageFormatter:
     """Formats match update messages for Redis publishing."""
 
     @staticmethod
-    def format_match_updates(matches: List[Dict], changes: Dict, metadata: Dict = None) -> str:
+    def format_match_updates(
+        matches: List[Dict], changes: Dict, metadata: Optional[Dict] = None
+    ) -> str:
         """
         Format match updates message for Redis publishing.
 
@@ -52,7 +54,7 @@ class ProcessingStatusMessageFormatter:
     """Formats processing status messages for Redis publishing."""
 
     @staticmethod
-    def format_processing_status(status: str, details: Dict = None) -> str:
+    def format_processing_status(status: str, details: Optional[Dict] = None) -> str:
         """
         Format processing status message for Redis publishing.
 
@@ -80,7 +82,7 @@ class ProcessingStatusMessageFormatter:
 
     @staticmethod
     def format_system_alert(
-        alert_type: str, message: str, severity: str = "info", details: Dict = None
+        alert_type: str, message: str, severity: str = "info", details: Optional[Dict] = None
     ) -> str:
         """
         Format system alert message for Redis publishing.

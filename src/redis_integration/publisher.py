@@ -7,7 +7,7 @@ Provides Redis publishing functionality for match updates and status messages.
 
 import logging
 from dataclasses import dataclass
-from typing import Dict, List, Optional
+from typing import Any, Dict, List, Optional
 
 from .connection_manager import RedisConnectionManager
 from .message_formatter import MatchUpdateMessageFormatter, ProcessingStatusMessageFormatter
@@ -27,11 +27,11 @@ class PublishResult:
 class MatchProcessorRedisPublisher:
     """Redis publisher for match processor events."""
 
-    def __init__(self):
+    def __init__(self) -> None:
         """Initialize Redis publisher."""
         self.connection_manager = RedisConnectionManager()
         self.config = self.connection_manager.config
-        self.stats = {
+        self.stats: Dict[str, Any] = {
             "total_published": 0,
             "successful_publishes": 0,
             "failed_publishes": 0,
@@ -39,7 +39,7 @@ class MatchProcessorRedisPublisher:
         }
 
     def publish_match_updates(
-        self, matches: List[Dict], changes: Dict, metadata: Dict = None
+        self, matches: List[Dict], changes: Dict, metadata: Optional[Dict] = None
     ) -> PublishResult:
         """
         Publish match updates to Redis channel.
@@ -59,15 +59,15 @@ class MatchProcessorRedisPublisher:
         if client is None:
             error = "Redis client not available"
             logger.warning(f"⚠️ {error}")
-            self.stats["failed_publishes"] += 1
+            self.stats["failed_publishes"] = self.stats.get("failed_publishes", 0) + 1
             return PublishResult(success=False, error=error)
 
         try:
             message = MatchUpdateMessageFormatter.format_match_updates(matches, changes, metadata)
             subscribers = client.publish(self.config.match_updates_channel, message)
 
-            self.stats["total_published"] += 1
-            self.stats["successful_publishes"] += 1
+            self.stats["total_published"] = self.stats.get("total_published", 0) + 1
+            self.stats["successful_publishes"] = self.stats.get("successful_publishes", 0) + 1
             self.stats["last_publish_time"] = message
 
             logger.info(f"✅ Published match updates to {subscribers} subscribers")
@@ -76,10 +76,12 @@ class MatchProcessorRedisPublisher:
         except Exception as e:
             error = f"Failed to publish match updates: {e}"
             logger.error(f"❌ {error}")
-            self.stats["failed_publishes"] += 1
+            self.stats["failed_publishes"] = self.stats.get("failed_publishes", 0) + 1
             return PublishResult(success=False, error=error)
 
-    def publish_processing_status(self, status: str, details: Dict = None) -> PublishResult:
+    def publish_processing_status(
+        self, status: str, details: Optional[Dict] = None
+    ) -> PublishResult:
         """
         Publish processing status to Redis channel.
 
@@ -97,15 +99,15 @@ class MatchProcessorRedisPublisher:
         if client is None:
             error = "Redis client not available"
             logger.warning(f"⚠️ {error}")
-            self.stats["failed_publishes"] += 1
+            self.stats["failed_publishes"] = self.stats.get("failed_publishes", 0) + 1
             return PublishResult(success=False, error=error)
 
         try:
             message = ProcessingStatusMessageFormatter.format_processing_status(status, details)
             subscribers = client.publish(self.config.processor_status_channel, message)
 
-            self.stats["total_published"] += 1
-            self.stats["successful_publishes"] += 1
+            self.stats["total_published"] = self.stats.get("total_published", 0) + 1
+            self.stats["successful_publishes"] = self.stats.get("successful_publishes", 0) + 1
 
             logger.info(f"✅ Published processing status '{status}' to {subscribers} subscribers")
             return PublishResult(success=True, subscribers_notified=subscribers)
@@ -113,11 +115,11 @@ class MatchProcessorRedisPublisher:
         except Exception as e:
             error = f"Failed to publish processing status: {e}"
             logger.error(f"❌ {error}")
-            self.stats["failed_publishes"] += 1
+            self.stats["failed_publishes"] = self.stats.get("failed_publishes", 0) + 1
             return PublishResult(success=False, error=error)
 
     def publish_system_alert(
-        self, alert_type: str, message: str, severity: str = "info", details: Dict = None
+        self, alert_type: str, message: str, severity: str = "info", details: Optional[Dict] = None
     ) -> PublishResult:
         """
         Publish system alert to Redis channel.
@@ -138,7 +140,7 @@ class MatchProcessorRedisPublisher:
         if client is None:
             error = "Redis client not available"
             logger.warning(f"⚠️ {error}")
-            self.stats["failed_publishes"] += 1
+            self.stats["failed_publishes"] = self.stats.get("failed_publishes", 0) + 1
             return PublishResult(success=False, error=error)
 
         try:
@@ -147,8 +149,8 @@ class MatchProcessorRedisPublisher:
             )
             subscribers = client.publish(self.config.system_alerts_channel, alert_message)
 
-            self.stats["total_published"] += 1
-            self.stats["successful_publishes"] += 1
+            self.stats["total_published"] = self.stats.get("total_published", 0) + 1
+            self.stats["successful_publishes"] = self.stats.get("successful_publishes", 0) + 1
 
             logger.info(f"✅ Published system alert '{alert_type}' to {subscribers} subscribers")
             return PublishResult(success=True, subscribers_notified=subscribers)
@@ -156,7 +158,7 @@ class MatchProcessorRedisPublisher:
         except Exception as e:
             error = f"Failed to publish system alert: {e}"
             logger.error(f"❌ {error}")
-            self.stats["failed_publishes"] += 1
+            self.stats["failed_publishes"] = self.stats.get("failed_publishes", 0) + 1
             return PublishResult(success=False, error=error)
 
     def get_publishing_stats(self) -> Dict:

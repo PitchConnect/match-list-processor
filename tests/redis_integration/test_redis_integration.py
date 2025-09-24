@@ -5,16 +5,16 @@ Tests for Redis Integration
 Comprehensive test suite for Redis pub/sub integration functionality.
 """
 
-import json
 import os
 import sys
 import unittest
 from unittest.mock import Mock, patch
 
-# Add src to path for imports
+# Add src to path for imports (must be before local imports)
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), "../../src"))
 
-from redis_integration import (
+# Local imports after path modification
+from redis_integration import (  # noqa: E402
     MatchProcessorRedisPublisher,
     MatchProcessorRedisService,
     RedisConfig,

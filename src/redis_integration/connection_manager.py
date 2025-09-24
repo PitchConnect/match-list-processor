@@ -8,7 +8,7 @@ Provides Redis connection management for pub/sub integration.
 import logging
 from typing import Optional
 
-import redis
+import redis  # type: ignore
 
 from .config import get_redis_config
 
@@ -18,7 +18,7 @@ logger = logging.getLogger(__name__)
 class RedisConnectionManager:
     """Manages Redis connections for the match processor."""
 
-    def __init__(self):
+    def __init__(self) -> None:
         """Initialize Redis connection manager."""
         self.config = get_redis_config()
         self._client: Optional[redis.Redis] = None

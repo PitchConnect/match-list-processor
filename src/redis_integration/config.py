@@ -7,7 +7,7 @@ Provides essential Redis configuration for pub/sub integration.
 
 import os
 from dataclasses import dataclass
-from typing import Dict
+from typing import Dict, Optional
 
 
 @dataclass
@@ -46,7 +46,7 @@ class RedisConfig:
 
 
 # Global configuration instance
-_config: RedisConfig = None
+_config: Optional[RedisConfig] = None
 
 
 def get_redis_config() -> RedisConfig:
