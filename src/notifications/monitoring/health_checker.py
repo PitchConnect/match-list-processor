@@ -82,8 +82,11 @@ class NotificationHealthChecker:
 
         try:
             # Get delivery statistics
-            delivery_stats = self.delivery_monitor.get_delivery_stats(1)  # Last hour
-            stats["delivery"] = delivery_stats
+            if self.delivery_monitor is not None:
+                delivery_stats = self.delivery_monitor.get_delivery_stats(1)  # Last hour
+                stats["delivery"] = delivery_stats
+            else:
+                delivery_stats = {}
 
             # Check success rate
             success_rate = delivery_stats.get("success_rate", 0)
@@ -173,7 +176,7 @@ class NotificationHealthChecker:
 
         except ImportError:
             # psutil not available
-            stats["system_monitoring"] = "unavailable"
+            stats["system_monitoring_available"] = False
         except Exception as e:
             logger.error(f"System resource check failed: {e}")
             issues.append(f"System resource check failed: {str(e)}")

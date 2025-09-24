@@ -85,7 +85,7 @@ class RedisConnectionManager:
                 socket_connect_timeout=self.config.socket_connect_timeout,
                 socket_timeout=self.config.socket_timeout,
                 retry_on_timeout=self.config.retry_on_timeout,
-            )
+            )  # type: ignore[call-overload]
 
             # Test connection
             self.client.ping()
