@@ -38,7 +38,7 @@ repos:
     rev: v1.13.0
     hooks:
       - id: mypy
-        additional_dependencies: [types-requests, pydantic-settings, fastapi, uvicorn]
+        additional_dependencies: [types-requests, pydantic-settings, fastapi, uvicorn, redis, types-redis]
         args: [--no-error-summary]
         files: ^src/
 

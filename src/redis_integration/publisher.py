@@ -64,7 +64,11 @@ class MatchProcessorRedisPublisher:
 
         try:
             message = MatchUpdateMessageFormatter.format_match_updates(matches, changes, metadata)
-            subscribers = client.publish(self.config.match_updates_channel, message)
+            subscribers_result = client.publish(self.config.match_updates_channel, message)
+            # Handle both sync and async redis client return types
+            subscribers = (
+                int(subscribers_result) if not hasattr(subscribers_result, "__await__") else 0
+            )
 
             self.stats["total_published"] = self.stats.get("total_published", 0) + 1
             self.stats["successful_publishes"] = self.stats.get("successful_publishes", 0) + 1
@@ -104,7 +108,11 @@ class MatchProcessorRedisPublisher:
 
         try:
             message = ProcessingStatusMessageFormatter.format_processing_status(status, details)
-            subscribers = client.publish(self.config.processor_status_channel, message)
+            subscribers_result = client.publish(self.config.processor_status_channel, message)
+            # Handle both sync and async redis client return types
+            subscribers = (
+                int(subscribers_result) if not hasattr(subscribers_result, "__await__") else 0
+            )
 
             self.stats["total_published"] = self.stats.get("total_published", 0) + 1
             self.stats["successful_publishes"] = self.stats.get("successful_publishes", 0) + 1
@@ -147,7 +155,11 @@ class MatchProcessorRedisPublisher:
             alert_message = ProcessingStatusMessageFormatter.format_system_alert(
                 alert_type, message, severity, details
             )
-            subscribers = client.publish(self.config.system_alerts_channel, alert_message)
+            subscribers_result = client.publish(self.config.system_alerts_channel, alert_message)
+            # Handle both sync and async redis client return types
+            subscribers = (
+                int(subscribers_result) if not hasattr(subscribers_result, "__await__") else 0
+            )
 
             self.stats["total_published"] = self.stats.get("total_published", 0) + 1
             self.stats["successful_publishes"] = self.stats.get("successful_publishes", 0) + 1

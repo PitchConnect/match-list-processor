@@ -8,7 +8,7 @@ Provides Redis connection management for pub/sub integration.
 import logging
 from typing import Optional
 
-import redis  # type: ignore
+import redis
 
 from .config import get_redis_config
 
