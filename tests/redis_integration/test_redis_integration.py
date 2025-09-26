@@ -572,5 +572,344 @@ class TestEnhancedMatchProcessingIntegration(unittest.TestCase):
             )
 
 
+class TestRedisPublisherCoverage(unittest.TestCase):
+    """Test Redis publisher methods for improved coverage."""
+
+    def setUp(self):
+        """Set up test publisher."""
+        self.publisher = MatchProcessorRedisPublisher()
+        self.sample_matches = [
+            {
+                "matchid": 6170049,
+                "lag1foreningid": 10741,
+                "lag2foreningid": 9595,
+                "lag1lagid": 26405,
+                "lag2lagid": 25562,
+            }
+        ]
+
+    def test_publish_enhanced_schema_v2_disabled(self):
+        """Test Enhanced Schema v2.0 publishing when disabled."""
+        self.publisher.config.enabled = False
+
+        result = self.publisher.publish_enhanced_schema_v2(self.sample_matches)
+
+        self.assertTrue(result.success)
+        self.assertEqual(result.subscribers_notified, 0)
+
+    @patch('redis_integration.connection_manager.redis.from_url')
+    def test_publish_enhanced_schema_v2_no_client(self, mock_redis):
+        """Test Enhanced Schema v2.0 publishing when Redis client unavailable."""
+        mock_redis.side_effect = Exception("Connection failed")
+
+        result = self.publisher.publish_enhanced_schema_v2(self.sample_matches)
+
+        self.assertFalse(result.success)
+        self.assertIn("Redis client not available", result.error)
+
+    def test_publish_multi_version_updates_disabled(self):
+        """Test multi-version publishing when disabled."""
+        self.publisher.config.enabled = False
+
+        results = self.publisher.publish_multi_version_updates(self.sample_matches)
+
+        self.assertEqual(len(results), 3)
+        for result in results.values():
+            self.assertTrue(result.success)
+            self.assertEqual(result.subscribers_notified, 0)
+
+    @patch('redis_integration.connection_manager.redis.from_url')
+    def test_publish_multi_version_updates_no_client(self, mock_redis):
+        """Test multi-version publishing when Redis client unavailable."""
+        mock_redis.side_effect = Exception("Connection failed")
+
+        results = self.publisher.publish_multi_version_updates(self.sample_matches)
+
+        self.assertEqual(len(results), 3)
+        for result in results.values():
+            self.assertFalse(result.success)
+            self.assertIn("Redis client not available", result.error)
+
+
+class TestRedisConnectionManagerCoverage(unittest.TestCase):
+    """Test Redis connection manager for improved coverage."""
+
+    def setUp(self):
+        """Set up test connection manager."""
+        self.connection_manager = RedisConnectionManager()
+
+    def test_get_client_disabled(self):
+        """Test get client when Redis is disabled."""
+        self.connection_manager.config.enabled = False
+
+        client = self.connection_manager.get_client()
+
+        self.assertIsNone(client)
+
+    @patch('redis_integration.connection_manager.redis.from_url')
+    def test_get_client_exception(self, mock_redis):
+        """Test Redis client creation with exception."""
+        mock_redis.side_effect = Exception("Connection failed")
+
+        client = self.connection_manager.get_client()
+
+        self.assertIsNone(client)
+
+    def test_close_connection_no_client(self):
+        """Test closing connection when no client exists."""
+        # Should not raise exception
+        self.connection_manager.close()
+
+    @patch('redis_integration.connection_manager.redis.from_url')
+    def test_close_connection_exception(self, mock_redis):
+        """Test closing connection with exception."""
+        mock_client = Mock()
+        mock_client.ping.return_value = True
+        mock_client.close.side_effect = Exception("Close failed")
+        mock_redis.return_value = mock_client
+
+        # Create client first
+        self.connection_manager.get_client()
+
+        # Should not raise exception when closing fails
+        self.connection_manager.close()
+
+
+class TestRedisServicesCoverage(unittest.TestCase):
+    """Test Redis services for improved coverage."""
+
+    def setUp(self):
+        """Set up test service."""
+        self.service = MatchProcessorRedisService()
+
+    def test_handle_processing_start_disabled(self):
+        """Test handling processing start when Redis disabled."""
+        self.service.publisher.config.enabled = False
+
+        # Should not raise exception
+        result = self.service.handle_processing_start({"test": "metadata"})
+
+        self.assertTrue(result)
+
+    def test_handle_processing_error_disabled(self):
+        """Test handling processing error when Redis disabled."""
+        self.service.publisher.config.enabled = False
+
+        error = Exception("Test error")
+
+        # Should not raise exception
+        result = self.service.handle_processing_error(error, {"test": "metadata"})
+
+        self.assertTrue(result)
+
+    def test_handle_match_processing_complete_disabled(self):
+        """Test handling match processing completion when Redis disabled."""
+        self.service.publisher.config.enabled = False
+
+        matches = [{"matchid": 123}]
+        changes = {"summary": {"total_changes": 1}}
+
+        # Should not raise exception
+        result = self.service.handle_match_processing_complete(matches, changes)
+
+        self.assertTrue(result)
+
+
+class TestEnhancedAppIntegrationCoverage(unittest.TestCase):
+    """Test Enhanced App Integration for improved coverage."""
+
+    def setUp(self):
+        """Set up test integration."""
+        self.integration = EnhancedMatchProcessingIntegration(enabled=False)
+
+    def test_handle_match_processing_complete_v2_disabled(self):
+        """Test Enhanced Schema v2.0 processing when disabled."""
+        matches = [{"matchid": 123}]
+        changes = {"summary": {"total_changes": 1}}
+
+        # Should not raise exception when disabled
+        self.integration.handle_match_processing_complete_v2(matches, changes)
+
+    def test_log_enhanced_message_details(self):
+        """Test enhanced message details logging."""
+        matches = [{"matchid": 123, "lag1foreningid": 456, "lag2foreningid": 789}]
+        changes = {"detailed_changes": [{"field": "time", "from": "19:00", "to": "19:15"}]}
+
+        # Should not raise exception
+        self.integration._log_enhanced_message_details(matches, changes)
+
+    def test_log_enhanced_message_details_no_changes(self):
+        """Test enhanced message details logging with no changes."""
+        matches = [{"matchid": 123}]
+
+        # Should not raise exception
+        self.integration._log_enhanced_message_details(matches, None)
+
+    def test_log_publishing_results(self):
+        """Test publishing results logging."""
+        from redis_integration.publisher import PublishResult
+
+        results = {
+            "v2.0": PublishResult(success=True, subscribers_notified=3),
+            "v1.0": PublishResult(success=False, error="Test error"),
+        }
+
+        # Should not raise exception
+        self.integration._log_publishing_results(results)
+
+
+class TestRedisConfigCoverage(unittest.TestCase):
+    """Test Redis config for improved coverage."""
+
+    def test_redis_config_defaults(self):
+        """Test Redis config default values."""
+        from redis_integration.config import RedisConfig
+
+        config = RedisConfig()
+
+        self.assertTrue(config.enabled)
+        self.assertEqual(config.url, "redis://fogis-redis:6379")
+        self.assertEqual(config.match_updates_channel, "fogis:matches:updates")
+
+    def test_redis_config_from_env(self):
+        """Test Redis config from environment variables."""
+        from redis_integration.config import RedisConfig
+        import os
+
+        # Set environment variables
+        os.environ["REDIS_PUBSUB_ENABLED"] = "false"
+        os.environ["REDIS_URL"] = "redis://test:6379/1"
+        os.environ["REDIS_MATCH_UPDATES_CHANNEL"] = "test:matches"
+
+        config = RedisConfig.from_environment()
+
+        self.assertFalse(config.enabled)
+        self.assertEqual(config.url, "redis://test:6379/1")
+        self.assertEqual(config.match_updates_channel, "test:matches")
+
+        # Clean up
+        del os.environ["REDIS_PUBSUB_ENABLED"]
+        del os.environ["REDIS_URL"]
+        del os.environ["REDIS_MATCH_UPDATES_CHANNEL"]
+
+    def test_redis_config_get_channels(self):
+        """Test Redis config get channels method."""
+        from redis_integration.config import RedisConfig
+
+        config = RedisConfig()
+        channels = config.get_channels()
+
+        self.assertIn("match_updates", channels)
+        self.assertIn("processor_status", channels)
+        self.assertIn("system_alerts", channels)
+
+    def test_global_config_functions(self):
+        """Test global config functions."""
+        from redis_integration.config import get_redis_config, reload_redis_config
+
+        config1 = get_redis_config()
+        config2 = get_redis_config()
+
+        # Should return same instance
+        self.assertIs(config1, config2)
+
+        # Test reload
+        reload_redis_config()
+        config3 = get_redis_config()
+
+        # Should be different instance after reload
+        self.assertIsNot(config1, config3)
+
+
+class TestMessageFormatterEdgeCases(unittest.TestCase):
+    """Test message formatter edge cases for improved coverage."""
+
+    def test_format_match_updates_empty_matches(self):
+        """Test formatting with empty matches list."""
+        from redis_integration.message_formatter import MatchUpdateMessageFormatter
+        import json
+
+        message_str = MatchUpdateMessageFormatter.format_match_updates([], {})
+        message = json.loads(message_str)
+
+        self.assertIn("payload", message)
+        self.assertIn("matches", message["payload"])
+        self.assertEqual(len(message["payload"]["matches"]), 0)
+
+    def test_format_match_updates_with_changes(self):
+        """Test formatting with changes summary."""
+        from redis_integration.message_formatter import MatchUpdateMessageFormatter
+        import json
+
+        matches = [{"matchid": 123}]
+        changes = {"summary": {"total_changes": 1}}
+        message_str = MatchUpdateMessageFormatter.format_match_updates(matches, changes)
+        message = json.loads(message_str)
+
+        self.assertIn("payload", message)
+        self.assertIn("matches", message["payload"])
+        self.assertIn("metadata", message["payload"])
+
+    def test_format_processing_status_edge_cases(self):
+        """Test processing status formatting edge cases."""
+        from redis_integration.message_formatter import ProcessingStatusMessageFormatter
+        import json
+
+        # Test with minimal metadata
+        message_str = ProcessingStatusMessageFormatter.format_processing_status("started", {})
+        message = json.loads(message_str)
+
+        self.assertEqual(message["payload"]["status"], "started")
+        self.assertIn("timestamp", message)
+
+    def test_format_system_alert_edge_cases(self):
+        """Test system alert formatting edge cases."""
+        from redis_integration.message_formatter import ProcessingStatusMessageFormatter
+        import json
+
+        # Test with minimal alert
+        message_str = ProcessingStatusMessageFormatter.format_system_alert("error", "Test error", "critical")
+        message = json.loads(message_str)
+
+        self.assertEqual(message["payload"]["alert_type"], "error")
+        self.assertEqual(message["payload"]["message"], "Test error")
+        self.assertEqual(message["payload"]["severity"], "critical")
+
+
+class TestPublishResultCoverage(unittest.TestCase):
+    """Test PublishResult class for improved coverage."""
+
+    def test_publish_result_success(self):
+        """Test successful PublishResult."""
+        from redis_integration.publisher import PublishResult
+
+        result = PublishResult(success=True, subscribers_notified=5)
+
+        self.assertTrue(result.success)
+        self.assertEqual(result.subscribers_notified, 5)
+        self.assertIsNone(result.error)
+
+    def test_publish_result_failure(self):
+        """Test failed PublishResult."""
+        from redis_integration.publisher import PublishResult
+
+        result = PublishResult(success=False, error="Test error")
+
+        self.assertFalse(result.success)
+        self.assertEqual(result.subscribers_notified, 0)
+        self.assertEqual(result.error, "Test error")
+
+    def test_publish_result_repr(self):
+        """Test PublishResult string representation."""
+        from redis_integration.publisher import PublishResult
+
+        result = PublishResult(success=True, subscribers_notified=3)
+        repr_str = repr(result)
+
+        self.assertIn("PublishResult", repr_str)
+        self.assertIn("success=True", repr_str)
+        self.assertIn("subscribers_notified=3", repr_str)
+
+
 if __name__ == "__main__":
     unittest.main()
