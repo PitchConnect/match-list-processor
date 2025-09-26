@@ -15,6 +15,8 @@ sys.path.insert(0, os.path.join(os.path.dirname(__file__), "../../src"))
 
 # Local imports after path modification
 from redis_integration import (  # noqa: E402
+    EnhancedMatchProcessingIntegration,
+    EnhancedSchemaV2Formatter,
     MatchProcessorRedisPublisher,
     MatchProcessorRedisService,
     MatchUpdateMessageFormatter,
@@ -327,6 +329,247 @@ class TestMessageFormatters(unittest.TestCase):
         self.assertEqual(parsed["type"], "system_alert")
         self.assertEqual(parsed["payload"]["alert_type"], "error")
         self.assertEqual(parsed["payload"]["severity"], "high")
+
+
+class TestEnhancedSchemaV2Formatter(unittest.TestCase):
+    """Test Enhanced Schema v2.0 formatter with Organization ID mapping."""
+
+    def setUp(self):
+        """Set up test data."""
+        self.sample_match = {
+            "matchid": 6170049,
+            "lag1namn": "Lindome GIF",
+            "lag2namn": "Jonsereds IF",
+            "lag1lagid": 26405,  # Database ID
+            "lag2lagid": 25562,  # Database ID
+            "lag1foreningid": 10741,  # Organization ID for logo service
+            "lag2foreningid": 9595,  # Organization ID for logo service
+            "speldatum": "2025-09-26",
+            "avsparkstid": "19:00",
+            "anlaggningnamn": "Lindome IP",
+            "anlaggningadress": "Lindome Industriområde",
+            "serienamn": "Division 4 Göteborg A",
+            "serieniva": "Division 4",
+            "matchstatus": "scheduled",
+            "domaruppdraglista": [
+                {
+                    "namn": "Bartek Svaberg",
+                    "uppdragstyp": "Huvuddomare",
+                    "mobil": "0709423055",
+                    "epost": "bartek.svaberg@gmail.com",
+                    "adress": "Lilla Tulteredsvägen 50",
+                    "postnummer": "43331",
+                    "postort": "Partille",
+                }
+            ],
+            "lag1kontakt": {
+                "namn": "Morgan Johansson",
+                "mobil": "0733472740",
+                "epost": "morgan@kalltorpsbygg.se",
+            },
+            "lag2kontakt": {
+                "namn": "Erik Andersson",
+                "mobil": "0701234567",
+                "epost": "erik@jonsereds.se",
+            },
+        }
+
+        self.sample_changes = {
+            "summary": {"total_changes": 1, "change_types": ["time_change"]},
+            "detailed_changes": [
+                {
+                    "field": "avsparkstid",
+                    "from": "19:00",
+                    "to": "19:15",
+                    "category": "time_change",
+                    "priority": "high",
+                }
+            ],
+        }
+
+    def test_organization_id_mapping(self):
+        """Test that Organization IDs are correctly mapped for logo service."""
+        message_json = EnhancedSchemaV2Formatter.format_match_updates_v2(
+            [self.sample_match], self.sample_changes
+        )
+
+        import json
+
+        message = json.loads(message_json)
+
+        # Verify schema version
+        self.assertEqual(message["schema_version"], "2.0")
+        self.assertEqual(message["schema_type"], "enhanced_with_contacts_and_logo_ids")
+
+        # Verify Organization ID mapping
+        home_team = message["payload"]["matches"][0]["teams"]["home"]
+        away_team = message["payload"]["matches"][0]["teams"]["away"]
+
+        # Database IDs should be preserved for database references
+        self.assertEqual(home_team["id"], 26405)
+        self.assertEqual(away_team["id"], 25562)
+
+        # Organization IDs should be used for logo service
+        self.assertEqual(home_team["logo_id"], 10741)
+        self.assertEqual(away_team["logo_id"], 9595)
+        self.assertEqual(home_team["organization_id"], 10741)
+        self.assertEqual(away_team["organization_id"], 9595)
+
+    def test_contact_data_structure(self):
+        """Test complete contact data structure for calendar sync."""
+        message_json = EnhancedSchemaV2Formatter.format_match_updates_v2(
+            [self.sample_match], self.sample_changes
+        )
+
+        import json
+
+        message = json.loads(message_json)
+
+        match_data = message["payload"]["matches"][0]
+
+        # Verify referee contact information
+        referee = match_data["referees"][0]
+        self.assertEqual(referee["name"], "Bartek Svaberg")
+        self.assertEqual(referee["role"], "Huvuddomare")
+        self.assertIn("contact", referee)
+        self.assertEqual(referee["contact"]["mobile"], "0709423055")
+        self.assertEqual(referee["contact"]["email"], "bartek.svaberg@gmail.com")
+
+        # Verify referee address information
+        address = referee["contact"]["address"]
+        self.assertEqual(address["street"], "Lilla Tulteredsvägen 50")
+        self.assertEqual(address["postal_code"], "43331")
+        self.assertEqual(address["city"], "Partille")
+
+        # Verify team contact information
+        team_contacts = match_data["team_contacts"]
+        self.assertEqual(len(team_contacts), 2)
+
+        home_contact = team_contacts[0]
+        self.assertEqual(home_contact["name"], "Morgan Johansson")
+        self.assertEqual(home_contact["team_name"], "Lindome GIF")
+        self.assertEqual(home_contact["contact"]["mobile"], "0733472740")
+
+    def test_detailed_changes_structure(self):
+        """Test detailed changes structure for intelligent processing."""
+        message_json = EnhancedSchemaV2Formatter.format_match_updates_v2(
+            [self.sample_match], self.sample_changes
+        )
+
+        import json
+
+        message = json.loads(message_json)
+
+        detailed_changes = message["payload"]["detailed_changes"]
+        self.assertEqual(len(detailed_changes), 1)
+
+        change = detailed_changes[0]
+        self.assertEqual(change["field"], "avsparkstid")
+        self.assertEqual(change["from"], "19:00")
+        self.assertEqual(change["to"], "19:15")
+        self.assertEqual(change["category"], "time_change")
+        self.assertEqual(change["priority"], "high")
+
+    def test_legacy_v1_compatibility(self):
+        """Test Legacy Schema v1.0 for backward compatibility."""
+        message_json = EnhancedSchemaV2Formatter.format_match_updates_v1_legacy(
+            [self.sample_match], self.sample_changes
+        )
+
+        import json
+
+        message = json.loads(message_json)
+
+        # Verify simplified structure
+        self.assertEqual(message["version"], "1.0")
+        self.assertEqual(message["type"], "match_updates")
+
+        match_data = message["payload"]["matches"][0]
+        self.assertEqual(match_data["match_id"], 6170049)
+        self.assertEqual(match_data["teams"], "Lindome GIF vs Jonsereds IF")
+        self.assertEqual(match_data["date"], "2025-09-26")
+        self.assertEqual(match_data["time"], "19:00")
+        self.assertEqual(match_data["venue"], "Lindome IP")
+        self.assertEqual(match_data["referees"], ["Bartek Svaberg"])
+
+    def test_message_size_validation(self):
+        """Test that Enhanced Schema v2.0 messages are under size limits."""
+        message_json = EnhancedSchemaV2Formatter.format_match_updates_v2(
+            [self.sample_match], self.sample_changes
+        )
+
+        # Test message size (should be under 5KB for Redis efficiency)
+        message_size = len(message_json.encode("utf-8"))
+        self.assertLess(message_size, 5000, f"Message size {message_size} bytes exceeds 5KB limit")
+
+        # Test legacy message size
+        legacy_json = EnhancedSchemaV2Formatter.format_match_updates_v1_legacy(
+            [self.sample_match], self.sample_changes
+        )
+        legacy_size = len(legacy_json.encode("utf-8"))
+        self.assertLess(
+            legacy_size, 1000, f"Legacy message size {legacy_size} bytes exceeds 1KB limit"
+        )
+
+
+class TestEnhancedMatchProcessingIntegration(unittest.TestCase):
+    """Test Enhanced Match Processing Integration with Schema v2.0."""
+
+    def setUp(self):
+        """Set up test integration."""
+        self.integration = EnhancedMatchProcessingIntegration(enabled=True)
+        self.sample_matches = [
+            {
+                "matchid": 6170049,
+                "lag1foreningid": 10741,
+                "lag2foreningid": 9595,
+                "lag1lagid": 26405,
+                "lag2lagid": 25562,
+            }
+        ]
+
+    @patch("redis_integration.publisher.MatchProcessorRedisPublisher.publish_multi_version_updates")
+    def test_enhanced_publishing_success(self, mock_publish):
+        """Test successful Enhanced Schema v2.0 publishing."""
+        from redis_integration.publisher import PublishResult
+
+        mock_publish.return_value = {
+            "v2.0": PublishResult(success=True, subscribers_notified=3),
+            "v1.0_legacy": PublishResult(success=True, subscribers_notified=2),
+            "default": PublishResult(success=True, subscribers_notified=3),
+        }
+
+        # Should not raise any exceptions
+        self.integration.handle_match_processing_complete_v2(
+            self.sample_matches, {"summary": {"total_changes": 1}}
+        )
+
+        mock_publish.assert_called_once()
+
+    def test_organization_id_validation(self):
+        """Test Organization ID validation for logo service."""
+        # Test with missing Organization IDs
+        invalid_matches = [
+            {
+                "matchid": 123,
+                "lag1foreningid": None,  # Missing
+                "lag2foreningid": 456,
+                "lag1lagid": 789,
+                "lag2lagid": 101,
+            }
+        ]
+
+        # Should log warnings but not fail
+        with patch("redis_integration.app_integration.logger") as mock_logger:
+            self.integration._validate_organization_ids(invalid_matches)
+            mock_logger.warning.assert_called()
+
+        # Test with valid Organization IDs
+        with patch("redis_integration.app_integration.logger") as mock_logger:
+            self.integration._validate_organization_ids(self.sample_matches)
+            mock_logger.info.assert_called_with(
+                "✅ All matches have Organization IDs for logo service integration"
+            )
 
 
 if __name__ == "__main__":
