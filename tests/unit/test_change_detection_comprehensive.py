@@ -1,7 +1,7 @@
 """Comprehensive unit tests for change detection components."""
 
 import os
-from datetime import datetime
+from datetime import datetime, timezone
 from unittest.mock import patch
 
 import pytest
@@ -233,11 +233,13 @@ class TestChangeCategorizationDetector:
 
     def test_same_day_priority_escalation(self, sample_match_data):
         """Test priority escalation for same-day changes."""
-        # Create match for today
-        today = datetime.now().strftime("%Y-%m-%d")
+        # Create match for today (using UTC to match the implementation)
+        today = datetime.now(timezone.utc).strftime("%Y-%m-%d")
         same_day_match = sample_match_data.copy()
         same_day_match["speldatum"] = today
         same_day_match["avsparkstid"] = "16:00"  # Time change
+        same_day_match["tid"] = f"{today}T16:00:00"  # Update full timestamp
+        same_day_match["tidsangivelse"] = f"{today} 16:00"  # Update time display
 
         # Use individual match objects, not lists
         changes = self.detector.categorize_changes(sample_match_data, same_day_match)

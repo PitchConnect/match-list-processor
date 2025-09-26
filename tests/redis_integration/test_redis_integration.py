@@ -578,6 +578,8 @@ class TestRedisPublisherCoverage(unittest.TestCase):
     def setUp(self):
         """Set up test publisher."""
         self.publisher = MatchProcessorRedisPublisher()
+        # Store original config state
+        self.original_enabled = self.publisher.config.enabled
         self.sample_matches = [
             {
                 "matchid": 6170049,
@@ -588,6 +590,11 @@ class TestRedisPublisherCoverage(unittest.TestCase):
             }
         ]
 
+    def tearDown(self):
+        """Clean up after each test."""
+        # Restore original config state
+        self.publisher.config.enabled = self.original_enabled
+
     def test_publish_enhanced_schema_v2_disabled(self):
         """Test Enhanced Schema v2.0 publishing when disabled."""
         self.publisher.config.enabled = False
@@ -597,7 +604,7 @@ class TestRedisPublisherCoverage(unittest.TestCase):
         self.assertTrue(result.success)
         self.assertEqual(result.subscribers_notified, 0)
 
-    @patch('redis_integration.connection_manager.redis.from_url')
+    @patch("redis_integration.connection_manager.redis.from_url")
     def test_publish_enhanced_schema_v2_no_client(self, mock_redis):
         """Test Enhanced Schema v2.0 publishing when Redis client unavailable."""
         mock_redis.side_effect = Exception("Connection failed")
@@ -618,7 +625,7 @@ class TestRedisPublisherCoverage(unittest.TestCase):
             self.assertTrue(result.success)
             self.assertEqual(result.subscribers_notified, 0)
 
-    @patch('redis_integration.connection_manager.redis.from_url')
+    @patch("redis_integration.connection_manager.redis.from_url")
     def test_publish_multi_version_updates_no_client(self, mock_redis):
         """Test multi-version publishing when Redis client unavailable."""
         mock_redis.side_effect = Exception("Connection failed")
@@ -646,7 +653,7 @@ class TestRedisConnectionManagerCoverage(unittest.TestCase):
 
         self.assertIsNone(client)
 
-    @patch('redis_integration.connection_manager.redis.from_url')
+    @patch("redis_integration.connection_manager.redis.from_url")
     def test_get_client_exception(self, mock_redis):
         """Test Redis client creation with exception."""
         mock_redis.side_effect = Exception("Connection failed")
@@ -660,7 +667,7 @@ class TestRedisConnectionManagerCoverage(unittest.TestCase):
         # Should not raise exception
         self.connection_manager.close()
 
-    @patch('redis_integration.connection_manager.redis.from_url')
+    @patch("redis_integration.connection_manager.redis.from_url")
     def test_close_connection_exception(self, mock_redis):
         """Test closing connection with exception."""
         mock_client = Mock()
@@ -773,8 +780,9 @@ class TestRedisConfigCoverage(unittest.TestCase):
 
     def test_redis_config_from_env(self):
         """Test Redis config from environment variables."""
-        from redis_integration.config import RedisConfig
         import os
+
+        from redis_integration.config import RedisConfig
 
         # Set environment variables
         os.environ["REDIS_PUBSUB_ENABLED"] = "false"
@@ -826,8 +834,9 @@ class TestMessageFormatterEdgeCases(unittest.TestCase):
 
     def test_format_match_updates_empty_matches(self):
         """Test formatting with empty matches list."""
-        from redis_integration.message_formatter import MatchUpdateMessageFormatter
         import json
+
+        from redis_integration.message_formatter import MatchUpdateMessageFormatter
 
         message_str = MatchUpdateMessageFormatter.format_match_updates([], {})
         message = json.loads(message_str)
@@ -838,8 +847,9 @@ class TestMessageFormatterEdgeCases(unittest.TestCase):
 
     def test_format_match_updates_with_changes(self):
         """Test formatting with changes summary."""
-        from redis_integration.message_formatter import MatchUpdateMessageFormatter
         import json
+
+        from redis_integration.message_formatter import MatchUpdateMessageFormatter
 
         matches = [{"matchid": 123}]
         changes = {"summary": {"total_changes": 1}}
@@ -852,8 +862,9 @@ class TestMessageFormatterEdgeCases(unittest.TestCase):
 
     def test_format_processing_status_edge_cases(self):
         """Test processing status formatting edge cases."""
-        from redis_integration.message_formatter import ProcessingStatusMessageFormatter
         import json
+
+        from redis_integration.message_formatter import ProcessingStatusMessageFormatter
 
         # Test with minimal metadata
         message_str = ProcessingStatusMessageFormatter.format_processing_status("started", {})
@@ -864,11 +875,14 @@ class TestMessageFormatterEdgeCases(unittest.TestCase):
 
     def test_format_system_alert_edge_cases(self):
         """Test system alert formatting edge cases."""
-        from redis_integration.message_formatter import ProcessingStatusMessageFormatter
         import json
 
+        from redis_integration.message_formatter import ProcessingStatusMessageFormatter
+
         # Test with minimal alert
-        message_str = ProcessingStatusMessageFormatter.format_system_alert("error", "Test error", "critical")
+        message_str = ProcessingStatusMessageFormatter.format_system_alert(
+            "error", "Test error", "critical"
+        )
         message = json.loads(message_str)
 
         self.assertEqual(message["payload"]["alert_type"], "error")
