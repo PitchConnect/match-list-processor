@@ -182,7 +182,12 @@ class TestApiClient:
 
     def setup_method(self):
         """Set up test fixtures."""
-        self.client = DockerNetworkApiClient()
+        # Force unit test mode to allow network call testing
+        with patch.dict("os.environ", {"PYTEST_API_CLIENT_UNIT_TEST": "1"}):
+            self.client = DockerNetworkApiClient()
+            # Override test mode for unit tests that need to test network behavior
+            self.client.is_test_mode = False
+            self.client._force_network_calls = True  # Force network calls for unit tests
 
     def test_client_initialization(self):
         """Test client initialization."""
