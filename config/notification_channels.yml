@@ -1,0 +1,261 @@
+# Notification Channels Configuration
+# This file contains the configuration for all notification channels
+# Environment variables will override these settings for production
+
+# =============================================================================
+# NOTIFICATION SYSTEM CONFIGURATION
+# =============================================================================
+notification_system:
+  enabled: true
+  stakeholder_storage_path: "data/stakeholders.json"
+  analytics_storage_path: "data/notification_analytics.json"
+  batch_size: 10
+  batch_timeout: 30  # seconds
+
+  # Delivery retry configuration
+  retry:
+    max_attempts: 3
+    initial_delay: 1  # seconds
+    max_delay: 60     # seconds
+    backoff_factor: 2
+
+# =============================================================================
+# EMAIL CHANNEL CONFIGURATION
+# =============================================================================
+email:
+  enabled: true  # Enabled for notifications
+
+  # SMTP Server Configuration
+  smtp_server: "smtp.gmail.com"  # Override with SMTP_HOST env var
+  smtp_port: 587                 # Override with SMTP_PORT env var
+  smtp_username: ""              # Override with SMTP_USERNAME env var
+  smtp_password: ""              # Override with SMTP_PASSWORD env var
+  email_from: "fogis-notifications@yourcompany.com"  # Override with SMTP_FROM env var
+  use_tls: true
+
+  # Email Templates
+  templates:
+    subject_prefix: "[FOGIS]"
+    include_html: true
+    include_text: true
+
+  # Rate limiting
+  rate_limit:
+    max_per_minute: 30
+    max_per_hour: 500
+
+# =============================================================================
+# DISCORD CHANNEL CONFIGURATION
+# =============================================================================
+discord:
+  enabled: false  # Set to true when webhook is configured
+
+  # Discord Webhook Configuration
+  webhook_url: ""  # Override with DISCORD_WEBHOOK_URL env var
+  bot_username: "FOGIS Match Bot"
+  bot_avatar_url: ""  # Optional: Override with DISCORD_AVATAR_URL env var
+
+  # Discord-specific settings
+  embed_color: 0x00ff00  # Green for match notifications
+  mention_roles: []      # Discord role IDs to mention for critical alerts
+
+  # Rate limiting (Discord has strict limits)
+  rate_limit:
+    max_per_minute: 5
+    max_per_hour: 100
+
+# =============================================================================
+# WEBHOOK CHANNEL CONFIGURATION
+# =============================================================================
+webhook:
+  enabled: false  # Set to true when webhook URL is configured
+
+  # Generic Webhook Configuration
+  webhook_url: ""  # Override with WEBHOOK_URL env var
+  timeout: 30      # seconds
+  retry_attempts: 3
+
+  # HTTP Configuration
+  headers:
+    Content-Type: "application/json"
+    User-Agent: "FOGIS-MatchProcessor/1.0"
+    # Add custom headers as needed
+
+  # Authentication (if required)
+  auth:
+    type: "none"  # Options: none, bearer, basic, custom
+    token: ""     # Override with WEBHOOK_AUTH_TOKEN env var
+
+  # Payload format
+  payload_format: "json"  # Options: json, form
+
+  # Rate limiting
+  rate_limit:
+    max_per_minute: 60
+    max_per_hour: 1000
+
+# =============================================================================
+# NOTIFICATION ROUTING CONFIGURATION
+# =============================================================================
+routing:
+  # Default channels for different notification types
+  default_channels:
+    match_changes: ["email", "discord"]
+    referee_assignments: ["email"]
+    system_alerts: ["email", "webhook"]
+    critical_errors: ["email", "discord", "webhook"]
+
+  # Priority-based routing
+  priority_routing:
+    critical:
+      channels: ["email", "discord", "webhook"]
+      immediate: true
+    high:
+      channels: ["email", "discord"]
+      immediate: true
+    medium:
+      channels: ["email"]
+      immediate: false
+    low:
+      channels: ["email"]
+      immediate: false
+
+  # Stakeholder role-based routing
+  role_routing:
+    Administrator:
+      channels: ["email", "discord", "webhook"]
+      all_notifications: true
+    RefereeCoordinator:
+      channels: ["email", "discord"]
+      match_types: ["referee_assignments", "match_changes"]
+    Referee:
+      channels: ["email"]
+      match_types: ["referee_assignments"]
+    SystemAdmin:
+      channels: ["email", "webhook"]
+      match_types: ["system_alerts", "critical_errors"]
+
+# =============================================================================
+# NOTIFICATION CONTENT CONFIGURATION
+# =============================================================================
+content:
+  # Language and localization
+  language: "sv"  # Swedish for FOGIS
+  timezone: "Europe/Stockholm"
+
+  # Content formatting
+  formatting:
+    include_timestamps: true
+    include_match_details: true
+    include_change_summary: true
+    include_action_links: false  # Set to true if web interface is available
+
+  # Notification grouping
+  grouping:
+    enabled: true
+    max_group_size: 5
+    group_timeout: 300  # seconds
+
+  # Personalization
+  personalization:
+    use_recipient_name: true
+    include_role_context: true
+    customize_by_preferences: true
+
+# =============================================================================
+# MONITORING AND ANALYTICS
+# =============================================================================
+monitoring:
+  # Delivery monitoring
+  track_delivery: true
+  track_open_rates: false  # Requires email tracking setup
+  track_click_rates: false # Requires link tracking setup
+
+  # Performance monitoring
+  track_performance: true
+  alert_on_failures: true
+  failure_threshold: 0.1  # 10% failure rate triggers alert
+
+  # Analytics retention
+  analytics_retention_days: 90
+
+  # Health checks
+  health_check:
+    enabled: true
+    interval: 300  # seconds
+    test_channels: false  # Set to true for periodic channel testing
+
+# =============================================================================
+# SECURITY CONFIGURATION
+# =============================================================================
+security:
+  # Data protection
+  encrypt_stored_data: false  # Set to true for production
+  mask_sensitive_data: true
+
+  # Access control
+  require_authentication: false  # For API access to notification system
+
+  # Audit logging
+  audit_logging:
+    enabled: true
+    log_level: "INFO"
+    include_content: false  # Set to true for debugging only
+
+  # Rate limiting and abuse prevention
+  global_rate_limit:
+    enabled: true
+    max_notifications_per_hour: 1000
+    max_notifications_per_day: 5000
+
+# =============================================================================
+# DEVELOPMENT AND TESTING
+# =============================================================================
+development:
+  # Test mode settings
+  test_mode: false
+  test_recipients: []  # Override all recipients in test mode
+
+  # Debugging
+  debug_logging: false
+  save_debug_data: false
+
+  # Mock services
+  mock_email: false
+  mock_discord: false
+  mock_webhook: false
+
+# =============================================================================
+# ENVIRONMENT VARIABLE MAPPINGS
+# =============================================================================
+# The following environment variables will override the above settings:
+#
+# Core Settings:
+# - NOTIFICATION_SYSTEM_ENABLED: notification_system.enabled
+# - NOTIFICATION_BATCH_SIZE: notification_system.batch_size
+# - NOTIFICATION_BATCH_TIMEOUT: notification_system.batch_timeout
+#
+# Email Settings:
+# - SMTP_HOST: email.smtp_server
+# - SMTP_PORT: email.smtp_port
+# - SMTP_USERNAME: email.smtp_username
+# - SMTP_PASSWORD: email.smtp_password
+# - SMTP_FROM: email.email_from
+# - SMTP_USE_TLS: email.use_tls
+# - EMAIL_ENABLED: email.enabled
+#
+# Discord Settings:
+# - DISCORD_WEBHOOK_URL: discord.webhook_url
+# - DISCORD_BOT_USERNAME: discord.bot_username
+# - DISCORD_AVATAR_URL: discord.bot_avatar_url
+# - DISCORD_ENABLED: discord.enabled
+#
+# Webhook Settings:
+# - WEBHOOK_URL: webhook.webhook_url
+# - WEBHOOK_TIMEOUT: webhook.timeout
+# - WEBHOOK_AUTH_TOKEN: webhook.auth.token
+# - WEBHOOK_ENABLED: webhook.enabled
+#
+# Security Settings:
+# - NOTIFICATION_ENCRYPT_DATA: security.encrypt_stored_data
+# - NOTIFICATION_DEBUG: development.debug_logging
