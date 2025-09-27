@@ -15,6 +15,8 @@ sys.path.insert(0, os.path.join(os.path.dirname(__file__), "../../src"))
 
 # Local imports after path modification
 from redis_integration import (  # noqa: E402
+    EnhancedMatchProcessingIntegration,
+    EnhancedSchemaV2Formatter,
     MatchProcessorRedisPublisher,
     MatchProcessorRedisService,
     MatchUpdateMessageFormatter,
@@ -327,6 +329,600 @@ class TestMessageFormatters(unittest.TestCase):
         self.assertEqual(parsed["type"], "system_alert")
         self.assertEqual(parsed["payload"]["alert_type"], "error")
         self.assertEqual(parsed["payload"]["severity"], "high")
+
+
+class TestEnhancedSchemaV2Formatter(unittest.TestCase):
+    """Test Enhanced Schema v2.0 formatter with Organization ID mapping."""
+
+    def setUp(self):
+        """Set up test data."""
+        self.sample_match = {
+            "matchid": 6170049,
+            "lag1namn": "Lindome GIF",
+            "lag2namn": "Jonsereds IF",
+            "lag1lagid": 26405,  # Database ID
+            "lag2lagid": 25562,  # Database ID
+            "lag1foreningid": 10741,  # Organization ID for logo service
+            "lag2foreningid": 9595,  # Organization ID for logo service
+            "speldatum": "2025-09-26",
+            "avsparkstid": "19:00",
+            "anlaggningnamn": "Lindome IP",
+            "anlaggningadress": "Lindome Industriområde",
+            "serienamn": "Division 4 Göteborg A",
+            "serieniva": "Division 4",
+            "matchstatus": "scheduled",
+            "domaruppdraglista": [
+                {
+                    "namn": "Bartek Svaberg",
+                    "uppdragstyp": "Huvuddomare",
+                    "mobil": "0709423055",
+                    "epost": "bartek.svaberg@gmail.com",
+                    "adress": "Lilla Tulteredsvägen 50",
+                    "postnummer": "43331",
+                    "postort": "Partille",
+                }
+            ],
+            "lag1kontakt": {
+                "namn": "Morgan Johansson",
+                "mobil": "0733472740",
+                "epost": "morgan@kalltorpsbygg.se",
+            },
+            "lag2kontakt": {
+                "namn": "Erik Andersson",
+                "mobil": "0701234567",
+                "epost": "erik@jonsereds.se",
+            },
+        }
+
+        self.sample_changes = {
+            "summary": {"total_changes": 1, "change_types": ["time_change"]},
+            "detailed_changes": [
+                {
+                    "field": "avsparkstid",
+                    "from": "19:00",
+                    "to": "19:15",
+                    "category": "time_change",
+                    "priority": "high",
+                }
+            ],
+        }
+
+    def test_organization_id_mapping(self):
+        """Test that Organization IDs are correctly mapped for logo service."""
+        message_json = EnhancedSchemaV2Formatter.format_match_updates_v2(
+            [self.sample_match], self.sample_changes
+        )
+
+        import json
+
+        message = json.loads(message_json)
+
+        # Verify schema version
+        self.assertEqual(message["schema_version"], "2.0")
+        self.assertEqual(message["schema_type"], "enhanced_with_contacts_and_logo_ids")
+
+        # Verify Organization ID mapping
+        home_team = message["payload"]["matches"][0]["teams"]["home"]
+        away_team = message["payload"]["matches"][0]["teams"]["away"]
+
+        # Database IDs should be preserved for database references
+        self.assertEqual(home_team["id"], 26405)
+        self.assertEqual(away_team["id"], 25562)
+
+        # Organization IDs should be used for logo service
+        self.assertEqual(home_team["logo_id"], 10741)
+        self.assertEqual(away_team["logo_id"], 9595)
+        self.assertEqual(home_team["organization_id"], 10741)
+        self.assertEqual(away_team["organization_id"], 9595)
+
+    def test_contact_data_structure(self):
+        """Test complete contact data structure for calendar sync."""
+        message_json = EnhancedSchemaV2Formatter.format_match_updates_v2(
+            [self.sample_match], self.sample_changes
+        )
+
+        import json
+
+        message = json.loads(message_json)
+
+        match_data = message["payload"]["matches"][0]
+
+        # Verify referee contact information
+        referee = match_data["referees"][0]
+        self.assertEqual(referee["name"], "Bartek Svaberg")
+        self.assertEqual(referee["role"], "Huvuddomare")
+        self.assertIn("contact", referee)
+        self.assertEqual(referee["contact"]["mobile"], "0709423055")
+        self.assertEqual(referee["contact"]["email"], "bartek.svaberg@gmail.com")
+
+        # Verify referee address information
+        address = referee["contact"]["address"]
+        self.assertEqual(address["street"], "Lilla Tulteredsvägen 50")
+        self.assertEqual(address["postal_code"], "43331")
+        self.assertEqual(address["city"], "Partille")
+
+        # Verify team contact information
+        team_contacts = match_data["team_contacts"]
+        self.assertEqual(len(team_contacts), 2)
+
+        home_contact = team_contacts[0]
+        self.assertEqual(home_contact["name"], "Morgan Johansson")
+        self.assertEqual(home_contact["team_name"], "Lindome GIF")
+        self.assertEqual(home_contact["contact"]["mobile"], "0733472740")
+
+    def test_detailed_changes_structure(self):
+        """Test detailed changes structure for intelligent processing."""
+        message_json = EnhancedSchemaV2Formatter.format_match_updates_v2(
+            [self.sample_match], self.sample_changes
+        )
+
+        import json
+
+        message = json.loads(message_json)
+
+        detailed_changes = message["payload"]["detailed_changes"]
+        self.assertEqual(len(detailed_changes), 1)
+
+        change = detailed_changes[0]
+        self.assertEqual(change["field"], "avsparkstid")
+        self.assertEqual(change["from"], "19:00")
+        self.assertEqual(change["to"], "19:15")
+        self.assertEqual(change["category"], "time_change")
+        self.assertEqual(change["priority"], "high")
+
+    def test_legacy_v1_compatibility(self):
+        """Test Legacy Schema v1.0 for backward compatibility."""
+        message_json = EnhancedSchemaV2Formatter.format_match_updates_v1_legacy(
+            [self.sample_match], self.sample_changes
+        )
+
+        import json
+
+        message = json.loads(message_json)
+
+        # Verify simplified structure
+        self.assertEqual(message["version"], "1.0")
+        self.assertEqual(message["type"], "match_updates")
+
+        match_data = message["payload"]["matches"][0]
+        self.assertEqual(match_data["match_id"], 6170049)
+        self.assertEqual(match_data["teams"], "Lindome GIF vs Jonsereds IF")
+        self.assertEqual(match_data["date"], "2025-09-26")
+        self.assertEqual(match_data["time"], "19:00")
+        self.assertEqual(match_data["venue"], "Lindome IP")
+        self.assertEqual(match_data["referees"], ["Bartek Svaberg"])
+
+    def test_message_size_validation(self):
+        """Test that Enhanced Schema v2.0 messages are under size limits."""
+        message_json = EnhancedSchemaV2Formatter.format_match_updates_v2(
+            [self.sample_match], self.sample_changes
+        )
+
+        # Test message size (should be under 5KB for Redis efficiency)
+        message_size = len(message_json.encode("utf-8"))
+        self.assertLess(message_size, 5000, f"Message size {message_size} bytes exceeds 5KB limit")
+
+        # Test legacy message size
+        legacy_json = EnhancedSchemaV2Formatter.format_match_updates_v1_legacy(
+            [self.sample_match], self.sample_changes
+        )
+        legacy_size = len(legacy_json.encode("utf-8"))
+        self.assertLess(
+            legacy_size, 1000, f"Legacy message size {legacy_size} bytes exceeds 1KB limit"
+        )
+
+
+class TestEnhancedMatchProcessingIntegration(unittest.TestCase):
+    """Test Enhanced Match Processing Integration with Schema v2.0."""
+
+    def setUp(self):
+        """Set up test integration."""
+        self.integration = EnhancedMatchProcessingIntegration(enabled=True)
+        self.sample_matches = [
+            {
+                "matchid": 6170049,
+                "lag1foreningid": 10741,
+                "lag2foreningid": 9595,
+                "lag1lagid": 26405,
+                "lag2lagid": 25562,
+            }
+        ]
+
+    @patch("redis_integration.publisher.MatchProcessorRedisPublisher.publish_multi_version_updates")
+    def test_enhanced_publishing_success(self, mock_publish):
+        """Test successful Enhanced Schema v2.0 publishing."""
+        from redis_integration.publisher import PublishResult
+
+        mock_publish.return_value = {
+            "v2.0": PublishResult(success=True, subscribers_notified=3),
+            "v1.0_legacy": PublishResult(success=True, subscribers_notified=2),
+            "default": PublishResult(success=True, subscribers_notified=3),
+        }
+
+        # Should not raise any exceptions
+        self.integration.handle_match_processing_complete_v2(
+            self.sample_matches, {"summary": {"total_changes": 1}}
+        )
+
+        mock_publish.assert_called_once()
+
+    def test_organization_id_validation(self):
+        """Test Organization ID validation for logo service."""
+        # Test with missing Organization IDs
+        invalid_matches = [
+            {
+                "matchid": 123,
+                "lag1foreningid": None,  # Missing
+                "lag2foreningid": 456,
+                "lag1lagid": 789,
+                "lag2lagid": 101,
+            }
+        ]
+
+        # Should log warnings but not fail
+        with patch("redis_integration.app_integration.logger") as mock_logger:
+            self.integration._validate_organization_ids(invalid_matches)
+            mock_logger.warning.assert_called()
+
+        # Test with valid Organization IDs
+        with patch("redis_integration.app_integration.logger") as mock_logger:
+            self.integration._validate_organization_ids(self.sample_matches)
+            mock_logger.info.assert_called_with(
+                "✅ All matches have Organization IDs for logo service integration"
+            )
+
+
+class TestRedisPublisherCoverage(unittest.TestCase):
+    """Test Redis publisher methods for improved coverage."""
+
+    def setUp(self):
+        """Set up test publisher."""
+        self.publisher = MatchProcessorRedisPublisher()
+        # Store original config state
+        self.original_enabled = self.publisher.config.enabled
+        self.sample_matches = [
+            {
+                "matchid": 6170049,
+                "lag1foreningid": 10741,
+                "lag2foreningid": 9595,
+                "lag1lagid": 26405,
+                "lag2lagid": 25562,
+            }
+        ]
+
+    def tearDown(self):
+        """Clean up after each test."""
+        # Restore original config state
+        self.publisher.config.enabled = self.original_enabled
+
+    def test_publish_enhanced_schema_v2_disabled(self):
+        """Test Enhanced Schema v2.0 publishing when disabled."""
+        self.publisher.config.enabled = False
+
+        result = self.publisher.publish_enhanced_schema_v2(self.sample_matches)
+
+        self.assertTrue(result.success)
+        self.assertEqual(result.subscribers_notified, 0)
+
+    @patch("redis_integration.connection_manager.redis.from_url")
+    def test_publish_enhanced_schema_v2_no_client(self, mock_redis):
+        """Test Enhanced Schema v2.0 publishing when Redis client unavailable."""
+        mock_redis.side_effect = Exception("Connection failed")
+
+        result = self.publisher.publish_enhanced_schema_v2(self.sample_matches)
+
+        self.assertFalse(result.success)
+        self.assertIn("Redis client not available", result.error)
+
+    def test_publish_multi_version_updates_disabled(self):
+        """Test multi-version publishing when disabled."""
+        self.publisher.config.enabled = False
+
+        results = self.publisher.publish_multi_version_updates(self.sample_matches)
+
+        self.assertEqual(len(results), 3)
+        for result in results.values():
+            self.assertTrue(result.success)
+            self.assertEqual(result.subscribers_notified, 0)
+
+    @patch("redis_integration.connection_manager.redis.from_url")
+    def test_publish_multi_version_updates_no_client(self, mock_redis):
+        """Test multi-version publishing when Redis client unavailable."""
+        mock_redis.side_effect = Exception("Connection failed")
+
+        results = self.publisher.publish_multi_version_updates(self.sample_matches)
+
+        self.assertEqual(len(results), 3)
+        for result in results.values():
+            self.assertFalse(result.success)
+            self.assertIn("Redis client not available", result.error)
+
+
+class TestRedisConnectionManagerCoverage(unittest.TestCase):
+    """Test Redis connection manager for improved coverage."""
+
+    def setUp(self):
+        """Set up test connection manager."""
+        self.connection_manager = RedisConnectionManager()
+
+    def test_get_client_disabled(self):
+        """Test get client when Redis is disabled."""
+        self.connection_manager.config.enabled = False
+
+        client = self.connection_manager.get_client()
+
+        self.assertIsNone(client)
+
+    @patch("redis_integration.connection_manager.redis.from_url")
+    def test_get_client_exception(self, mock_redis):
+        """Test Redis client creation with exception."""
+        mock_redis.side_effect = Exception("Connection failed")
+
+        client = self.connection_manager.get_client()
+
+        self.assertIsNone(client)
+
+    def test_close_connection_no_client(self):
+        """Test closing connection when no client exists."""
+        # Should not raise exception
+        self.connection_manager.close()
+
+    @patch("redis_integration.connection_manager.redis.from_url")
+    def test_close_connection_exception(self, mock_redis):
+        """Test closing connection with exception."""
+        mock_client = Mock()
+        mock_client.ping.return_value = True
+        mock_client.close.side_effect = Exception("Close failed")
+        mock_redis.return_value = mock_client
+
+        # Create client first
+        self.connection_manager.get_client()
+
+        # Should not raise exception when closing fails
+        self.connection_manager.close()
+
+
+class TestRedisServicesCoverage(unittest.TestCase):
+    """Test Redis services for improved coverage."""
+
+    def setUp(self):
+        """Set up test service."""
+        self.service = MatchProcessorRedisService()
+
+    def test_handle_processing_start_disabled(self):
+        """Test handling processing start when Redis disabled."""
+        self.service.publisher.config.enabled = False
+
+        # Should not raise exception
+        result = self.service.handle_processing_start({"test": "metadata"})
+
+        self.assertTrue(result)
+
+    def test_handle_processing_error_disabled(self):
+        """Test handling processing error when Redis disabled."""
+        self.service.publisher.config.enabled = False
+
+        error = Exception("Test error")
+
+        # Should not raise exception
+        result = self.service.handle_processing_error(error, {"test": "metadata"})
+
+        self.assertTrue(result)
+
+    def test_handle_match_processing_complete_disabled(self):
+        """Test handling match processing completion when Redis disabled."""
+        self.service.publisher.config.enabled = False
+
+        matches = [{"matchid": 123}]
+        changes = {"summary": {"total_changes": 1}}
+
+        # Should not raise exception
+        result = self.service.handle_match_processing_complete(matches, changes)
+
+        self.assertTrue(result)
+
+
+class TestEnhancedAppIntegrationCoverage(unittest.TestCase):
+    """Test Enhanced App Integration for improved coverage."""
+
+    def setUp(self):
+        """Set up test integration."""
+        self.integration = EnhancedMatchProcessingIntegration(enabled=False)
+
+    def test_handle_match_processing_complete_v2_disabled(self):
+        """Test Enhanced Schema v2.0 processing when disabled."""
+        matches = [{"matchid": 123}]
+        changes = {"summary": {"total_changes": 1}}
+
+        # Should not raise exception when disabled
+        self.integration.handle_match_processing_complete_v2(matches, changes)
+
+    def test_log_enhanced_message_details(self):
+        """Test enhanced message details logging."""
+        matches = [{"matchid": 123, "lag1foreningid": 456, "lag2foreningid": 789}]
+        changes = {"detailed_changes": [{"field": "time", "from": "19:00", "to": "19:15"}]}
+
+        # Should not raise exception
+        self.integration._log_enhanced_message_details(matches, changes)
+
+    def test_log_enhanced_message_details_no_changes(self):
+        """Test enhanced message details logging with no changes."""
+        matches = [{"matchid": 123}]
+
+        # Should not raise exception
+        self.integration._log_enhanced_message_details(matches, None)
+
+    def test_log_publishing_results(self):
+        """Test publishing results logging."""
+        from redis_integration.publisher import PublishResult
+
+        results = {
+            "v2.0": PublishResult(success=True, subscribers_notified=3),
+            "v1.0": PublishResult(success=False, error="Test error"),
+        }
+
+        # Should not raise exception
+        self.integration._log_publishing_results(results)
+
+
+class TestRedisConfigCoverage(unittest.TestCase):
+    """Test Redis config for improved coverage."""
+
+    def test_redis_config_defaults(self):
+        """Test Redis config default values."""
+        from redis_integration.config import RedisConfig
+
+        config = RedisConfig()
+
+        self.assertTrue(config.enabled)
+        self.assertEqual(config.url, "redis://fogis-redis:6379")
+        self.assertEqual(config.match_updates_channel, "fogis:matches:updates")
+
+    def test_redis_config_from_env(self):
+        """Test Redis config from environment variables."""
+        import os
+
+        from redis_integration.config import RedisConfig
+
+        # Set environment variables
+        os.environ["REDIS_PUBSUB_ENABLED"] = "false"
+        os.environ["REDIS_URL"] = "redis://test:6379/1"
+        os.environ["REDIS_MATCH_UPDATES_CHANNEL"] = "test:matches"
+
+        config = RedisConfig.from_environment()
+
+        self.assertFalse(config.enabled)
+        self.assertEqual(config.url, "redis://test:6379/1")
+        self.assertEqual(config.match_updates_channel, "test:matches")
+
+        # Clean up
+        del os.environ["REDIS_PUBSUB_ENABLED"]
+        del os.environ["REDIS_URL"]
+        del os.environ["REDIS_MATCH_UPDATES_CHANNEL"]
+
+    def test_redis_config_get_channels(self):
+        """Test Redis config get channels method."""
+        from redis_integration.config import RedisConfig
+
+        config = RedisConfig()
+        channels = config.get_channels()
+
+        self.assertIn("match_updates", channels)
+        self.assertIn("processor_status", channels)
+        self.assertIn("system_alerts", channels)
+
+    def test_global_config_functions(self):
+        """Test global config functions."""
+        from redis_integration.config import get_redis_config, reload_redis_config
+
+        config1 = get_redis_config()
+        config2 = get_redis_config()
+
+        # Should return same instance
+        self.assertIs(config1, config2)
+
+        # Test reload
+        reload_redis_config()
+        config3 = get_redis_config()
+
+        # Should be different instance after reload
+        self.assertIsNot(config1, config3)
+
+
+class TestMessageFormatterEdgeCases(unittest.TestCase):
+    """Test message formatter edge cases for improved coverage."""
+
+    def test_format_match_updates_empty_matches(self):
+        """Test formatting with empty matches list."""
+        import json
+
+        from redis_integration.message_formatter import MatchUpdateMessageFormatter
+
+        message_str = MatchUpdateMessageFormatter.format_match_updates([], {})
+        message = json.loads(message_str)
+
+        self.assertIn("payload", message)
+        self.assertIn("matches", message["payload"])
+        self.assertEqual(len(message["payload"]["matches"]), 0)
+
+    def test_format_match_updates_with_changes(self):
+        """Test formatting with changes summary."""
+        import json
+
+        from redis_integration.message_formatter import MatchUpdateMessageFormatter
+
+        matches = [{"matchid": 123}]
+        changes = {"summary": {"total_changes": 1}}
+        message_str = MatchUpdateMessageFormatter.format_match_updates(matches, changes)
+        message = json.loads(message_str)
+
+        self.assertIn("payload", message)
+        self.assertIn("matches", message["payload"])
+        self.assertIn("metadata", message["payload"])
+
+    def test_format_processing_status_edge_cases(self):
+        """Test processing status formatting edge cases."""
+        import json
+
+        from redis_integration.message_formatter import ProcessingStatusMessageFormatter
+
+        # Test with minimal metadata
+        message_str = ProcessingStatusMessageFormatter.format_processing_status("started", {})
+        message = json.loads(message_str)
+
+        self.assertEqual(message["payload"]["status"], "started")
+        self.assertIn("timestamp", message)
+
+    def test_format_system_alert_edge_cases(self):
+        """Test system alert formatting edge cases."""
+        import json
+
+        from redis_integration.message_formatter import ProcessingStatusMessageFormatter
+
+        # Test with minimal alert
+        message_str = ProcessingStatusMessageFormatter.format_system_alert(
+            "error", "Test error", "critical"
+        )
+        message = json.loads(message_str)
+
+        self.assertEqual(message["payload"]["alert_type"], "error")
+        self.assertEqual(message["payload"]["message"], "Test error")
+        self.assertEqual(message["payload"]["severity"], "critical")
+
+
+class TestPublishResultCoverage(unittest.TestCase):
+    """Test PublishResult class for improved coverage."""
+
+    def test_publish_result_success(self):
+        """Test successful PublishResult."""
+        from redis_integration.publisher import PublishResult
+
+        result = PublishResult(success=True, subscribers_notified=5)
+
+        self.assertTrue(result.success)
+        self.assertEqual(result.subscribers_notified, 5)
+        self.assertIsNone(result.error)
+
+    def test_publish_result_failure(self):
+        """Test failed PublishResult."""
+        from redis_integration.publisher import PublishResult
+
+        result = PublishResult(success=False, error="Test error")
+
+        self.assertFalse(result.success)
+        self.assertEqual(result.subscribers_notified, 0)
+        self.assertEqual(result.error, "Test error")
+
+    def test_publish_result_repr(self):
+        """Test PublishResult string representation."""
+        from redis_integration.publisher import PublishResult
+
+        result = PublishResult(success=True, subscribers_notified=3)
+        repr_str = repr(result)
+
+        self.assertIn("PublishResult", repr_str)
+        self.assertIn("success=True", repr_str)
+        self.assertIn("subscribers_notified=3", repr_str)
 
 
 if __name__ == "__main__":
