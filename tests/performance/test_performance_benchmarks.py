@@ -347,7 +347,8 @@ class PerformanceBenchmarks(unittest.TestCase):
     def save_performance_baseline(self, output_file: str = None):
         """Save performance baseline results."""
         if not output_file:
-            output_file = f"performance_baseline_{int(time.time())}.json"
+            # Save to temp directory, not repository root
+            output_file = os.path.join(self.temp_dir, f"performance_baseline_{int(time.time())}.json")
 
         baseline_data = {
             "timestamp": time.time(),
