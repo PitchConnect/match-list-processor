@@ -87,15 +87,15 @@ python3 -m pytest --cov=src --cov-report=term-missing
    ```python
    class TestModuleCoverage(unittest.TestCase):
        """Test module for improved coverage."""
-       
+
        def test_error_handling(self):
            """Test error handling paths."""
            # Test exception scenarios
-           
+
        def test_edge_cases(self):
            """Test boundary conditions."""
            # Test edge cases
-           
+
        def test_disabled_state(self):
            """Test behavior when features are disabled."""
            # Test disabled configurations

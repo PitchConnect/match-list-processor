@@ -147,9 +147,8 @@ class DockerNetworkApiClient(ServiceMonitoringMixin, ApiClientInterface):
         # BUT only for integration tests, not unit tests that specifically test this method
         # Check both the instance property and environment variable for maximum flexibility
         should_bypass_for_testing = (
-            (self.is_test_mode and not os.environ.get("PYTEST_API_CLIENT_UNIT_TEST"))
-            and not getattr(self, '_force_network_calls', False)
-        )
+            self.is_test_mode and not os.environ.get("PYTEST_API_CLIENT_UNIT_TEST")
+        ) and not getattr(self, "_force_network_calls", False)
 
         if should_bypass_for_testing:
             logger.info("Test mode detected - returning empty matches list")

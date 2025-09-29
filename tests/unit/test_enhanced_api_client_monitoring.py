@@ -1,6 +1,5 @@
 """Unit tests for enhanced API client monitoring capabilities."""
 
-import os
 from unittest.mock import AsyncMock, Mock, patch
 
 import pytest
@@ -99,14 +98,14 @@ class TestDockerNetworkApiClientMonitoring:
             self.client._force_network_calls = True  # Force network calls for unit tests
             # Store original state for cleanup
             self.original_test_mode = self.client.is_test_mode
-            self.original_force_calls = getattr(self.client, '_force_network_calls', False)
+            self.original_force_calls = getattr(self.client, "_force_network_calls", False)
 
     def teardown_method(self):
         """Clean up after each test."""
         # Restore original test mode state
-        if hasattr(self, 'client') and hasattr(self, 'original_test_mode'):
+        if hasattr(self, "client") and hasattr(self, "original_test_mode"):
             self.client.is_test_mode = self.original_test_mode
-        if hasattr(self, 'client') and hasattr(self, 'original_force_calls'):
+        if hasattr(self, "client") and hasattr(self, "original_force_calls"):
             self.client._force_network_calls = self.original_force_calls
 
     def test_initialization_with_monitoring(self):
