@@ -1,0 +1,228 @@
+{
+  "stakeholders": [
+    {
+      "id": "admin-001",
+      "name": "System Administrator",
+      "email": "admin@yourcompany.com",
+      "role": "Administrator",
+      "active": true,
+      "preferences": {
+        "channels": ["email", "discord"],
+        "notification_types": [
+          "match_changes",
+          "referee_assignments",
+          "system_alerts",
+          "critical_errors"
+        ],
+        "priority_filter": "medium",
+        "immediate_delivery": true,
+        "digest_frequency": "never",
+        "quiet_hours": {
+          "enabled": false,
+          "start": "22:00",
+          "end": "07:00"
+        }
+      },
+      "contact_info": {
+        "discord_user_id": "",
+        "phone": "+46-XXX-XXXXXX",
+        "backup_email": ""
+      },
+      "metadata": {
+        "created_at": "2025-01-01T00:00:00Z",
+        "last_updated": "2025-01-01T00:00:00Z",
+        "timezone": "Europe/Stockholm"
+      }
+    },
+    {
+      "id": "referee-coord-001",
+      "name": "Referee Coordinator",
+      "email": "referee.coordinator@yourcompany.com",
+      "role": "RefereeCoordinator",
+      "active": true,
+      "preferences": {
+        "channels": ["email", "discord"],
+        "notification_types": [
+          "match_changes",
+          "referee_assignments"
+        ],
+        "priority_filter": "low",
+        "immediate_delivery": true,
+        "digest_frequency": "daily",
+        "quiet_hours": {
+          "enabled": true,
+          "start": "20:00",
+          "end": "08:00"
+        }
+      },
+      "contact_info": {
+        "discord_user_id": "",
+        "phone": "+46-XXX-XXXXXX",
+        "backup_email": ""
+      },
+      "metadata": {
+        "created_at": "2025-01-01T00:00:00Z",
+        "last_updated": "2025-01-01T00:00:00Z",
+        "timezone": "Europe/Stockholm"
+      }
+    },
+    {
+      "id": "referee-001",
+      "name": "Example Referee",
+      "email": "referee@example.com",
+      "role": "Referee",
+      "active": true,
+      "preferences": {
+        "channels": ["email"],
+        "notification_types": [
+          "referee_assignments"
+        ],
+        "priority_filter": "medium",
+        "immediate_delivery": false,
+        "digest_frequency": "daily",
+        "quiet_hours": {
+          "enabled": true,
+          "start": "21:00",
+          "end": "07:00"
+        }
+      },
+      "contact_info": {
+        "discord_user_id": "",
+        "phone": "+46-XXX-XXXXXX",
+        "backup_email": ""
+      },
+      "metadata": {
+        "created_at": "2025-01-01T00:00:00Z",
+        "last_updated": "2025-01-01T00:00:00Z",
+        "timezone": "Europe/Stockholm"
+      }
+    },
+    {
+      "id": "sysadmin-001",
+      "name": "System Admin",
+      "email": "sysadmin@yourcompany.com",
+      "role": "SystemAdmin",
+      "active": true,
+      "preferences": {
+        "channels": ["email", "webhook"],
+        "notification_types": [
+          "system_alerts",
+          "critical_errors"
+        ],
+        "priority_filter": "high",
+        "immediate_delivery": true,
+        "digest_frequency": "never",
+        "quiet_hours": {
+          "enabled": false,
+          "start": "22:00",
+          "end": "06:00"
+        }
+      },
+      "contact_info": {
+        "discord_user_id": "",
+        "phone": "+46-XXX-XXXXXX",
+        "backup_email": "sysadmin.backup@yourcompany.com"
+      },
+      "metadata": {
+        "created_at": "2025-01-01T00:00:00Z",
+        "last_updated": "2025-01-01T00:00:00Z",
+        "timezone": "Europe/Stockholm"
+      }
+    }
+  ],
+  "groups": [
+    {
+      "id": "administrators",
+      "name": "System Administrators",
+      "description": "All system administrators",
+      "members": ["admin-001", "sysadmin-001"],
+      "default_preferences": {
+        "channels": ["email", "discord"],
+        "notification_types": ["system_alerts", "critical_errors"],
+        "priority_filter": "medium",
+        "immediate_delivery": true
+      }
+    },
+    {
+      "id": "referee-management",
+      "name": "Referee Management Team",
+      "description": "Referee coordinators and managers",
+      "members": ["referee-coord-001"],
+      "default_preferences": {
+        "channels": ["email", "discord"],
+        "notification_types": ["match_changes", "referee_assignments"],
+        "priority_filter": "low",
+        "immediate_delivery": true
+      }
+    },
+    {
+      "id": "active-referees",
+      "name": "Active Referees",
+      "description": "All active referees in the system",
+      "members": ["referee-001"],
+      "default_preferences": {
+        "channels": ["email"],
+        "notification_types": ["referee_assignments"],
+        "priority_filter": "medium",
+        "immediate_delivery": false
+      }
+    }
+  ],
+  "notification_rules": [
+    {
+      "id": "critical-system-alerts",
+      "name": "Critical System Alerts",
+      "description": "Immediate notification for critical system issues",
+      "conditions": {
+        "priority": "critical",
+        "notification_types": ["system_alerts", "critical_errors"]
+      },
+      "actions": {
+        "target_groups": ["administrators"],
+        "override_quiet_hours": true,
+        "force_immediate": true,
+        "escalation": {
+          "enabled": true,
+          "delay_minutes": 15,
+          "escalate_to": ["sysadmin-001"]
+        }
+      }
+    },
+    {
+      "id": "referee-assignment-changes",
+      "name": "Referee Assignment Changes",
+      "description": "Notify relevant parties about referee assignment changes",
+      "conditions": {
+        "notification_types": ["referee_assignments"],
+        "change_categories": ["referee_added", "referee_removed", "referee_changed"]
+      },
+      "actions": {
+        "target_groups": ["referee-management", "active-referees"],
+        "personalize": true,
+        "include_match_details": true
+      }
+    },
+    {
+      "id": "match-schedule-changes",
+      "name": "Match Schedule Changes",
+      "description": "Notify about significant match schedule changes",
+      "conditions": {
+        "notification_types": ["match_changes"],
+        "change_categories": ["time_changed", "venue_changed", "match_cancelled"]
+      },
+      "actions": {
+        "target_groups": ["referee-management", "active-referees"],
+        "priority_boost": true,
+        "include_change_summary": true
+      }
+    }
+  ],
+  "metadata": {
+    "version": "1.0",
+    "created_at": "2025-01-01T00:00:00Z",
+    "last_updated": "2025-01-01T00:00:00Z",
+    "total_stakeholders": 4,
+    "total_groups": 3,
+    "total_rules": 3
+  }
+}
