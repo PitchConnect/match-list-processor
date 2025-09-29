@@ -171,3 +171,5 @@ bandit-report*.json
 
 # PyPI configuration file
 .pypirc
+# Performance testing artifacts
+performance_baseline_*.json
