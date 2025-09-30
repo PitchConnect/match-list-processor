@@ -2,7 +2,7 @@
 
 import json
 import logging
-from datetime import datetime
+from datetime import datetime, timezone
 from typing import Any, Dict, List, Set
 
 from ...core.change_categorization import (
@@ -124,7 +124,7 @@ class SemanticToLegacyAdapter:
                 previous_value=self._serialize_value(context.previous_value),
                 current_value=self._serialize_value(context.current_value),
                 change_description=context.change_description,
-                timestamp=context.timestamp or datetime.utcnow(),
+                timestamp=context.timestamp or datetime.now(timezone.utc),
             )
 
             # Preserve semantic context in metadata (if supported)

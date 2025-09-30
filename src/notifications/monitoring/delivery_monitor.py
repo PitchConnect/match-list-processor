@@ -3,7 +3,7 @@
 import json
 import logging
 import os
-from datetime import datetime, timedelta
+from datetime import datetime, timedelta, timezone
 from typing import Any, Dict, List, Optional
 
 from .models import DeliveryAttempt, DeliveryStatus, FailureReason, NotificationDeliveryRecord
@@ -64,14 +64,14 @@ class DeliveryMonitor:
                 notification_id=notification_id,
                 channel=channel,
                 recipient=recipient,
-                created_at=datetime.utcnow(),
+                created_at=datetime.now(timezone.utc),
                 final_status=DeliveryStatus.PENDING,
             )
 
         record = self.delivery_records[record_key]
         attempt = DeliveryAttempt(
             attempt_number=record.total_attempts + 1,
-            timestamp=datetime.utcnow(),
+            timestamp=datetime.now(timezone.utc),
             status=status,
             response_time_ms=response_time_ms,
             error_message=error_message,
@@ -104,7 +104,7 @@ class DeliveryMonitor:
 
         if strategy.should_retry(record.total_attempts, failure_reason):
             delay = strategy.calculate_delay(record.total_attempts, failure_reason)
-            retry_time = datetime.utcnow() + timedelta(seconds=delay)
+            retry_time = datetime.now(timezone.utc) + timedelta(seconds=delay)
 
             retry_item = {
                 "notification_id": record.notification_id,
@@ -125,7 +125,7 @@ class DeliveryMonitor:
                 "notification_id": record.notification_id,
                 "channel": record.channel,
                 "recipient": record.recipient,
-                "failed_at": datetime.utcnow().isoformat(),
+                "failed_at": datetime.now(timezone.utc).isoformat(),
                 "total_attempts": record.total_attempts,
                 "final_error": record.attempts[-1].error_message if record.attempts else None,
                 "failure_reason": failure_reason.value,
@@ -146,7 +146,7 @@ class DeliveryMonitor:
         """
         ready_for_retry = []
         remaining_items = []
-        current_time = datetime.utcnow()
+        current_time = datetime.now(timezone.utc)
 
         for item in self.retry_queue:
             try:
@@ -176,7 +176,7 @@ class DeliveryMonitor:
         Returns:
             Dictionary with delivery statistics
         """
-        cutoff_time = datetime.utcnow() - timedelta(hours=time_window_hours)
+        cutoff_time = datetime.now(timezone.utc) - timedelta(hours=time_window_hours)
         recent_records = [
             record for record in self.delivery_records.values() if record.created_at >= cutoff_time
         ]
@@ -275,7 +275,7 @@ class DeliveryMonitor:
         return {
             "status": health_status,
             "issues": health_issues,
-            "last_check": datetime.utcnow().isoformat(),
+            "last_check": datetime.now(timezone.utc).isoformat(),
             "stats": stats,
         }
 
@@ -310,7 +310,7 @@ class DeliveryMonitor:
                 },
                 "retry_queue": self.retry_queue,
                 "dead_letter_queue": self.dead_letter_queue,
-                "last_updated": datetime.utcnow().isoformat(),
+                "last_updated": datetime.now(timezone.utc).isoformat(),
             }
 
             with open(self.storage_path, "w", encoding="utf-8") as f:
@@ -328,7 +328,7 @@ class DeliveryMonitor:
         Returns:
             Number of records cleared
         """
-        cutoff_time = datetime.utcnow() - timedelta(days=days_to_keep)
+        cutoff_time = datetime.now(timezone.utc) - timedelta(days=days_to_keep)
 
         old_records = [
             key for key, record in self.delivery_records.items() if record.created_at < cutoff_time

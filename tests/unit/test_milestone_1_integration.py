@@ -1,7 +1,7 @@
 """Integration tests for Milestone 1 implementation."""
 
 import tempfile
-from datetime import datetime
+from datetime import datetime, timezone
 
 import pytest
 
@@ -226,7 +226,7 @@ class TestMilestone1Integration:
 
         # Manually set retry time to past for testing
         self.delivery_monitor.retry_queue[0]["retry_time"] = (
-            datetime.utcnow().replace(microsecond=0).isoformat()
+            datetime.now(timezone.utc).replace(microsecond=0).isoformat()
         )
 
         # Process retry queue

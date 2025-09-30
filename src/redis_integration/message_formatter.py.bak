@@ -8,7 +8,7 @@ Includes Enhanced Schema v2.0 with Organization ID mapping for logo service inte
 
 import json
 import uuid
-from datetime import datetime, timezone
+from datetime import datetime
 from typing import Dict, List, Optional
 
 
@@ -32,7 +32,7 @@ class MatchUpdateMessageFormatter:
         """
         message = {
             "message_id": str(uuid.uuid4()),
-            "timestamp": datetime.now(timezone.utc).isoformat() + "Z",
+            "timestamp": datetime.utcnow().isoformat() + "Z",
             "source": "match-list-processor",
             "version": "1.0",
             "type": "match_updates",
@@ -42,7 +42,7 @@ class MatchUpdateMessageFormatter:
                     "total_matches": len(matches),
                     "has_changes": bool(changes),
                     "change_summary": changes.get("summary", {}),
-                    "processing_timestamp": datetime.now(timezone.utc).isoformat() + "Z",
+                    "processing_timestamp": datetime.utcnow().isoformat() + "Z",
                     **(metadata or {}),
                 },
             },
@@ -185,7 +185,7 @@ class EnhancedSchemaV2Formatter:
                 "referees.contact",
             ],
             "message_id": str(uuid.uuid4()),
-            "timestamp": datetime.now(timezone.utc).isoformat() + "Z",
+            "timestamp": datetime.utcnow().isoformat() + "Z",
             "source": "match-list-processor",
             "version": "1.0",
             "type": "match_updates",
@@ -200,7 +200,7 @@ class EnhancedSchemaV2Formatter:
                         if changes_summary and hasattr(changes_summary, "get")
                         else {}
                     ),
-                    "processing_timestamp": datetime.now(timezone.utc).isoformat() + "Z",
+                    "processing_timestamp": datetime.utcnow().isoformat() + "Z",
                     **(metadata or {}),
                 },
             },
@@ -230,7 +230,7 @@ class EnhancedSchemaV2Formatter:
 
         message = {
             "message_id": str(uuid.uuid4()),
-            "timestamp": datetime.now(timezone.utc).isoformat() + "Z",
+            "timestamp": datetime.utcnow().isoformat() + "Z",
             "source": "match-list-processor",
             "version": "1.0",
             "type": "match_updates",
@@ -239,7 +239,7 @@ class EnhancedSchemaV2Formatter:
                 "metadata": {
                     "total_matches": len(simplified_matches),
                     "has_changes": bool(changes_summary),
-                    "processing_timestamp": datetime.now(timezone.utc).isoformat() + "Z",
+                    "processing_timestamp": datetime.utcnow().isoformat() + "Z",
                     **(metadata or {}),
                 },
             },
@@ -265,13 +265,13 @@ class ProcessingStatusMessageFormatter:
         """
         message = {
             "message_id": str(uuid.uuid4()),
-            "timestamp": datetime.now(timezone.utc).isoformat() + "Z",
+            "timestamp": datetime.utcnow().isoformat() + "Z",
             "source": "match-list-processor",
             "version": "1.0",
             "type": "processing_status",
             "payload": {
                 "status": status,
-                "timestamp": datetime.now(timezone.utc).isoformat() + "Z",
+                "timestamp": datetime.utcnow().isoformat() + "Z",
                 "details": details or {},
             },
         }
@@ -296,7 +296,7 @@ class ProcessingStatusMessageFormatter:
         """
         alert_message = {
             "message_id": str(uuid.uuid4()),
-            "timestamp": datetime.now(timezone.utc).isoformat() + "Z",
+            "timestamp": datetime.utcnow().isoformat() + "Z",
             "source": "match-list-processor",
             "version": "1.0",
             "type": "system_alert",
@@ -304,7 +304,7 @@ class ProcessingStatusMessageFormatter:
                 "alert_type": alert_type,
                 "severity": severity,
                 "message": message,
-                "timestamp": datetime.now(timezone.utc).isoformat() + "Z",
+                "timestamp": datetime.utcnow().isoformat() + "Z",
                 "details": details or {},
             },
         }

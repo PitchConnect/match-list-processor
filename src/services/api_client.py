@@ -5,7 +5,7 @@ import logging
 import os
 import sys
 import time
-from datetime import datetime
+from datetime import datetime, timezone
 from typing import Any, Dict, Optional, cast
 
 import requests
@@ -74,7 +74,7 @@ class ServiceMonitoringMixin:
             "severity": severity,
             "message": message,
             "error_details": error_details,
-            "timestamp": datetime.utcnow().isoformat(),
+            "timestamp": datetime.now(timezone.utc).isoformat(),
             "recovery_actions": recovery_actions or [],
             "affected_functionality": self._get_affected_functionality(service),
         }

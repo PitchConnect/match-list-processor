@@ -1,7 +1,7 @@
 """Health checker for notification system monitoring."""
 
 import logging
-from datetime import datetime
+from datetime import datetime, timezone
 from typing import Any, Dict, List
 
 from .models import NotificationHealthStatus
@@ -59,7 +59,7 @@ class NotificationHealthChecker:
                 status = "unhealthy"
 
             return NotificationHealthStatus(
-                status=status, issues=issues, last_check=datetime.utcnow(), stats=stats
+                status=status, issues=issues, last_check=datetime.now(timezone.utc), stats=stats
             )
 
         except Exception as e:
@@ -67,7 +67,7 @@ class NotificationHealthChecker:
             return NotificationHealthStatus(
                 status="unhealthy",
                 issues=[f"Health check failed: {str(e)}"],
-                last_check=datetime.utcnow(),
+                last_check=datetime.now(timezone.utc),
                 stats={"error": str(e)},
             )
 

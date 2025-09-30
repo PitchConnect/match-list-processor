@@ -1,7 +1,7 @@
 """Change context model for field-level analysis."""
 
 from dataclasses import dataclass
-from datetime import datetime
+from datetime import datetime, timezone
 from typing import Any, Dict, List, Optional
 
 from .analysis_models import ChangeImpact, ChangeUrgency
@@ -36,7 +36,7 @@ class ChangeContext:
     def __post_init__(self) -> None:
         """Set default timestamp if not provided."""
         if self.timestamp is None:
-            self.timestamp = datetime.utcnow()
+            self.timestamp = datetime.now(timezone.utc)
 
     def to_dict(self) -> Dict[str, Any]:
         """Convert to dictionary representation."""

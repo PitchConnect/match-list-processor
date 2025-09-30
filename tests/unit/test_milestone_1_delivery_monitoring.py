@@ -2,7 +2,7 @@
 
 import os
 import tempfile
-from datetime import datetime, timedelta
+from datetime import datetime, timedelta, timezone
 
 import pytest
 
@@ -141,7 +141,7 @@ class TestDeliveryMonitor:
     async def test_process_retry_queue(self):
         """Test processing of retry queue."""
         # Add item to retry queue with past retry time
-        past_time = datetime.utcnow() - timedelta(minutes=5)
+        past_time = datetime.now(timezone.utc) - timedelta(minutes=5)
         self.monitor.retry_queue.append(
             {
                 "notification_id": "retry_test",
@@ -154,7 +154,7 @@ class TestDeliveryMonitor:
         )
 
         # Add item with future retry time
-        future_time = datetime.utcnow() + timedelta(minutes=5)
+        future_time = datetime.now(timezone.utc) + timedelta(minutes=5)
         self.monitor.retry_queue.append(
             {
                 "notification_id": "future_test",
@@ -180,7 +180,7 @@ class TestDeliveryMonitor:
     def test_get_delivery_stats(self):
         """Test delivery statistics calculation."""
         # Create some test records
-        now = datetime.utcnow()
+        now = datetime.now(timezone.utc)
 
         # Successful delivery
         self.monitor.delivery_records["success_1"] = NotificationDeliveryRecord(
@@ -230,7 +230,7 @@ class TestDeliveryMonitor:
     def test_get_health_status(self):
         """Test health status assessment."""
         # Create records for health assessment
-        now = datetime.utcnow()
+        now = datetime.now(timezone.utc)
 
         # Add mostly successful deliveries
         for i in range(10):
@@ -261,7 +261,7 @@ class TestDeliveryMonitor:
 
     def test_clear_old_records(self):
         """Test clearing of old delivery records."""
-        now = datetime.utcnow()
+        now = datetime.now(timezone.utc)
 
         # Add recent record
         self.monitor.delivery_records["recent"] = NotificationDeliveryRecord(
