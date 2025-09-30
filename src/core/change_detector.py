@@ -110,6 +110,50 @@ class GranularChangeDetector:
                 f"Changes detected: {changes['new_matches']} new, "
                 f"{changes['removed_matches']} removed, {changes['changed_matches']} changed"
             )
+
+            # Add detailed change logging for operational visibility (Issue #67)
+            if all_categorized_changes and all_categorized_changes.changes:
+                logger.info("🔄 DETAILED CHANGES DETECTED:")
+
+                # Group changes by priority for better organization
+                critical_changes = []
+                high_priority_changes = []
+                medium_priority_changes = []
+                low_priority_changes = []
+
+                for change in all_categorized_changes.changes:
+                    # Log each individual change with full details
+                    logger.info(f"🔄 FIELD CHANGE: {change.field_name}")
+                    logger.info(f"   From: {change.previous_value}")
+                    logger.info(f"   To: {change.current_value}")
+                    logger.info(
+                        f"   Category: {change.category.value} (Priority: {change.priority.value})"
+                    )
+                    logger.info(f"   Description: {change.change_description}")
+
+                    # Group by priority
+                    if change.priority == ChangePriority.CRITICAL:
+                        critical_changes.append(change)
+                    elif change.priority == ChangePriority.HIGH:
+                        high_priority_changes.append(change)
+                    elif change.priority == ChangePriority.MEDIUM:
+                        medium_priority_changes.append(change)
+                    else:
+                        low_priority_changes.append(change)
+
+                # Add summary logging
+                logger.info("📊 CHANGE SUMMARY:")
+                logger.info(f"   Total changes: {len(all_categorized_changes.changes)}")
+                logger.info(f"   Critical priority: {len(critical_changes)}")
+                logger.info(f"   High priority: {len(high_priority_changes)}")
+                logger.info(f"   Medium priority: {len(medium_priority_changes)}")
+                logger.info(f"   Low priority: {len(low_priority_changes)}")
+
+                # Log categories for quick filtering
+                categories = set(
+                    change.category.value for change in all_categorized_changes.changes
+                )
+                logger.info(f"   Categories: {', '.join(sorted(categories))}")
         else:
             logger.info("No changes detected in match list")
 
