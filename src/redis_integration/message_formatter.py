@@ -9,11 +9,58 @@ Includes Enhanced Schema v2.0 with Organization ID mapping for logo service inte
 import json
 import uuid
 from datetime import datetime
-from typing import Dict, List, Optional
+from typing import Any, Dict, List, Optional
 
 
 class MatchUpdateMessageFormatter:
     """Formats match update messages for Redis publishing."""
+
+    @staticmethod
+    def _extract_detailed_changes(changes: Any) -> List[Dict]:
+        """
+        Extract detailed changes from changes parameter.
+
+        Args:
+            changes: Change detection results (can be Dict or ChangesSummary object)
+
+        Returns:
+            List of detailed change dictionaries
+        """
+        detailed_changes = []
+
+        # Handle ChangesSummary object (has categorized_changes attribute)
+        if hasattr(changes, "categorized_changes") and changes.categorized_changes:
+            if hasattr(changes.categorized_changes, "changes"):
+                for change in changes.categorized_changes.changes:
+                    # Use to_dict() method if available
+                    if hasattr(change, "to_dict"):
+                        detailed_changes.append(change.to_dict())
+                    else:
+                        # Fallback to manual extraction
+                        detailed_changes.append(
+                            {
+                                "field": getattr(change, "field_name", "unknown"),
+                                "from": getattr(change, "previous_value", None),
+                                "to": getattr(change, "current_value", None),
+                                "category": (
+                                    getattr(change.category, "value", "unknown")
+                                    if hasattr(change, "category")
+                                    else "unknown"
+                                ),
+                                "priority": (
+                                    getattr(change.priority, "value", "unknown")
+                                    if hasattr(change, "priority")
+                                    else "unknown"
+                                ),
+                                "description": getattr(change, "change_description", ""),
+                            }
+                        )
+
+        # Handle Dict with detailed_changes key
+        elif isinstance(changes, dict) and "detailed_changes" in changes:
+            detailed_changes = changes["detailed_changes"]
+
+        return detailed_changes
 
     @staticmethod
     def format_match_updates(
@@ -30,6 +77,9 @@ class MatchUpdateMessageFormatter:
         Returns:
             str: JSON formatted message
         """
+        # Extract detailed changes (Issue #68)
+        detailed_changes = MatchUpdateMessageFormatter._extract_detailed_changes(changes)
+
         message = {
             "message_id": str(uuid.uuid4()),
             "timestamp": datetime.utcnow().isoformat() + "Z",
@@ -38,10 +88,13 @@ class MatchUpdateMessageFormatter:
             "type": "match_updates",
             "payload": {
                 "matches": matches,
+                "detailed_changes": detailed_changes,  # Added for Issue #68
                 "metadata": {
                     "total_matches": len(matches),
                     "has_changes": bool(changes),
-                    "change_summary": changes.get("summary", {}),
+                    "change_summary": (
+                        changes.get("summary", {}) if isinstance(changes, dict) else {}
+                    ),
                     "processing_timestamp": datetime.utcnow().isoformat() + "Z",
                     **(metadata or {}),
                 },
@@ -75,13 +128,11 @@ class EnhancedSchemaV2Formatter:
             JSON string with Enhanced Schema v2.0 structure
         """
         processed_matches = []
-        detailed_changes = []
 
-        # Process changes summary if provided
-        if changes_summary and hasattr(changes_summary, "get"):
-            detailed_changes = changes_summary.get("detailed_changes", [])
-        elif isinstance(changes_summary, dict):
-            detailed_changes = changes_summary.get("detailed_changes", [])
+        # Extract detailed changes using shared helper method (Issue #68)
+        detailed_changes = MatchUpdateMessageFormatter._extract_detailed_changes(
+            changes_summary or {}
+        )
 
         for match in matches:
             # Extract team information with Organization ID mapping

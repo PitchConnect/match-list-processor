@@ -5,6 +5,7 @@ Redis Publisher for Match List Processor
 Provides Redis publishing functionality for match updates and status messages.
 """
 
+import json
 import logging
 from dataclasses import dataclass
 from typing import Any, Dict, List, Optional
@@ -42,6 +43,47 @@ class MatchProcessorRedisPublisher:
             "last_publish_time": None,
         }
 
+    def _log_message_details(
+        self, channel: str, message: str, subscribers: int, message_type: str = "match_updates"
+    ) -> None:
+        """
+        Log detailed information about a Redis message.
+
+        Args:
+            channel: Redis channel name
+            message: JSON message string
+            subscribers: Number of subscribers notified
+            message_type: Type of message being published
+        """
+        try:
+            # Parse message for logging
+            message_data = json.loads(message)
+
+            # Log message details at INFO level
+            logger.info("📨 PUBLISHING MESSAGE:")
+            logger.info(f"   Channel: {channel}")
+            logger.info(f"   Message ID: {message_data.get('message_id', 'N/A')}")
+
+            # Log payload details
+            payload = message_data.get("payload", {})
+            if "matches" in payload:
+                match_count = len(payload["matches"])
+                logger.info(f"   Matches: {match_count} match(es)")
+
+            if "detailed_changes" in payload:
+                changes_count = len(payload["detailed_changes"])
+                logger.info(f"   Detailed Changes: {changes_count} change(s)")
+
+            logger.info(f"   Subscribers: {subscribers}")
+
+            # Log full message at debug level
+            logger.debug(f"   Full Message: {json.dumps(message_data, indent=2)}")
+
+        except json.JSONDecodeError as e:
+            logger.warning(f"⚠️ Could not parse message for detailed logging: {e}")
+        except Exception as e:
+            logger.warning(f"⚠️ Error logging message details: {e}")
+
     def publish_match_updates(
         self, matches: List[Dict], changes: Dict, metadata: Optional[Dict] = None
     ) -> PublishResult:
@@ -73,6 +115,9 @@ class MatchProcessorRedisPublisher:
             subscribers = (
                 int(subscribers_result) if not hasattr(subscribers_result, "__await__") else 0
             )
+
+            # Log detailed message information (Issue #68)
+            self._log_message_details(self.config.match_updates_channel, message, subscribers)
 
             self.stats["total_published"] = self.stats.get("total_published", 0) + 1
             self.stats["successful_publishes"] = self.stats.get("successful_publishes", 0) + 1
@@ -125,6 +170,9 @@ class MatchProcessorRedisPublisher:
             subscribers = (
                 int(subscribers_result) if not hasattr(subscribers_result, "__await__") else 0
             )
+
+            # Log detailed message information (Issue #68)
+            self._log_message_details("match_updates_v2", message, subscribers, "enhanced_v2")
 
             self.stats["total_published"] = self.stats.get("total_published", 0) + 1
             self.stats["successful_publishes"] = self.stats.get("successful_publishes", 0) + 1
@@ -182,20 +230,24 @@ class MatchProcessorRedisPublisher:
                 matches, changes_summary, metadata
             )
             v2_subscribers = client.publish("match_updates_v2", v2_message)
-            results["v2.0"] = PublishResult(
-                success=True,
-                subscribers_notified=(
-                    int(v2_subscribers) if not hasattr(v2_subscribers, "__await__") else 0
-                ),
-            )
+            v2_subs_count = int(v2_subscribers) if not hasattr(v2_subscribers, "__await__") else 0
+            results["v2.0"] = PublishResult(success=True, subscribers_notified=v2_subs_count)
+
+            # Log detailed message information for v2.0 (Issue #68)
+            self._log_message_details("match_updates_v2", v2_message, v2_subs_count, "enhanced_v2")
 
             # Publish to default channel (Enhanced Schema v2.0)
             default_subscribers = client.publish(self.config.match_updates_channel, v2_message)
+            default_subs_count = (
+                int(default_subscribers) if not hasattr(default_subscribers, "__await__") else 0
+            )
             results["default"] = PublishResult(
-                success=True,
-                subscribers_notified=(
-                    int(default_subscribers) if not hasattr(default_subscribers, "__await__") else 0
-                ),
+                success=True, subscribers_notified=default_subs_count
+            )
+
+            # Log detailed message information for default channel (Issue #68)
+            self._log_message_details(
+                self.config.match_updates_channel, v2_message, default_subs_count, "default"
             )
 
             # Publish Legacy Schema v1.0 for backward compatibility
@@ -203,12 +255,11 @@ class MatchProcessorRedisPublisher:
                 matches, changes_summary, metadata
             )
             v1_subscribers = client.publish("match_updates_v1", v1_message)
-            results["v1.0_legacy"] = PublishResult(
-                success=True,
-                subscribers_notified=(
-                    int(v1_subscribers) if not hasattr(v1_subscribers, "__await__") else 0
-                ),
-            )
+            v1_subs_count = int(v1_subscribers) if not hasattr(v1_subscribers, "__await__") else 0
+            results["v1.0_legacy"] = PublishResult(success=True, subscribers_notified=v1_subs_count)
+
+            # Log detailed message information for v1.0 legacy (Issue #68)
+            self._log_message_details("match_updates_v1", v1_message, v1_subs_count, "legacy_v1")
 
             # Update stats
             self.stats["total_published"] = self.stats.get("total_published", 0) + 3
@@ -267,6 +318,11 @@ class MatchProcessorRedisPublisher:
             # Handle both sync and async redis client return types
             subscribers = (
                 int(subscribers_result) if not hasattr(subscribers_result, "__await__") else 0
+            )
+
+            # Log detailed message information (Issue #68)
+            self._log_message_details(
+                self.config.processor_status_channel, message, subscribers, "processing_status"
             )
 
             self.stats["total_published"] = self.stats.get("total_published", 0) + 1
