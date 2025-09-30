@@ -4,6 +4,7 @@ import json
 import os
 import tempfile
 import unittest
+from unittest.mock import patch
 
 from src.core.change_detector import ChangesSummary, GranularChangeDetector
 
@@ -281,6 +282,202 @@ class TestGranularChangeDetector(unittest.TestCase):
 
         # Verify change categories are identified
         self.assertIn(ChangeCategory.NEW_ASSIGNMENT, changes.categorized_changes.change_categories)
+
+
+class TestDetailedChangeLogging(unittest.TestCase):
+    """Test cases for detailed change logging functionality (Issue #67)."""
+
+    def setUp(self):
+        """Set up test fixtures."""
+        self.temp_dir = tempfile.mkdtemp()
+        self.temp_file = os.path.join(self.temp_dir, "test_matches.json")
+        self.detector = GranularChangeDetector(self.temp_file)
+
+        # Sample match data
+        self.sample_match = {
+            "matchid": "12345",
+            "matchnr": "1",
+            "speldatum": "2025-09-01",
+            "avsparkstid": "14:00",
+            "lag1lagid": "100",
+            "lag1namn": "Team A",
+            "lag2lagid": "200",
+            "lag2namn": "Team B",
+            "anlaggningnamn": "Stadium A",
+            "installd": False,
+            "avbruten": False,
+            "uppskjuten": False,
+            "domaruppdraglista": [
+                {
+                    "domareid": "ref1",
+                    "personnamn": "John Referee",
+                    "domarrollnamn": "Huvuddomare",
+                }
+            ],
+        }
+
+    def tearDown(self):
+        """Clean up test fixtures."""
+        if os.path.exists(self.temp_file):
+            os.remove(self.temp_file)
+        os.rmdir(self.temp_dir)
+
+    @patch("src.core.change_detector.logger")
+    def test_detailed_logging_for_time_change(self, mock_logger):
+        """Test detailed logging for time changes."""
+        # Save initial match
+        with open(self.temp_file, "w") as f:
+            json.dump([self.sample_match], f)
+
+        # Create modified match with time change
+        modified_match = self.sample_match.copy()
+        modified_match["avsparkstid"] = "16:00"
+
+        # Detect changes
+        self.detector.detect_changes([modified_match])
+
+        # Verify detailed logging was called
+        log_calls = [str(call) for call in mock_logger.info.call_args_list]
+        log_messages = " ".join(log_calls)
+
+        # Check for detailed change logging
+        self.assertIn("DETAILED CHANGES DETECTED", log_messages)
+        self.assertIn("FIELD CHANGE", log_messages)
+        self.assertIn("avsparkstid", log_messages)
+        self.assertIn("14:00", log_messages)
+        self.assertIn("16:00", log_messages)
+        self.assertIn("time_change", log_messages)
+
+    @patch("src.core.change_detector.logger")
+    def test_detailed_logging_for_venue_change(self, mock_logger):
+        """Test detailed logging for venue changes."""
+        # Save initial match
+        with open(self.temp_file, "w") as f:
+            json.dump([self.sample_match], f)
+
+        # Create modified match with venue change
+        modified_match = self.sample_match.copy()
+        modified_match["anlaggningnamn"] = "Stadium B"
+
+        # Detect changes
+        self.detector.detect_changes([modified_match])
+
+        # Verify detailed logging
+        log_calls = [str(call) for call in mock_logger.info.call_args_list]
+        log_messages = " ".join(log_calls)
+
+        self.assertIn("FIELD CHANGE", log_messages)
+        self.assertIn("anlaggningnamn", log_messages)
+        self.assertIn("Stadium A", log_messages)
+        self.assertIn("Stadium B", log_messages)
+        self.assertIn("venue_change", log_messages)
+
+    @patch("src.core.change_detector.logger")
+    def test_summary_logging_with_priority_counts(self, mock_logger):
+        """Test summary logging includes priority counts."""
+        # Save initial match
+        with open(self.temp_file, "w") as f:
+            json.dump([self.sample_match], f)
+
+        # Create modified match with multiple changes
+        modified_match = self.sample_match.copy()
+        modified_match["avsparkstid"] = "16:00"  # High priority
+        modified_match["anlaggningnamn"] = "Stadium B"  # Medium priority
+
+        # Detect changes
+        self.detector.detect_changes([modified_match])
+
+        # Verify summary logging
+        log_calls = [str(call) for call in mock_logger.info.call_args_list]
+        log_messages = " ".join(log_calls)
+
+        self.assertIn("CHANGE SUMMARY", log_messages)
+        self.assertIn("Total changes", log_messages)
+        self.assertIn("High priority", log_messages)
+        self.assertIn("Medium priority", log_messages)
+
+    @patch("src.core.change_detector.logger")
+    def test_category_aggregation_in_summary(self, mock_logger):
+        """Test that summary includes aggregated categories."""
+        # Save initial match
+        with open(self.temp_file, "w") as f:
+            json.dump([self.sample_match], f)
+
+        # Create modified match with multiple changes
+        modified_match = self.sample_match.copy()
+        modified_match["avsparkstid"] = "16:00"
+        modified_match["anlaggningnamn"] = "Stadium B"
+
+        # Detect changes
+        self.detector.detect_changes([modified_match])
+
+        # Verify category logging
+        log_calls = [str(call) for call in mock_logger.info.call_args_list]
+        log_messages = " ".join(log_calls)
+
+        self.assertIn("Categories:", log_messages)
+
+    @patch("src.core.change_detector.logger")
+    def test_no_detailed_logging_when_no_changes(self, mock_logger):
+        """Test that detailed logging is not triggered when no changes exist."""
+        # Save initial match
+        with open(self.temp_file, "w") as f:
+            json.dump([self.sample_match], f)
+
+        # Detect changes with same match (no changes)
+        self.detector.detect_changes([self.sample_match])
+
+        # Verify no detailed logging
+        log_calls = [str(call) for call in mock_logger.info.call_args_list]
+        log_messages = " ".join(log_calls)
+
+        self.assertNotIn("DETAILED CHANGES DETECTED", log_messages)
+        self.assertIn("No changes detected", log_messages)
+
+    @patch("src.core.change_detector.logger")
+    def test_backward_compatibility_existing_logs(self, mock_logger):
+        """Test that existing log format is maintained for backward compatibility."""
+        # Save initial match
+        with open(self.temp_file, "w") as f:
+            json.dump([self.sample_match], f)
+
+        # Create modified match
+        modified_match = self.sample_match.copy()
+        modified_match["avsparkstid"] = "16:00"
+
+        # Detect changes
+        self.detector.detect_changes([modified_match])
+
+        # Verify existing log format is still present
+        log_calls = [str(call) for call in mock_logger.info.call_args_list]
+        log_messages = " ".join(log_calls)
+
+        # Original log format should still be present
+        self.assertIn("Changes detected:", log_messages)
+        self.assertIn("new,", log_messages)
+        self.assertIn("removed,", log_messages)
+        self.assertIn("changed", log_messages)
+
+    @patch("src.core.change_detector.logger")
+    def test_emoji_indicators_in_logs(self, mock_logger):
+        """Test that emoji indicators are used for visual clarity."""
+        # Save initial match
+        with open(self.temp_file, "w") as f:
+            json.dump([self.sample_match], f)
+
+        # Create modified match
+        modified_match = self.sample_match.copy()
+        modified_match["avsparkstid"] = "16:00"
+
+        # Detect changes
+        self.detector.detect_changes([modified_match])
+
+        # Verify emoji indicators
+        log_calls = [str(call) for call in mock_logger.info.call_args_list]
+        log_messages = " ".join(log_calls)
+
+        self.assertIn("🔄", log_messages)  # Change indicator
+        self.assertIn("📊", log_messages)  # Summary indicator
 
 
 if __name__ == "__main__":
