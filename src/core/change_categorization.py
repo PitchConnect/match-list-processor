@@ -225,7 +225,7 @@ class GranularChangeDetector:
             for referee in match["domaruppdraglista"]:
                 referees.append(
                     {
-                        "id": referee.get("domareid"),
+                        "id": referee.get("domarid"),
                         "name": referee.get("personnamn"),
                         "role": referee.get("domarrollnamn"),
                     }

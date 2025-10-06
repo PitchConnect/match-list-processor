@@ -35,7 +35,7 @@ class TestGranularChangeDetector(unittest.TestCase):
             "uppskjuten": False,
             "domaruppdraglista": [
                 {
-                    "domareid": "ref1",
+                    "domarid": "ref1",
                     "personnamn": "John Referee",
                     "domarrollnamn": "Huvuddomare",
                     "epostadress": "john@example.com",
@@ -108,14 +108,14 @@ class TestGranularChangeDetector(unittest.TestCase):
         modified_match = self.sample_match.copy()
         modified_match["domaruppdraglista"] = [
             {
-                "domareid": "ref1",
+                "domarid": "ref1",
                 "personnamn": "John Referee",
                 "domarrollnamn": "Huvuddomare",
                 "epostadress": "john@example.com",
                 "mobiltelefon": "123456789",
             },
             {
-                "domareid": "ref2",
+                "domarid": "ref2",
                 "personnamn": "Jane Assistant",
                 "domarrollnamn": "Assisterande dommare",
                 "epostadress": "jane@example.com",
@@ -309,7 +309,7 @@ class TestDetailedChangeLogging(unittest.TestCase):
             "uppskjuten": False,
             "domaruppdraglista": [
                 {
-                    "domareid": "ref1",
+                    "domarid": "ref1",
                     "personnamn": "John Referee",
                     "domarrollnamn": "Huvuddomare",
                 }
