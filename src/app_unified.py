@@ -10,8 +10,8 @@ from typing import Any, Optional
 
 from src.config import settings
 from src.core.unified_processor import UnifiedMatchProcessor
-from src.web.health_server import create_health_server
 from src.redis_integration.app_integration import add_redis_integration_to_processor
+from src.web.health_server import create_health_server
 
 logger = logging.getLogger(__name__)
 
