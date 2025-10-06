@@ -11,6 +11,7 @@ from typing import Any, Optional
 from src.config import settings
 from src.core.unified_processor import UnifiedMatchProcessor
 from src.web.health_server import create_health_server
+from src.redis_integration.app_integration import add_redis_integration_to_processor
 
 logger = logging.getLogger(__name__)
 
@@ -30,6 +31,17 @@ class UnifiedMatchListProcessorApp:
 
         # Initialize unified processor (replaces separate change detection + processing)
         self.unified_processor = UnifiedMatchProcessor()
+
+        # Initialize Redis integration if enabled
+        if os.getenv("REDIS_ENABLED", "false").lower() == "true":
+            try:
+                add_redis_integration_to_processor(self.unified_processor)
+                logger.info("✅ Redis pub/sub integration enabled")
+            except Exception as e:
+                logger.error(f"❌ Failed to initialize Redis integration: {e}")
+                logger.warning("⚠️  Service will continue without Redis pub/sub functionality")
+        else:
+            logger.info("ℹ️  Redis pub/sub integration disabled (REDIS_ENABLED=false)")
 
         # Initialize health server (skip in test mode)
         self.health_server: Optional[Any] = None
