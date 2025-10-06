@@ -17,14 +17,68 @@ def add_redis_integration_to_processor(processor: Any) -> None:
     """
     Add Redis integration to a match processor instance.
 
+    Supports both UnifiedMatchProcessor (with run_processing_cycle) and
+    legacy processors (with _process_matches_sync).
+
     Args:
         processor: Match processor instance to enhance with Redis integration
     """
     # Add Redis service to processor
     processor.redis_integration = MatchProcessorRedisService()
 
-    # Store original processing method
-    if hasattr(processor, "_process_matches_sync"):
+    # Hook into UnifiedMatchProcessor's run_processing_cycle method
+    if hasattr(processor, "run_processing_cycle"):
+        processor._original_run_processing_cycle = processor.run_processing_cycle
+
+        def enhanced_run_processing_cycle() -> Any:
+            """Enhanced processing cycle with Redis integration."""
+            try:
+                # Publish processing start
+                processor.redis_integration.handle_processing_start(
+                    {"processor_type": type(processor).__name__}
+                )
+
+                # Call original processing method
+                result = processor._original_run_processing_cycle()
+
+                # Extract data from ProcessingResult
+                # ProcessingResult has: processed, changes (ChangesSummary), processing_time, errors
+                if result and result.processed:
+                    # Get matches from the change detector's current state
+                    matches = []
+                    if hasattr(processor, "change_detector"):
+                        try:
+                            # Load the current matches that were just saved
+                            matches = processor.change_detector.load_current_matches()
+                        except Exception as e:
+                            logger.warning(f"Could not load matches for Redis publishing: {e}")
+
+                    # Get changes summary
+                    changes = result.changes if hasattr(result, "changes") else None
+
+                    # Publish completion
+                    processor.redis_integration.handle_match_processing_complete(
+                        matches, changes, {"processor_type": type(processor).__name__}
+                    )
+                else:
+                    logger.info("No changes processed, skipping Redis publishing")
+
+                return result
+
+            except Exception as e:
+                # Publish error
+                processor.redis_integration.handle_processing_error(
+                    e, {"processor_type": type(processor).__name__}
+                )
+                raise
+
+        # Replace processing method
+        processor.run_processing_cycle = enhanced_run_processing_cycle
+
+        logger.info("✅ Redis integration added to UnifiedMatchProcessor")
+
+    # Fallback for legacy processors with _process_matches_sync
+    elif hasattr(processor, "_process_matches_sync"):
         processor._original_process_matches_sync = processor._process_matches_sync
 
         def enhanced_process_matches_sync() -> Any:
@@ -59,9 +113,13 @@ def add_redis_integration_to_processor(processor: Any) -> None:
         # Replace processing method
         processor._process_matches_sync = enhanced_process_matches_sync
 
-        logger.info("✅ Redis integration added to match processor")
+        logger.info("✅ Redis integration added to legacy match processor")
+
     else:
-        logger.warning("⚠️ Could not find _process_matches_sync method to enhance")
+        logger.warning(
+            "⚠️ Could not find compatible method to enhance "
+            "(expected run_processing_cycle or _process_matches_sync)"
+        )
 
 
 def create_redis_service() -> MatchProcessorRedisService:
@@ -199,14 +257,72 @@ def add_enhanced_redis_integration_to_processor(processor: Any) -> None:
     """
     Add Enhanced Schema v2.0 Redis integration to a match processor instance.
 
+    Supports both UnifiedMatchProcessor (with run_processing_cycle) and
+    legacy processors (with _process_matches_sync).
+
     Args:
         processor: Match processor instance to enhance with Enhanced Schema v2.0 integration
     """
     # Add Enhanced Redis integration to processor
     processor.enhanced_redis_integration = EnhancedMatchProcessingIntegration()
 
-    # Store original processing method
-    if hasattr(processor, "_process_matches_sync"):
+    # Hook into UnifiedMatchProcessor's run_processing_cycle method
+    if hasattr(processor, "run_processing_cycle"):
+        processor._original_run_processing_cycle = processor.run_processing_cycle
+
+        def enhanced_run_processing_cycle_v2() -> Any:
+            """Enhanced processing cycle with Schema v2.0 Redis integration."""
+            try:
+                # Publish processing start
+                processor.enhanced_redis_integration.redis_service.handle_processing_start(
+                    {"processor_type": type(processor).__name__, "schema_version": "2.0"}
+                )
+
+                # Call original processing method
+                result = processor._original_run_processing_cycle()
+
+                # Extract data from ProcessingResult
+                if result and result.processed:
+                    # Get matches from the change detector's current state
+                    matches = []
+                    if hasattr(processor, "change_detector"):
+                        try:
+                            matches = processor.change_detector.load_current_matches()
+                        except Exception as e:
+                            logger.warning(f"Could not load matches for Redis publishing: {e}")
+
+                    # Get changes summary
+                    changes = result.changes if hasattr(result, "changes") else None
+
+                    # Publish completion with Enhanced Schema v2.0
+                    processor.enhanced_redis_integration.handle_match_processing_complete_v2(
+                        matches,
+                        changes,
+                        {
+                            "processor_type": type(processor).__name__,
+                            "schema_version": "2.0",
+                            "logo_service_compatible": True,
+                        },
+                    )
+                else:
+                    logger.info("No changes processed, skipping Enhanced Schema v2.0 publishing")
+
+                return result
+
+            except Exception as e:
+                # Publish error
+                processor.enhanced_redis_integration.redis_service.handle_processing_error(
+                    e, {"processor_type": type(processor).__name__, "schema_version": "2.0"}
+                )
+                raise
+
+        # Replace processing method
+        processor.run_processing_cycle = enhanced_run_processing_cycle_v2
+
+        logger.info("✅ Enhanced Schema v2.0 Redis integration added to UnifiedMatchProcessor")
+
+    # Fallback for legacy processors with _process_matches_sync
+    elif hasattr(processor, "_process_matches_sync"):
         processor._original_process_matches_sync = processor._process_matches_sync
 
         def enhanced_process_matches_sync_v2() -> Any:
@@ -247,6 +363,10 @@ def add_enhanced_redis_integration_to_processor(processor: Any) -> None:
         # Replace processing method
         processor._process_matches_sync = enhanced_process_matches_sync_v2
 
-        logger.info("✅ Enhanced Schema v2.0 Redis integration added to match processor")
+        logger.info("✅ Enhanced Schema v2.0 Redis integration added to legacy match processor")
+
     else:
-        logger.warning("⚠️ Could not find _process_matches_sync method to enhance")
+        logger.warning(
+            "⚠️ Could not find compatible method to enhance "
+            "(expected run_processing_cycle or _process_matches_sync)"
+        )
