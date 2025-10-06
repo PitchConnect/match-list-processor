@@ -336,12 +336,12 @@ class GranularChangeDetector:
         # Extract referee IDs from previous match
         if "domaruppdraglista" in prev_match:
             for referee in prev_match["domaruppdraglista"]:
-                prev_referee_ids.add(referee.get("domareid"))
+                prev_referee_ids.add(referee.get("domarid"))
 
         # Extract referee IDs from current match
         if "domaruppdraglista" in curr_match:
             for referee in curr_match["domaruppdraglista"]:
-                curr_referee_ids.add(referee.get("domareid"))
+                curr_referee_ids.add(referee.get("domarid"))
 
         return prev_referee_ids != curr_referee_ids
 
@@ -409,7 +409,7 @@ class GranularChangeDetector:
             for referee in match["domaruppdraglista"]:
                 details["referees"].append(
                     {
-                        "id": referee.get("domareid"),
+                        "id": referee.get("domarid"),
                         "name": referee.get("personnamn"),
                         "role": referee.get("domarrollnamn"),
                         "email": referee.get("epostadress"),
