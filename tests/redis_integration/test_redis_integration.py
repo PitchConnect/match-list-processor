@@ -210,6 +210,91 @@ class TestAppIntegration(unittest.TestCase):
         with self.assertRaises(Exception):
             processor._process_matches_sync()
 
+    def test_add_redis_integration_to_unified_processor(self):
+        """Test adding Redis integration to UnifiedMatchProcessor."""
+        # Create mock UnifiedMatchProcessor
+        processor = Mock()
+        processor.run_processing_cycle = Mock()
+
+        # Mock ProcessingResult
+        result_mock = Mock()
+        result_mock.processed = True
+        result_mock.changes = Mock()
+        processor.run_processing_cycle.return_value = result_mock
+
+        # Mock change_detector
+        change_detector_mock = Mock()
+        change_detector_mock.load_current_matches.return_value = [
+            {"matchid": 1, "lag1namn": "Team A", "lag2namn": "Team B"}
+        ]
+        processor.change_detector = change_detector_mock
+
+        add_redis_integration_to_processor(processor)
+
+        # Check that Redis integration was added
+        self.assertTrue(hasattr(processor, "redis_integration"))
+        self.assertTrue(hasattr(processor, "_original_run_processing_cycle"))
+
+        # Test enhanced processing
+        enhanced_result = processor.run_processing_cycle()
+        self.assertEqual(enhanced_result, result_mock)
+
+        # Verify change_detector.load_current_matches was called
+        change_detector_mock.load_current_matches.assert_called_once()
+
+    def test_unified_processor_integration_no_changes(self):
+        """Test UnifiedMatchProcessor integration when no changes are processed."""
+        processor = Mock()
+        processor.run_processing_cycle = Mock()
+
+        # Mock ProcessingResult with no changes
+        result_mock = Mock()
+        result_mock.processed = False
+        processor.run_processing_cycle.return_value = result_mock
+
+        processor.change_detector = Mock()
+
+        add_redis_integration_to_processor(processor)
+
+        # Test enhanced processing
+        enhanced_result = processor.run_processing_cycle()
+        self.assertEqual(enhanced_result, result_mock)
+
+        # Verify load_current_matches was NOT called when no changes
+        processor.change_detector.load_current_matches.assert_not_called()
+
+    def test_unified_processor_integration_with_exception(self):
+        """Test UnifiedMatchProcessor integration with exception handling."""
+        processor = Mock()
+        processor.run_processing_cycle = Mock(side_effect=Exception("Test error"))
+        processor.change_detector = Mock()
+
+        add_redis_integration_to_processor(processor)
+
+        # Test that exception is re-raised after Redis handling
+        with self.assertRaises(Exception):
+            processor.run_processing_cycle()
+
+    def test_unified_processor_without_change_detector(self):
+        """Test UnifiedMatchProcessor integration without change_detector."""
+        processor = Mock()
+        processor.run_processing_cycle = Mock()
+
+        # Mock ProcessingResult
+        result_mock = Mock()
+        result_mock.processed = True
+        result_mock.changes = Mock()
+        processor.run_processing_cycle.return_value = result_mock
+
+        # No change_detector attribute
+        del processor.change_detector
+
+        add_redis_integration_to_processor(processor)
+
+        # Test enhanced processing - should not fail
+        enhanced_result = processor.run_processing_cycle()
+        self.assertEqual(enhanced_result, result_mock)
+
 
 class TestRedisConnectionManager(unittest.TestCase):
     """Test Redis connection manager functionality."""
