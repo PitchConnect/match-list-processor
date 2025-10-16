@@ -42,16 +42,10 @@ def add_redis_integration_to_processor(processor: Any) -> None:
                 result = processor._original_run_processing_cycle()
 
                 # Extract data from ProcessingResult
-                # ProcessingResult has: processed, changes (ChangesSummary), processing_time, errors
+                # ProcessingResult has: processed, changes (ChangesSummary), processing_time, errors, matches
                 if result and result.processed:
-                    # Get matches from the change detector's current state
-                    matches = []
-                    if hasattr(processor, "change_detector"):
-                        try:
-                            # Load the current matches that were just saved
-                            matches = processor.change_detector.load_current_matches()
-                        except Exception as e:
-                            logger.warning(f"Could not load matches for Redis publishing: {e}")
+                    # Get matches from the processing result
+                    matches = result.matches if hasattr(result, "matches") else []
 
                     # Get changes summary
                     changes = result.changes if hasattr(result, "changes") else None
@@ -283,13 +277,8 @@ def add_enhanced_redis_integration_to_processor(processor: Any) -> None:
 
                 # Extract data from ProcessingResult
                 if result and result.processed:
-                    # Get matches from the change detector's current state
-                    matches = []
-                    if hasattr(processor, "change_detector"):
-                        try:
-                            matches = processor.change_detector.load_current_matches()
-                        except Exception as e:
-                            logger.warning(f"Could not load matches for Redis publishing: {e}")
+                    # Get matches from the processing result
+                    matches = result.matches if hasattr(result, "matches") else []
 
                     # Get changes summary
                     changes = result.changes if hasattr(result, "changes") else None

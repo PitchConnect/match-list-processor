@@ -31,11 +31,13 @@ class ProcessingResult:
         changes: Optional[ChangesSummary] = None,
         processing_time: float = 0.0,
         errors: Optional[list] = None,
+        matches: Optional[list] = None,
     ):
         self.processed = processed
         self.changes = changes
         self.processing_time = processing_time
         self.errors = errors or []
+        self.matches = matches or []  # Store processed matches for Redis publishing
         self.assets_generated = 0
         self.calendar_synced = False
         self.notifications_sent = 0
@@ -125,6 +127,7 @@ class UnifiedMatchProcessor:
                     processed=False,
                     processing_time=time.time() - start_time,
                     errors=["No matches fetched from API"],
+                    matches=[],
                 )
 
             # 2. Detect changes using integrated change detector
@@ -151,6 +154,7 @@ class UnifiedMatchProcessor:
                     changes=changes,
                     processing_time=time.time() - start_time,
                     errors=errors,
+                    matches=current_matches,
                 )
                 result.notification_results = notification_results
                 result.notifications_sent = (
@@ -165,6 +169,7 @@ class UnifiedMatchProcessor:
                     changes=changes,
                     processing_time=time.time() - start_time,
                     errors=errors,
+                    matches=current_matches,
                 )
 
         except Exception as e:
@@ -173,7 +178,7 @@ class UnifiedMatchProcessor:
             errors.append(error_msg)
 
             return ProcessingResult(
-                processed=False, processing_time=time.time() - start_time, errors=errors
+                processed=False, processing_time=time.time() - start_time, errors=errors, matches=[]
             )
 
     def _fetch_current_matches(self) -> list:
