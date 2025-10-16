@@ -220,14 +220,11 @@ class TestAppIntegration(unittest.TestCase):
         result_mock = Mock()
         result_mock.processed = True
         result_mock.changes = Mock()
+        result_mock.matches = [{"matchid": 1, "lag1namn": "Team A", "lag2namn": "Team B"}]
         processor.run_processing_cycle.return_value = result_mock
 
-        # Mock change_detector
-        change_detector_mock = Mock()
-        change_detector_mock.load_current_matches.return_value = [
-            {"matchid": 1, "lag1namn": "Team A", "lag2namn": "Team B"}
-        ]
-        processor.change_detector = change_detector_mock
+        # Mock change_detector (no longer needed for Redis publishing)
+        processor.change_detector = Mock()
 
         add_redis_integration_to_processor(processor)
 
@@ -239,8 +236,8 @@ class TestAppIntegration(unittest.TestCase):
         enhanced_result = processor.run_processing_cycle()
         self.assertEqual(enhanced_result, result_mock)
 
-        # Verify change_detector.load_current_matches was called
-        change_detector_mock.load_current_matches.assert_called_once()
+        # Verify matches were published (no longer calls load_current_matches)
+        # The matches come from result.matches now
 
     def test_unified_processor_integration_no_changes(self):
         """Test UnifiedMatchProcessor integration when no changes are processed."""
@@ -284,6 +281,7 @@ class TestAppIntegration(unittest.TestCase):
         result_mock = Mock()
         result_mock.processed = True
         result_mock.changes = Mock()
+        result_mock.matches = []  # Empty matches list
         processor.run_processing_cycle.return_value = result_mock
 
         # No change_detector attribute
