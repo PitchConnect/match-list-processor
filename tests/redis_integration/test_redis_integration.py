@@ -415,6 +415,123 @@ class TestMessageFormatters(unittest.TestCase):
         self.assertEqual(parsed["payload"]["alert_type"], "error")
         self.assertEqual(parsed["payload"]["severity"], "high")
 
+    def test_schema_v2_fields_present(self):
+        """Test that Enhanced Schema v2.0 fields are present (Issue #83)."""
+        import json
+
+        matches = [{"id": 1, "team1": "A", "team2": "B"}]
+        changes = {"summary": {"new_matches": 1}}
+
+        message = MatchUpdateMessageFormatter.format_match_updates(matches, changes)
+        parsed = json.loads(message)
+
+        # Verify v2.0 fields are present
+        self.assertIn("schema_version", parsed["payload"])
+        self.assertEqual(parsed["payload"]["schema_version"], "2.0")
+        self.assertIn("detailed_changes", parsed["payload"])
+        self.assertIn("high_priority", parsed["payload"])
+
+    def test_high_priority_flag_with_critical_changes(self):
+        """Test high_priority flag is True when critical changes exist (Issue #83)."""
+        import json
+
+        matches = [{"id": 1}]
+        changes = {
+            "summary": {"total_changes": 1},
+            "detailed_changes": [
+                {
+                    "field": "installd",
+                    "from": False,
+                    "to": True,
+                    "category": "cancellation",
+                    "priority": "critical",
+                }
+            ],
+        }
+
+        message = MatchUpdateMessageFormatter.format_match_updates(matches, changes)
+        parsed = json.loads(message)
+
+        self.assertTrue(parsed["payload"]["high_priority"])
+
+    def test_high_priority_flag_with_high_priority_changes(self):
+        """Test high_priority flag is True when high priority changes exist (Issue #83)."""
+        import json
+
+        matches = [{"id": 1}]
+        changes = {
+            "summary": {"total_changes": 1},
+            "detailed_changes": [
+                {
+                    "field": "avsparkstid",
+                    "from": "14:00",
+                    "to": "15:00",
+                    "category": "time_change",
+                    "priority": "high",
+                }
+            ],
+        }
+
+        message = MatchUpdateMessageFormatter.format_match_updates(matches, changes)
+        parsed = json.loads(message)
+
+        self.assertTrue(parsed["payload"]["high_priority"])
+
+    def test_high_priority_flag_with_low_priority_changes(self):
+        """Test high_priority flag is False when only low priority changes exist (Issue #83)."""
+        import json
+
+        matches = [{"id": 1}]
+        changes = {
+            "summary": {"total_changes": 1},
+            "detailed_changes": [
+                {
+                    "field": "serienamn",
+                    "from": "Division 1",
+                    "to": "Division 2",
+                    "category": "competition_change",
+                    "priority": "low",
+                }
+            ],
+        }
+
+        message = MatchUpdateMessageFormatter.format_match_updates(matches, changes)
+        parsed = json.loads(message)
+
+        self.assertFalse(parsed["payload"]["high_priority"])
+
+    def test_high_priority_flag_with_no_changes(self):
+        """Test high_priority flag is False when no changes exist (Issue #83)."""
+        import json
+
+        matches = [{"id": 1}]
+        changes = {}
+
+        message = MatchUpdateMessageFormatter.format_match_updates(matches, changes)
+        parsed = json.loads(message)
+
+        self.assertFalse(parsed["payload"]["high_priority"])
+
+    def test_backward_compatibility_maintained(self):
+        """Test that v2.0 messages maintain backward compatibility (Issue #83)."""
+        import json
+
+        matches = [{"id": 1, "team1": "A", "team2": "B"}]
+        changes = {"summary": {"new_matches": 1}}
+
+        message = MatchUpdateMessageFormatter.format_match_updates(matches, changes)
+        parsed = json.loads(message)
+
+        # Verify v1.0 fields still present
+        self.assertEqual(parsed["version"], "1.0")
+        self.assertEqual(parsed["type"], "match_updates")
+        self.assertIn("matches", parsed["payload"])
+        self.assertIn("metadata", parsed["payload"])
+
+        # Verify new v2.0 fields are additive
+        self.assertIn("schema_version", parsed["payload"])
+        self.assertIn("high_priority", parsed["payload"])
+
 
 class TestEnhancedSchemaV2Formatter(unittest.TestCase):
     """Test Enhanced Schema v2.0 formatter with Organization ID mapping."""
