@@ -169,5 +169,8 @@ cython_debug/
 # Security scan reports
 bandit-report*.json
 
+# Performance baseline files
+performance_baseline*.json
+
 # PyPI configuration file
 .pypirc
