@@ -21,7 +21,7 @@ class TestSettings:
         assert settings.fogis_api_client_url == "http://fogis-api-client-service:8080"
         assert settings.whatsapp_avatar_service_url == "http://whatsapp-avatar-service:5002"
         assert settings.google_drive_service_url == "http://google-drive-service:5000"
-        assert settings.phonebook_sync_service_url == "http://fogis-calendar-phonebook-sync:5003"
+        # phonebook_sync_service_url removed in Issue #84
         assert settings.min_referees_for_whatsapp == 2
         assert settings.temp_file_directory == "/tmp"
         assert settings.gdrive_folder_base == "WhatsApp_Group_Assets"

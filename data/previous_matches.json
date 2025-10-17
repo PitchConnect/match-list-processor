@@ -1,33 +1,242 @@
 [
   {
-    "matchid": 6169105,
-    "lag1namn": "IK Kongahälla",
-    "lag2namn": "Motala AIF FK",
-    "lag1lagid": 12345,
-    "lag2lagid": 67890,
-    "lag1foreningid": 111,
-    "lag2foreningid": 222,
-    "speldatum": "2025-06-14",
-    "avsparkstid": "15:00",
-    "tid": "2025-06-14T15:00:00",
-    "tidsangivelse": "2025-06-14 15:00",
-    "tavlingnamn": "Div 2 Norra Götaland, herr 2025",
-    "anlaggningnamn": "Kongevi 1 Konstgräs",
-    "anlaggningid": 333,
-    "matchnr": "M001",
-    "domaruppdraglista": [
-      {
-        "domarid": 1001,
-        "personnamn": "John Doe",
-        "namn": "John Doe",
-        "domarrollnamn": "Huvuddomare"
-      },
-      {
-        "domarid": 1002,
-        "personnamn": "Jane Smith",
-        "namn": "Jane Smith",
-        "domarrollnamn": "Assisterande domare"
-      }
+    "match_id": "match_0",
+    "home_team": "Team A0",
+    "away_team": "Team B0",
+    "match_date": "2025-09-02",
+    "match_time": "15:00",
+    "venue": "Stadium 0",
+    "referees": [
+      "Referee 0_1",
+      "Referee 0_2"
+    ]
+  },
+  {
+    "match_id": "match_1",
+    "home_team": "Team A1",
+    "away_team": "Team B1",
+    "match_date": "2025-09-02",
+    "match_time": "16:00",
+    "venue": "Stadium 1",
+    "referees": [
+      "Referee 1_1",
+      "Referee 1_2"
+    ]
+  },
+  {
+    "match_id": "match_2",
+    "home_team": "Team A2",
+    "away_team": "Team B2",
+    "match_date": "2025-09-02",
+    "match_time": "17:00",
+    "venue": "Stadium 2",
+    "referees": [
+      "Referee 2_1",
+      "Referee 2_2"
+    ]
+  },
+  {
+    "match_id": "match_3",
+    "home_team": "Team A3",
+    "away_team": "Team B3",
+    "match_date": "2025-09-02",
+    "match_time": "18:00",
+    "venue": "Stadium 3",
+    "referees": [
+      "Referee 3_1",
+      "Referee 3_2"
+    ]
+  },
+  {
+    "match_id": "match_4",
+    "home_team": "Team A4",
+    "away_team": "Team B4",
+    "match_date": "2025-09-02",
+    "match_time": "15:00",
+    "venue": "Stadium 4",
+    "referees": [
+      "Referee 4_1",
+      "Referee 4_2"
+    ]
+  },
+  {
+    "match_id": "match_5",
+    "home_team": "Team A5",
+    "away_team": "Team B5",
+    "match_date": "2025-09-02",
+    "match_time": "16:00",
+    "venue": "Stadium 5",
+    "referees": [
+      "Referee 5_1",
+      "Referee 5_2"
+    ]
+  },
+  {
+    "match_id": "match_6",
+    "home_team": "Team A6",
+    "away_team": "Team B6",
+    "match_date": "2025-09-02",
+    "match_time": "17:00",
+    "venue": "Stadium 6",
+    "referees": [
+      "Referee 6_1",
+      "Referee 6_2"
+    ]
+  },
+  {
+    "match_id": "match_7",
+    "home_team": "Team A7",
+    "away_team": "Team B7",
+    "match_date": "2025-09-02",
+    "match_time": "18:00",
+    "venue": "Stadium 7",
+    "referees": [
+      "Referee 7_1",
+      "Referee 7_2"
+    ]
+  },
+  {
+    "match_id": "match_8",
+    "home_team": "Team A8",
+    "away_team": "Team B8",
+    "match_date": "2025-09-02",
+    "match_time": "15:00",
+    "venue": "Stadium 8",
+    "referees": [
+      "Referee 8_1",
+      "Referee 8_2"
+    ]
+  },
+  {
+    "match_id": "match_9",
+    "home_team": "Team A9",
+    "away_team": "Team B9",
+    "match_date": "2025-09-02",
+    "match_time": "16:00",
+    "venue": "Stadium 9",
+    "referees": [
+      "Referee 9_1",
+      "Referee 9_2"
+    ]
+  },
+  {
+    "match_id": "match_10",
+    "home_team": "Team A10",
+    "away_team": "Team B10",
+    "match_date": "2025-09-02",
+    "match_time": "17:00",
+    "venue": "Stadium 10",
+    "referees": [
+      "Referee 10_1",
+      "Referee 10_2"
+    ]
+  },
+  {
+    "match_id": "match_11",
+    "home_team": "Team A11",
+    "away_team": "Team B11",
+    "match_date": "2025-09-02",
+    "match_time": "18:00",
+    "venue": "Stadium 11",
+    "referees": [
+      "Referee 11_1",
+      "Referee 11_2"
+    ]
+  },
+  {
+    "match_id": "match_12",
+    "home_team": "Team A12",
+    "away_team": "Team B12",
+    "match_date": "2025-09-02",
+    "match_time": "15:00",
+    "venue": "Stadium 12",
+    "referees": [
+      "Referee 12_1",
+      "Referee 12_2"
+    ]
+  },
+  {
+    "match_id": "match_13",
+    "home_team": "Team A13",
+    "away_team": "Team B13",
+    "match_date": "2025-09-02",
+    "match_time": "16:00",
+    "venue": "Stadium 13",
+    "referees": [
+      "Referee 13_1",
+      "Referee 13_2"
+    ]
+  },
+  {
+    "match_id": "match_14",
+    "home_team": "Team A14",
+    "away_team": "Team B14",
+    "match_date": "2025-09-02",
+    "match_time": "17:00",
+    "venue": "Stadium 14",
+    "referees": [
+      "Referee 14_1",
+      "Referee 14_2"
+    ]
+  },
+  {
+    "match_id": "match_15",
+    "home_team": "Team A15",
+    "away_team": "Team B15",
+    "match_date": "2025-09-02",
+    "match_time": "18:00",
+    "venue": "Stadium 15",
+    "referees": [
+      "Referee 15_1",
+      "Referee 15_2"
+    ]
+  },
+  {
+    "match_id": "match_16",
+    "home_team": "Team A16",
+    "away_team": "Team B16",
+    "match_date": "2025-09-02",
+    "match_time": "15:00",
+    "venue": "Stadium 16",
+    "referees": [
+      "Referee 16_1",
+      "Referee 16_2"
+    ]
+  },
+  {
+    "match_id": "match_17",
+    "home_team": "Team A17",
+    "away_team": "Team B17",
+    "match_date": "2025-09-02",
+    "match_time": "16:00",
+    "venue": "Stadium 17",
+    "referees": [
+      "Referee 17_1",
+      "Referee 17_2"
+    ]
+  },
+  {
+    "match_id": "match_18",
+    "home_team": "Team A18",
+    "away_team": "Team B18",
+    "match_date": "2025-09-02",
+    "match_time": "17:00",
+    "venue": "Stadium 18",
+    "referees": [
+      "Referee 18_1",
+      "Referee 18_2"
+    ]
+  },
+  {
+    "match_id": "match_19",
+    "home_team": "Team A19",
+    "away_team": "Team B19",
+    "match_date": "2025-09-02",
+    "match_time": "18:00",
+    "venue": "Stadium 19",
+    "referees": [
+      "Referee 19_1",
+      "Referee 19_2"
     ]
   }
 ]

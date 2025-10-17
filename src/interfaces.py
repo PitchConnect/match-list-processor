@@ -59,16 +59,3 @@ class StorageServiceInterface(ABC):
             Upload result with status and URL
         """
         pass
-
-
-class PhonebookSyncInterface(ABC):
-    """Abstract interface for phonebook synchronization services."""
-
-    @abstractmethod
-    def sync_contacts(self) -> bool:
-        """Trigger contact synchronization.
-
-        Returns:
-            True if sync was successful, False otherwise
-        """
-        pass

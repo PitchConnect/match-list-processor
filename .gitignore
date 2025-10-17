@@ -174,3 +174,6 @@ performance_baseline*.json
 
 # PyPI configuration file
 .pypirc
+
+# Performance baseline files (generated during tests)
+performance_baseline_*.json

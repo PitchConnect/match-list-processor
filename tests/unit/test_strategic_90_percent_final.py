@@ -19,7 +19,6 @@ class TestStrategic90PercentFinal:
             patch("src.app_persistent.DockerNetworkApiClient"),
             patch("src.app_persistent.WhatsAppAvatarService"),
             patch("src.app_persistent.GoogleDriveStorageService"),
-            patch("src.app_persistent.FogisPhonebookSyncService"),
             patch("src.app_persistent.MatchProcessor"),
             patch("src.app_persistent.create_health_server"),
             patch("src.app_persistent.time.sleep"),

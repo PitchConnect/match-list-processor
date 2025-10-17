@@ -80,7 +80,6 @@ class TestSimple90PercentPush:
             patch("src.app_persistent.DockerNetworkApiClient"),
             patch("src.app_persistent.WhatsAppAvatarService"),
             patch("src.app_persistent.GoogleDriveStorageService"),
-            patch("src.app_persistent.FogisPhonebookSyncService"),
             patch("src.app_persistent.MatchProcessor"),
             patch("src.app_persistent.create_health_server"),
         ):
@@ -94,7 +93,6 @@ class TestSimple90PercentPush:
             assert hasattr(app, "api_client")
             assert hasattr(app, "avatar_service")
             assert hasattr(app, "storage_service")
-            assert hasattr(app, "phonebook_service")
             assert hasattr(app, "match_processor")
 
     def test_basic_app_unified_creation_with_mocks(self):
@@ -157,7 +155,6 @@ class TestSimple90PercentPush:
             patch("src.app_persistent.DockerNetworkApiClient"),
             patch("src.app_persistent.WhatsAppAvatarService"),
             patch("src.app_persistent.GoogleDriveStorageService"),
-            patch("src.app_persistent.FogisPhonebookSyncService"),
             patch("src.app_persistent.MatchProcessor"),
             patch("src.app_persistent.create_health_server"),
             patch.dict(os.environ, {"RUN_MODE": "test_mode"}),

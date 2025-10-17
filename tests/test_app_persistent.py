@@ -16,7 +16,6 @@ class TestPersistentMatchListProcessorApp:
         """Create mock services for testing."""
         return {
             "api_client": Mock(),
-            "phonebook_service": Mock(),
             "data_manager": Mock(),
             "match_comparator": Mock(),
             "match_processor": Mock(),
@@ -31,10 +30,6 @@ class TestPersistentMatchListProcessorApp:
             patch(
                 "src.app_persistent.DockerNetworkApiClient",
                 return_value=mock_services["api_client"],
-            ),
-            patch(
-                "src.app_persistent.FogisPhonebookSyncService",
-                return_value=mock_services["phonebook_service"],
             ),
             patch(
                 "src.app_persistent.MatchDataManager", return_value=mock_services["data_manager"]
@@ -54,7 +49,6 @@ class TestPersistentMatchListProcessorApp:
                 return_value=mock_services["storage_service"],
             ),
         ):
-
             app = PersistentMatchListProcessorApp()
             return app
 
@@ -62,7 +56,6 @@ class TestPersistentMatchListProcessorApp:
         """Test app initialization."""
         with (
             patch("src.app_persistent.DockerNetworkApiClient"),
-            patch("src.app_persistent.FogisPhonebookSyncService"),
             patch("src.app_persistent.MatchDataManager"),
             patch("src.app_persistent.MatchComparator"),
             patch("src.app_persistent.MatchProcessor"),
@@ -100,7 +93,6 @@ class TestPersistentMatchListProcessorApp:
         """Test service mode configuration from environment."""
         with (
             patch("src.app_persistent.DockerNetworkApiClient"),
-            patch("src.app_persistent.FogisPhonebookSyncService"),
             patch("src.app_persistent.MatchDataManager"),
             patch("src.app_persistent.MatchComparator"),
             patch("src.app_persistent.MatchProcessor"),
@@ -117,7 +109,6 @@ class TestPersistentMatchListProcessorApp:
         """Test oneshot mode configuration (default)."""
         with (
             patch("src.app_persistent.DockerNetworkApiClient"),
-            patch("src.app_persistent.FogisPhonebookSyncService"),
             patch("src.app_persistent.MatchDataManager"),
             patch("src.app_persistent.MatchComparator"),
             patch("src.app_persistent.MatchProcessor"),

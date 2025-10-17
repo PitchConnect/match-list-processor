@@ -18,7 +18,6 @@ class TestProcessingPerformance:
             patch("src.core.unified_processor.DockerNetworkApiClient"),
             patch("src.core.unified_processor.WhatsAppAvatarService"),
             patch("src.core.unified_processor.GoogleDriveStorageService"),
-            patch("src.core.unified_processor.FogisPhonebookSyncService"),
         ):
             self.processor = UnifiedMatchProcessor()
 
@@ -166,7 +165,6 @@ class TestMemoryPerformance:
             patch("src.core.unified_processor.DockerNetworkApiClient"),
             patch("src.core.unified_processor.WhatsAppAvatarService"),
             patch("src.core.unified_processor.GoogleDriveStorageService"),
-            patch("src.core.unified_processor.FogisPhonebookSyncService"),
         ):
             self.processor = UnifiedMatchProcessor()
 
@@ -249,7 +247,6 @@ class TestConcurrencyPerformance:
             patch("src.core.unified_processor.DockerNetworkApiClient"),
             patch("src.core.unified_processor.WhatsAppAvatarService"),
             patch("src.core.unified_processor.GoogleDriveStorageService"),
-            patch("src.core.unified_processor.FogisPhonebookSyncService"),
         ):
             self.processor = UnifiedMatchProcessor()
 

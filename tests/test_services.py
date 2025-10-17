@@ -7,7 +7,6 @@ import requests
 
 from src.services.api_client import DockerNetworkApiClient
 from src.services.avatar_service import WhatsAppAvatarService
-from src.services.phonebook_service import FogisPhonebookSyncService
 from src.services.storage_service import GoogleDriveStorageService
 
 
@@ -185,51 +184,3 @@ class TestGoogleDriveStorageService:
         assert result["status"] == "error"
         assert "Error uploading to Google Drive" in result["message"]
         assert result["file_url"] is None
-
-
-class TestFogisPhonebookSyncService:
-    """Test the FogisPhonebookSyncService class."""
-
-    def test_init_default_url(self):
-        """Test initialization with default URL."""
-        service = FogisPhonebookSyncService()
-        assert service.base_url == "http://fogis-calendar-phonebook-sync:5003"
-        assert service.sync_endpoint == "http://fogis-calendar-phonebook-sync:5003/sync"
-
-    @patch("src.services.phonebook_service.requests.post")
-    def test_sync_contacts_success(self, mock_post):
-        """Test successful contact sync."""
-        mock_response = Mock()
-        mock_response.status_code = 200
-        mock_post.return_value = mock_response
-
-        service = FogisPhonebookSyncService()
-        result = service.sync_contacts()
-
-        assert result is True
-        mock_post.assert_called_once_with(
-            "http://fogis-calendar-phonebook-sync:5003/sync", timeout=30
-        )
-
-    @patch("src.services.phonebook_service.requests.post")
-    def test_sync_contacts_failure(self, mock_post):
-        """Test contact sync failure."""
-        mock_response = Mock()
-        mock_response.status_code = 500
-        mock_response.text = "Internal server error"
-        mock_post.return_value = mock_response
-
-        service = FogisPhonebookSyncService()
-        result = service.sync_contacts()
-
-        assert result is False
-
-    @patch("src.services.phonebook_service.requests.post")
-    def test_sync_contacts_request_error(self, mock_post):
-        """Test contact sync with request error."""
-        mock_post.side_effect = requests.exceptions.RequestException("Connection failed")
-
-        service = FogisPhonebookSyncService()
-        result = service.sync_contacts()
-
-        assert result is False

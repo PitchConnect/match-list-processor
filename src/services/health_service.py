@@ -68,10 +68,6 @@ class HealthService:
                 "url": f"{settings.google_drive_service_url}/health",
                 "timeout": 5,
             },
-            "phonebook-sync-service": {
-                "url": f"{settings.phonebook_sync_service_url}/health",
-                "timeout": 5,
-            },
         }
 
     async def check_dependency(self, name: str, config: Dict[str, Any]) -> DependencyStatus:

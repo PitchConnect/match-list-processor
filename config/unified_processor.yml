@@ -73,12 +73,6 @@ integrations:
     health_endpoint: "/health"
     folder_base: "WhatsApp_Group_Assets"
 
-  # Phonebook Sync Service
-  phonebook_sync:
-    url: "http://fogis-calendar-phonebook-sync:5003"
-    timeout: 60
-    health_endpoint: "/health"
-
 # =============================================================================
 # PROCESSING SETTINGS
 # =============================================================================

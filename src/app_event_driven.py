@@ -26,7 +26,6 @@ from src.core.match_processor import MatchProcessor
 from src.services.api_client import DockerNetworkApiClient
 from src.services.avatar_service import WhatsAppAvatarService
 from src.services.health_service import HealthService
-from src.services.phonebook_service import FogisPhonebookSyncService
 from src.services.storage_service import GoogleDriveStorageService
 from src.services.webhook_service import WebhookProcessingService
 from src.utils.description_generator import generate_whatsapp_description
@@ -44,7 +43,6 @@ class EventDrivenMatchProcessor:
         self.api_client = DockerNetworkApiClient()
         self.avatar_service = WhatsAppAvatarService()
         self.storage_service = GoogleDriveStorageService()
-        self.phonebook_service = FogisPhonebookSyncService()
         self.health_service = HealthService(settings)
 
         # Webhook processing service

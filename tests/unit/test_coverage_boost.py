@@ -12,7 +12,6 @@ from src.core.match_comparator import MatchComparator
 from src.core.match_processor import MatchProcessor
 from src.services.api_client import DockerNetworkApiClient
 from src.services.avatar_service import WhatsAppAvatarService
-from src.services.phonebook_service import FogisPhonebookSyncService
 from src.services.storage_service import GoogleDriveStorageService
 from src.utils.description_generator import generate_whatsapp_description
 from src.utils.file_utils import create_gdrive_folder_path, extract_referee_names
@@ -183,6 +182,8 @@ class TestApiClient:
     def setup_method(self):
         """Set up test fixtures."""
         self.client = DockerNetworkApiClient()
+        # Force network calls for unit tests that need to test network behavior
+        self.client._force_network_calls = True
 
     def test_client_initialization(self):
         """Test client initialization."""
@@ -192,31 +193,27 @@ class TestApiClient:
 
     def test_fetch_matches_list_success(self, sample_match_data):
         """Test successful matches list fetch."""
-        # Set environment variable to enable unit testing
-        with patch.dict(os.environ, {"PYTEST_API_CLIENT_UNIT_TEST": "1"}):
-            with patch("requests.get") as mock_get:
-                mock_response = Mock()
-                mock_response.json.return_value = [sample_match_data]
-                mock_response.raise_for_status.return_value = None
-                mock_response.status_code = 200
-                mock_get.return_value = mock_response
+        with patch("requests.get") as mock_get:
+            mock_response = Mock()
+            mock_response.json.return_value = [sample_match_data]
+            mock_response.raise_for_status.return_value = None
+            mock_response.status_code = 200
+            mock_get.return_value = mock_response
 
-                matches = self.client.fetch_matches_list()
-                assert len(matches) == 1
-                assert matches[0]["matchid"] == sample_match_data["matchid"]
+            matches = self.client.fetch_matches_list()
+            assert len(matches) == 1
+            assert matches[0]["matchid"] == sample_match_data["matchid"]
 
     def test_fetch_matches_list_error(self):
         """Test matches list fetch with error."""
-        # Set environment variable to enable unit testing
-        with patch.dict(os.environ, {"PYTEST_API_CLIENT_UNIT_TEST": "1"}):
-            with patch("requests.get") as mock_get:
-                import requests
+        with patch("requests.get") as mock_get:
+            import requests
 
-                mock_get.side_effect = requests.exceptions.RequestException("Network error")
+            mock_get.side_effect = requests.exceptions.RequestException("Network error")
 
-                # Should return empty list on error, not raise exception
-                matches = self.client.fetch_matches_list()
-                assert matches == []
+            # Should return empty list on error, not raise exception
+            matches = self.client.fetch_matches_list()
+            assert matches == []
 
 
 @pytest.mark.unit
@@ -330,52 +327,6 @@ class TestStorageService:
                 assert "message" in result
         finally:
             os.unlink(temp_file_path)
-
-
-@pytest.mark.unit
-class TestPhonebookService:
-    """Test phonebook service functionality."""
-
-    def setup_method(self):
-        """Set up test fixtures."""
-        self.service = FogisPhonebookSyncService()
-
-    def test_service_initialization(self):
-        """Test service initialization."""
-        assert hasattr(self.service, "base_url")
-        assert hasattr(self.service, "sync_endpoint")
-
-    def test_sync_contacts_success(self):
-        """Test successful contact sync."""
-        with patch("requests.post") as mock_post:
-            mock_response = Mock()
-            mock_response.status_code = 200
-            mock_post.return_value = mock_response
-
-            result = self.service.sync_contacts()
-            assert result is True
-
-    def test_sync_contacts_error(self):
-        """Test contact sync with error."""
-        with patch("requests.post") as mock_post:
-            import requests
-
-            mock_post.side_effect = requests.exceptions.RequestException("Sync error")
-
-            # The service catches exceptions and returns False
-            result = self.service.sync_contacts()
-            assert result is False
-
-    def test_sync_contacts_http_error(self):
-        """Test contact sync with HTTP error."""
-        with patch("requests.post") as mock_post:
-            mock_response = Mock()
-            mock_response.status_code = 500
-            mock_response.text = "Internal Server Error"
-            mock_post.return_value = mock_response
-
-            result = self.service.sync_contacts()
-            assert result is False
 
 
 @pytest.mark.unit
