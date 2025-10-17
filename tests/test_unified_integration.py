@@ -1,13 +1,11 @@
 """Integration tests for the unified processor system."""
 
-import json
 import os
 import tempfile
 import unittest
 from unittest.mock import MagicMock, patch
 
 from src.app_unified import UnifiedMatchListProcessorApp
-from src.core.unified_processor import UnifiedMatchProcessor
 
 
 class TestUnifiedIntegration(unittest.TestCase):

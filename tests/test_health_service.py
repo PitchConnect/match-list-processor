@@ -1,12 +1,9 @@
 """Tests for the health service."""
 
-import os
-import time
 from datetime import datetime, timezone
 from unittest.mock import Mock, patch
 
 import pytest
-import requests
 
 from src.config import Settings
 from src.services.health_service import DependencyStatus, HealthService, HealthStatus

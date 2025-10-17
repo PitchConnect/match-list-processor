@@ -5,18 +5,15 @@ Tests the complete unified match-list-processor service functionality
 Issue #54: Final Integration Testing and Production Deployment Validation
 """
 
-import asyncio
 import logging
 import os
 import tempfile
 import time
 import unittest
-from unittest.mock import MagicMock, patch
+from unittest.mock import patch
 
-from src.app_unified import UnifiedMatchListProcessorApp
 from src.config import settings
 from src.core.unified_processor import UnifiedMatchProcessor
-from src.services.health_service import HealthService
 
 # Configure logging for tests
 logging.basicConfig(level=logging.INFO)

@@ -9,9 +9,7 @@ import json
 import os
 import tempfile
 import unittest
-from unittest.mock import Mock, patch
-
-from src.core.unified_processor import UnifiedMatchProcessor
+from unittest.mock import patch
 
 
 class TestRefereeRedisIntegration(unittest.TestCase):

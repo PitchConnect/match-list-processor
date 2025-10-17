@@ -1,7 +1,5 @@
 """Simple tests to reach 90% coverage by importing and exercising basic code paths."""
 
-import os
-import tempfile
 from unittest.mock import Mock, patch
 
 import pytest

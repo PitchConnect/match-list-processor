@@ -1,11 +1,8 @@
 """Comprehensive unit tests for unified processor functionality."""
 
-import time
-from unittest.mock import Mock, patch
+from unittest.mock import patch
 
-import pytest
-
-from src.core.unified_processor import ProcessingResult, UnifiedMatchProcessor
+from src.core.unified_processor import UnifiedMatchProcessor
 
 
 class TestUnifiedProcessorCore:

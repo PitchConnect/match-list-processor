@@ -1,11 +1,8 @@
 """Integration tests for the match list processor."""
 
-import json
 import os
 from unittest.mock import Mock, patch
 
-from src.app import MatchListProcessorApp
-from src.core.data_manager import MatchDataManager
 from src.core.match_comparator import MatchComparator
 from src.core.match_processor import MatchProcessor
 from src.services.api_client import DockerNetworkApiClient

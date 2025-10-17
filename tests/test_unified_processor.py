@@ -4,8 +4,7 @@ import tempfile
 import unittest
 from unittest.mock import patch
 
-from src.core.change_detector import ChangesSummary
-from src.core.unified_processor import ProcessingResult, UnifiedMatchProcessor
+from src.core.unified_processor import UnifiedMatchProcessor
 
 
 class TestUnifiedMatchProcessor(unittest.TestCase):
