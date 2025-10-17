@@ -89,12 +89,11 @@ class TestDockerNetworkApiClientMonitoring:
 
     def setup_method(self):
         """Set up test environment."""
-        # Force unit test mode to allow network call testing
-        with patch.dict("os.environ", {"PYTEST_API_CLIENT_UNIT_TEST": "1"}):
-            self.client = DockerNetworkApiClient()
-            self.client.notification_service = AsyncMock()
-            # Override test mode for unit tests that need to test network behavior
-            self.client.is_test_mode = False
+        self.client = DockerNetworkApiClient()
+        self.client.notification_service = AsyncMock()
+        # Force network calls for unit tests that need to test network behavior
+        # This bypasses the test mode check in fetch_matches_list
+        self.client._force_network_calls = True
 
     def test_initialization_with_monitoring(self):
         """Test that client initializes with monitoring capabilities."""

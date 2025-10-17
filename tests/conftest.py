@@ -8,7 +8,12 @@ from unittest.mock import AsyncMock, Mock, patch
 
 import pytest
 
-from src.custom_types import MatchDict, RefereeDict
+# Enable API client unit testing mode for all tests
+# This MUST be set before importing any modules that check this variable
+# This allows network call testing in unit tests
+os.environ["PYTEST_API_CLIENT_UNIT_TEST"] = "1"
+
+from src.custom_types import MatchDict, RefereeDict  # noqa: E402
 
 
 @pytest.fixture
@@ -116,14 +121,6 @@ def mock_storage_service():
         "message": None,
         "file_url": "http://example.com/file",
     }
-    return mock
-
-
-@pytest.fixture
-def mock_phonebook_service():
-    """Mock phonebook service."""
-    mock = Mock()
-    mock.sync_contacts.return_value = True
     return mock
 
 
@@ -299,11 +296,7 @@ def mock_health_responses():
             "response_time": 67,
             "url": "http://google-drive-service:5000",
         },
-        "phonebook-sync-service": {
-            "status": "healthy",
-            "response_time": 34,
-            "url": "http://fogis-calendar-phonebook-sync:5003",
-        },
+        # phonebook-sync-service removed in Issue #84
     }
 
 

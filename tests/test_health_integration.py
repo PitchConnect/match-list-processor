@@ -1,7 +1,7 @@
 """Integration tests for health check functionality."""
 
 import time
-from unittest.mock import MagicMock, patch
+from unittest.mock import patch
 
 import pytest
 import requests
@@ -19,7 +19,7 @@ class TestHealthIntegration:
         """Create test settings."""
         return Settings()
 
-    def test_app_graceful_shutdown(self, mock_services):  # noqa: ARG002
+    def test_app_graceful_shutdown(self):
         """Test that the app shuts down the health server gracefully."""
         with patch("src.app.MatchListProcessorApp.run") as mock_run:
             mock_run.return_value = None
