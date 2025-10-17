@@ -63,11 +63,48 @@ class MatchUpdateMessageFormatter:
         return detailed_changes
 
     @staticmethod
+    def _determine_high_priority(changes: Any) -> bool:
+        """
+        Determine if changes contain high priority items.
+
+        Args:
+            changes: Change detection results (can be Dict or ChangesSummary object)
+
+        Returns:
+            bool: True if changes contain critical or high priority items
+        """
+        # Handle ChangesSummary object
+        if hasattr(changes, "categorized_changes") and changes.categorized_changes:
+            # Check for critical or high priority changes
+            if hasattr(changes.categorized_changes, "critical_changes"):
+                if changes.categorized_changes.critical_changes > 0:
+                    return True
+            if hasattr(changes.categorized_changes, "high_priority_changes"):
+                if changes.categorized_changes.high_priority_changes > 0:
+                    return True
+
+        # Handle ChangesSummary object with has_critical_changes property
+        if hasattr(changes, "has_critical_changes") and changes.has_critical_changes:
+            return True
+
+        # Handle Dict with detailed_changes - check priority field
+        if isinstance(changes, dict) and "detailed_changes" in changes:
+            for change in changes.get("detailed_changes", []):
+                priority = change.get("priority", "").lower()
+                if priority in ["critical", "high"]:
+                    return True
+
+        return False
+
+    @staticmethod
     def format_match_updates(
         matches: List[Dict], changes: Dict, metadata: Optional[Dict] = None
     ) -> str:
         """
-        Format match updates message for Redis publishing (Legacy v1.0).
+        Format match updates message for Redis publishing (Enhanced Schema v2.0).
+
+        This method now publishes Enhanced Schema v2.0 messages by default (Issue #83).
+        Includes schema_version, detailed_changes, and high_priority flag.
 
         Args:
             matches: List of match dictionaries
@@ -75,10 +112,13 @@ class MatchUpdateMessageFormatter:
             metadata: Additional processing metadata
 
         Returns:
-            str: JSON formatted message
+            str: JSON formatted message with Enhanced Schema v2.0
         """
         # Extract detailed changes (Issue #68)
         detailed_changes = MatchUpdateMessageFormatter._extract_detailed_changes(changes)
+
+        # Determine high priority flag (Issue #83)
+        high_priority = MatchUpdateMessageFormatter._determine_high_priority(changes)
 
         message = {
             "message_id": str(uuid.uuid4()),
@@ -88,7 +128,9 @@ class MatchUpdateMessageFormatter:
             "type": "match_updates",
             "payload": {
                 "matches": matches,
+                "schema_version": "2.0",  # Added for Issue #83
                 "detailed_changes": detailed_changes,  # Added for Issue #68
+                "high_priority": high_priority,  # Added for Issue #83
                 "metadata": {
                     "total_matches": len(matches),
                     "has_changes": bool(changes),
