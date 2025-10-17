@@ -78,7 +78,6 @@ class TestUltimate90PercentPush:
             patch("src.app_persistent.DockerNetworkApiClient"),
             patch("src.app_persistent.WhatsAppAvatarService"),
             patch("src.app_persistent.GoogleDriveStorageService"),
-            patch("src.app_persistent.FogisPhonebookSyncService"),
             patch("src.app_persistent.MatchProcessor"),
             patch("src.app_persistent.create_health_server"),
             patch("src.app_persistent.logger"),
@@ -92,7 +91,6 @@ class TestUltimate90PercentPush:
             assert hasattr(app, "api_client")
             assert hasattr(app, "avatar_service")
             assert hasattr(app, "storage_service")
-            assert hasattr(app, "phonebook_service")
             assert hasattr(app, "match_processor")
             assert hasattr(app, "running")
             assert hasattr(app, "run_mode")

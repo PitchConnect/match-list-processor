@@ -62,7 +62,6 @@ class TestSemanticNotificationIntegration(unittest.TestCase):
             patch("src.core.unified_processor.DockerNetworkApiClient"),
             patch("src.core.unified_processor.WhatsAppAvatarService"),
             patch("src.core.unified_processor.GoogleDriveStorageService"),
-            patch("src.core.unified_processor.FogisPhonebookSyncService"),
             patch(
                 "src.core.unified_processor.NotificationService",
                 return_value=mock_notification_service,
@@ -140,7 +139,6 @@ class TestSemanticNotificationIntegration(unittest.TestCase):
             patch("src.core.unified_processor.DockerNetworkApiClient"),
             patch("src.core.unified_processor.WhatsAppAvatarService"),
             patch("src.core.unified_processor.GoogleDriveStorageService"),
-            patch("src.core.unified_processor.FogisPhonebookSyncService"),
         ):
             # Create processor with semantic analysis disabled
             processor = UnifiedMatchProcessor()
@@ -162,7 +160,6 @@ class TestSemanticNotificationIntegration(unittest.TestCase):
             patch("src.core.unified_processor.DockerNetworkApiClient"),
             patch("src.core.unified_processor.WhatsAppAvatarService"),
             patch("src.core.unified_processor.GoogleDriveStorageService"),
-            patch("src.core.unified_processor.FogisPhonebookSyncService"),
             patch(
                 "src.core.unified_processor.NotificationService",
                 return_value=mock_notification_service,
@@ -310,7 +307,6 @@ class TestSemanticNotificationIntegration(unittest.TestCase):
                 patch("src.core.unified_processor.DockerNetworkApiClient"),
                 patch("src.core.unified_processor.WhatsAppAvatarService"),
                 patch("src.core.unified_processor.GoogleDriveStorageService"),
-                patch("src.core.unified_processor.FogisPhonebookSyncService"),
             ):
                 processor = UnifiedMatchProcessor()
                 self.assertTrue(processor.use_semantic_analysis)
@@ -321,7 +317,6 @@ class TestSemanticNotificationIntegration(unittest.TestCase):
                 patch("src.core.unified_processor.DockerNetworkApiClient"),
                 patch("src.core.unified_processor.WhatsAppAvatarService"),
                 patch("src.core.unified_processor.GoogleDriveStorageService"),
-                patch("src.core.unified_processor.FogisPhonebookSyncService"),
             ):
                 processor = UnifiedMatchProcessor()
                 self.assertFalse(processor.use_semantic_analysis)
@@ -332,7 +327,6 @@ class TestSemanticNotificationIntegration(unittest.TestCase):
                 patch("src.core.unified_processor.DockerNetworkApiClient"),
                 patch("src.core.unified_processor.WhatsAppAvatarService"),
                 patch("src.core.unified_processor.GoogleDriveStorageService"),
-                patch("src.core.unified_processor.FogisPhonebookSyncService"),
             ):
                 processor = UnifiedMatchProcessor()
                 self.assertFalse(processor.fallback_to_legacy)

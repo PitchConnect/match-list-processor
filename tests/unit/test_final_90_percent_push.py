@@ -18,7 +18,6 @@ class TestFinal90PercentPush:
             patch("src.app_persistent.DockerNetworkApiClient"),
             patch("src.app_persistent.WhatsAppAvatarService"),
             patch("src.app_persistent.GoogleDriveStorageService"),
-            patch("src.app_persistent.FogisPhonebookSyncService"),
             patch("src.app_persistent.MatchProcessor"),
             patch("src.app_persistent.create_health_server"),
             patch.dict(os.environ, {"RUN_MODE": "oneshot"}),
@@ -41,7 +40,6 @@ class TestFinal90PercentPush:
             patch("src.app_persistent.DockerNetworkApiClient"),
             patch("src.app_persistent.WhatsAppAvatarService"),
             patch("src.app_persistent.GoogleDriveStorageService"),
-            patch("src.app_persistent.FogisPhonebookSyncService"),
             patch("src.app_persistent.MatchProcessor"),
             patch("src.app_persistent.create_health_server"),
             patch.dict(os.environ, {"RUN_MODE": "service"}),
@@ -64,7 +62,6 @@ class TestFinal90PercentPush:
             patch("src.app_persistent.DockerNetworkApiClient"),
             patch("src.app_persistent.WhatsAppAvatarService"),
             patch("src.app_persistent.GoogleDriveStorageService"),
-            patch("src.app_persistent.FogisPhonebookSyncService"),
             patch("src.app_persistent.MatchProcessor"),
             patch("src.app_persistent.create_health_server"),
         ):
@@ -89,7 +86,6 @@ class TestFinal90PercentPush:
             patch("src.app_persistent.DockerNetworkApiClient"),
             patch("src.app_persistent.WhatsAppAvatarService"),
             patch("src.app_persistent.GoogleDriveStorageService"),
-            patch("src.app_persistent.FogisPhonebookSyncService"),
             patch("src.app_persistent.MatchProcessor"),
             patch("src.app_persistent.create_health_server"),
         ):

@@ -1,6 +1,6 @@
 {
-  "timestamp": 1758717942.176233,
-  "date": "2025-09-24 14:45:42",
+  "timestamp": 1760681737.8115342,
+  "date": "2025-10-17 08:15:37",
   "thresholds": {
     "processor_initialization": 2.0,
     "processing_cycle_empty": 1.0,
@@ -10,10 +10,10 @@
     "cpu_usage_percent": 50
   },
   "results": {
-    "repeated_avg_time": 8.308887481689453e-05,
-    "repeated_std_dev": 6.355096309309883e-06,
-    "repeated_min_time": 7.915496826171875e-05,
-    "repeated_max_time": 0.00010085105895996094
+    "repeated_avg_time": 8.442401885986329e-05,
+    "repeated_std_dev": 1.1536683912690187e-05,
+    "repeated_min_time": 7.581710815429688e-05,
+    "repeated_max_time": 0.00011515617370605469
   },
   "system_info": {
     "cpu_count": 8,

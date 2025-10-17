@@ -11,7 +11,6 @@ from ..notifications.analysis.semantic_analyzer import SemanticChangeAnalyzer
 from ..notifications.notification_service import NotificationService
 from ..services.api_client import DockerNetworkApiClient
 from ..services.avatar_service import WhatsAppAvatarService
-from ..services.phonebook_service import FogisPhonebookSyncService
 from ..services.storage_service import GoogleDriveStorageService
 from ..utils.description_generator import generate_whatsapp_description
 from .change_detector import ChangesSummary, GranularChangeDetector
@@ -89,7 +88,6 @@ class UnifiedMatchProcessor:
         self.api_client = DockerNetworkApiClient()
         self.avatar_service = WhatsAppAvatarService()
         self.storage_service = GoogleDriveStorageService()
-        self.phonebook_service = FogisPhonebookSyncService()
 
         # Connect notification service to monitored services
         if self.notification_service:
@@ -440,45 +438,21 @@ class UnifiedMatchProcessor:
         return value in ("true", "1", "yes", "on", "enabled")
 
     def _trigger_downstream_services(self, changes: ChangesSummary) -> None:
-        """Trigger downstream services like calendar sync.
+        """Trigger downstream services.
+
+        Note: Calendar sync is now handled via Redis pub/sub (Issue #84).
+        HTTP /sync endpoint calls have been removed.
 
         Args:
             changes: Summary of detected changes
         """
         try:
-            logger.info("Triggering downstream services...")
-
-            # Trigger calendar sync using existing service
-            calendar_sync_success = self._trigger_calendar_sync(changes)
-
-            if calendar_sync_success:
-                logger.info("Calendar sync triggered successfully")
-            else:
-                logger.warning("Calendar sync failed")
+            logger.info("Downstream services triggered via Redis pub/sub")
+            # Calendar sync service receives updates via Redis automatically
+            # No HTTP calls needed (Issue #84)
 
         except Exception as e:
             logger.error(f"Failed to trigger downstream services: {e}")
-
-    def _trigger_calendar_sync(self, changes: ChangesSummary) -> bool:
-        """Trigger calendar sync service.
-
-        Args:
-            changes: Summary of detected changes
-
-        Returns:
-            True if calendar sync was triggered successfully
-        """
-        try:
-            # Use existing phonebook service to trigger calendar sync
-            logger.info("Triggering calendar sync via phonebook service...")
-
-            # Use the existing sync_contacts method
-            success = self.phonebook_service.sync_contacts()
-            return success
-
-        except Exception as e:
-            logger.error(f"Failed to trigger calendar sync: {e}")
-            return False
 
     def get_processing_stats(self) -> Dict[str, Any]:
         """Get processing statistics.

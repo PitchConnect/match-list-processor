@@ -15,7 +15,6 @@ from .core.match_processor import MatchProcessor
 from .custom_types import MatchDict_Dict
 from .services.api_client import DockerNetworkApiClient
 from .services.avatar_service import WhatsAppAvatarService
-from .services.phonebook_service import FogisPhonebookSyncService
 from .services.storage_service import GoogleDriveStorageService
 from .utils.description_generator import generate_whatsapp_description
 from .web.health_server import create_health_server
@@ -32,7 +31,6 @@ class MatchListProcessorApp:
         self.api_client = DockerNetworkApiClient()
         self.avatar_service = WhatsAppAvatarService()
         self.storage_service = GoogleDriveStorageService()
-        self.phonebook_service = FogisPhonebookSyncService()
         self.match_processor = MatchProcessor(
             self.avatar_service,
             self.storage_service,
@@ -73,11 +71,6 @@ class MatchListProcessorApp:
             logger.warning("Health server failed to start, but continuing with main processing...")
 
         try:
-            # Sync contacts with phonebook
-            sync_result = self.phonebook_service.sync_contacts()
-            if not sync_result:
-                logger.warning("Contact sync failed, but continuing with match processing.")
-
             # Load and parse previous matches
             previous_matches_dict = self._load_previous_matches()
             logger.info(f"Loaded previous matches data: {len(previous_matches_dict)} matches.")

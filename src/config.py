@@ -33,10 +33,6 @@ class Settings(BaseSettings):
         default="http://google-drive-service:5000",
         validation_alias="GOOGLE_DRIVE_SERVICE_URL",
     )
-    phonebook_sync_service_url: str = Field(
-        default="http://fogis-calendar-phonebook-sync:5003",
-        validation_alias="PHONEBOOK_SYNC_SERVICE_URL",
-    )
 
     # Processing settings
     min_referees_for_whatsapp: int = Field(default=2, validation_alias="MIN_REFEREES_FOR_WHATSAPP")
